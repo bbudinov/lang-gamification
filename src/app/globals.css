@@ -137,3 +137,51 @@ html, body {
   25% { transform: translateY(-3px) rotate(-5deg); }
   75% { transform: translateY(-3px) rotate(5deg); }
 }
+
+/* True/False — card enter (slide + fade from right) */
+@keyframes tf-card-enter {
+  0% { transform: translateX(60px) rotateY(-15deg) scale(0.9); opacity: 0; }
+  100% { transform: translateX(0) rotateY(0) scale(1); opacity: 1; }
+}
+
+/* True/False — card exit (slide left + fade) */
+@keyframes tf-card-exit {
+  0% { transform: translateX(0) rotateY(0) scale(1); opacity: 1; }
+  100% { transform: translateX(-80px) rotateY(15deg) scale(0.85); opacity: 0; }
+}
+
+/* True/False — button press down */
+@keyframes tf-press {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(4px) scale(0.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* True/False — correct glow */
+@keyframes tf-correct-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  50% { box-shadow: 0 0 25px 8px rgba(34, 197, 94, 0.4); }
+}
+
+/* True/False — wrong screen shake */
+@keyframes tf-screen-shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-6px) rotate(-0.5deg); }
+  20% { transform: translateX(6px) rotate(0.5deg); }
+  30% { transform: translateX(-5px) rotate(-0.3deg); }
+  40% { transform: translateX(5px) rotate(0.3deg); }
+  50% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+}
+.tf-screen-shake {
+  animation: tf-screen-shake 0.4s ease-in-out;
+}
+
+/* True/False — floating card */
+@keyframes tf-float {
+  0%, 100% { transform: translateY(0) rotateX(1deg); }
+  50% { transform: translateY(-5px) rotateX(-1deg); }
+}
+.tf-float {
+  animation: tf-float 3s ease-in-out infinite;
+}

@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { playWordAudio } from "@/lib/speech";
+import { MatchPopup } from "./MatchPopup";
+import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -31,14 +32,13 @@ interface Round {
 function generateRounds(topic: Topic, targetLang: string, nativeLang: string): Round[] {
   const words = shuffle(topic.words).slice(0, ROUNDS);
   return words.map((word) => {
-    const correct = Math.random() > 0.4; // ~60% correct to keep it fun
+    const correct = Math.random() > 0.4;
     const realTranslation = word[nativeLang as keyof WordEntry] as string;
 
     if (correct) {
       return { word, shownTranslation: realTranslation, isCorrect: true };
     }
 
-    // Pick a wrong translation from another word
     const others = topic.words.filter((w) => w.id !== word.id);
     const wrongWord = others[Math.floor(Math.random() * others.length)];
     const wrongTranslation = wrongWord[nativeLang as keyof WordEntry] as string;
@@ -61,6 +61,11 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   const [mistakes, setMistakes] = useState(0);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [popup, setPopup] = useState<{ emoji: string; word: string } | null>(null);
+  const [shaking, setShaking] = useState(false);
+  const [cardKey, setCardKey] = useState(0);
+  const [exiting, setExiting] = useState(false);
+  const [pressedBtn, setPressedBtn] = useState<"true" | "false" | null>(null);
 
   useEffect(() => {
     requestWakeLock();
@@ -75,6 +80,9 @@ export function TrueFalse({ topic }: TrueFalseProps) {
     setMistakes(0);
     setFeedback(null);
     setGameCompleted(false);
+    setPopup(null);
+    setCardKey(0);
+    setExiting(false);
   }, [topic, targetLanguage, nativeLanguage]);
 
   // Speak the word when round changes
@@ -89,19 +97,34 @@ export function TrueFalse({ topic }: TrueFalseProps) {
     (userSaysTrue: boolean) => {
       if (feedback !== null || gameCompleted) return;
 
+      playPopSound();
+      setPressedBtn(userSaysTrue ? "true" : "false");
       const round = rounds[currentRound];
       const isRight = userSaysTrue === round.isCorrect;
 
       setFeedback(isRight ? "correct" : "wrong");
 
       if (isRight) {
+        playDingSound();
         setScore((s) => s + CORRECT_POINTS);
+        const targetText = round.word[targetLanguage as keyof WordEntry] as string;
+        setPopup({ emoji: round.word.emoji, word: targetText });
+        setTimeout(() => playWordAudio(round.word.id, targetLanguage), 300);
       } else {
+        playBuzzSound();
         setScore((s) => Math.max(0, s - WRONG_PENALTY));
         setMistakes((m) => m + 1);
+        setShaking(true);
+        setTimeout(() => setShaking(false), 400);
       }
 
+      // Card exit animation, then move to next
       setTimeout(() => {
+        setExiting(true);
+      }, 800);
+
+      setTimeout(() => {
+        setPressedBtn(null);
         if (currentRound + 1 >= rounds.length) {
           const finalScore =
             (isRight ? score + CORRECT_POINTS : Math.max(0, score - WRONG_PENALTY)) +
@@ -118,12 +141,14 @@ export function TrueFalse({ topic }: TrueFalseProps) {
           setScore((s) => s + COMPLETION_BONUS);
           setGameCompleted(true);
         } else {
+          setExiting(false);
           setCurrentRound((r) => r + 1);
+          setCardKey((k) => k + 1);
           setFeedback(null);
         }
-      }, 1000);
+      }, 1200);
     },
-    [feedback, gameCompleted, rounds, currentRound, score, mistakes, topic, addPoints, addGameResult]
+    [feedback, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult]
   );
 
   const handleReplay = () => {
@@ -134,6 +159,9 @@ export function TrueFalse({ topic }: TrueFalseProps) {
     setMistakes(0);
     setFeedback(null);
     setGameCompleted(false);
+    setPopup(null);
+    setCardKey(0);
+    setExiting(false);
   };
 
   if (rounds.length === 0) {
@@ -145,14 +173,23 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   }
 
   const round = rounds[currentRound];
+  const progressPct = ((currentRound + (feedback !== null ? 1 : 0)) / rounds.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
+    <div className={`min-h-screen bg-[#0a1628] relative ${shaking ? "tf-screen-shake" : ""}`}>
       <GameHUD topicEmoji={topic.emoji} topicName={topic.name[targetLanguage]} />
+
+      {popup && (
+        <MatchPopup
+          emoji={popup.emoji}
+          word={popup.word}
+          onDone={() => setPopup(null)}
+        />
+      )}
 
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-in fade-in">
             <div className="text-5xl mb-2">🎉</div>
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-1">
@@ -178,34 +215,97 @@ export function TrueFalse({ topic }: TrueFalseProps) {
           </div>
         ) : (
           <div className="w-full max-w-sm space-y-8">
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white/10 rounded-full h-2">
+            {/* Progress bar with walking emoji */}
+            <div className="flex items-center gap-2 relative">
+              <div className="flex-1 bg-white/10 rounded-full h-3 relative overflow-hidden">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${((currentRound + 1) / rounds.length) * 100}%` }}
+                  className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <span className="text-slate-400 text-xs">
+              <span
+                className="absolute text-lg transition-all duration-700 ease-out -top-5"
+                style={{
+                  left: `calc(${Math.min(progressPct, 95)}% - 8px)`,
+                  animation: "quiz-walk 0.4s ease-in-out infinite",
+                }}
+              >
+                {topic.emoji}
+              </span>
+              <span className="text-slate-400 text-xs min-w-[32px] text-right">
                 {currentRound + 1}/{rounds.length}
               </span>
             </div>
 
-            {/* Word pair display */}
-            <div className="text-center space-y-4">
-              <p className="text-slate-400 text-sm">Is this translation correct?</p>
-              <div className="bg-white/5 rounded-2xl p-6 space-y-3">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-3xl">{round.word.emoji}</span>
-                  <span className="text-2xl font-bold text-white">
+            {/* Score */}
+            <div className="text-center">
+              <span className="text-amber-400 font-bold text-sm">⭐ {score}</span>
+            </div>
+
+            {/* Flashcard */}
+            <div
+              key={cardKey}
+              className="[perspective:800px]"
+              style={{
+                animation: exiting
+                  ? "tf-card-exit 0.35s ease-in forwards"
+                  : "tf-card-enter 0.4s ease-out both",
+              }}
+            >
+              <div className="tf-float bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/15 rounded-3xl p-8 space-y-4 shadow-2xl">
+                <p className="text-slate-400 text-sm text-center">Is this translation correct?</p>
+
+                {/* Original word */}
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-5xl drop-shadow-lg">{round.word.emoji}</span>
+                  <span className="text-3xl font-bold text-white drop-shadow-md">
                     {round.word[targetLanguage as keyof WordEntry] as string}
                   </span>
                 </div>
-                <div className="text-slate-400 text-lg">=</div>
-                <div className="text-xl font-semibold text-blue-300">
-                  {round.shownTranslation}
+
+                {/* Equals sign */}
+                <div className="flex justify-center">
+                  <span className="text-2xl text-slate-500 font-light">=</span>
                 </div>
+
+                {/* Shown translation */}
+                <div className="text-center">
+                  <span className={`text-2xl font-bold transition-colors duration-300 ${
+                    feedback === "correct" ? "text-green-400" :
+                    feedback === "wrong" ? "text-red-400" :
+                    "text-blue-300"
+                  }`}>
+                    {round.shownTranslation}
+                  </span>
+                </div>
+
+                {/* Feedback badge on card */}
+                {feedback && (
+                  <div className="flex justify-center pt-1">
+                    <span className={`text-sm font-semibold px-4 py-1 rounded-full ${
+                      feedback === "correct"
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-red-500/20 text-red-400"
+                    }`}>
+                      {feedback === "correct" ? `+${CORRECT_POINTS} pts` : `-${WRONG_PENALTY} pts`}
+                    </span>
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Listen button */}
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  if (rounds.length > 0 && currentRound < rounds.length) {
+                    playWordAudio(rounds[currentRound].word.id, targetLanguage);
+                  }
+                }}
+                className="text-blue-400 text-sm active:text-blue-300 transition-colors bg-blue-400/10 px-4 py-1.5 rounded-full"
+              >
+                🔊 Listen again
+              </button>
             </div>
 
             {/* True / False buttons */}
@@ -213,41 +313,50 @@ export function TrueFalse({ topic }: TrueFalseProps) {
               <button
                 onClick={() => handleAnswer(true)}
                 disabled={feedback !== null}
-                className={`py-5 rounded-xl text-lg font-bold transition-all ${
+                className={`py-6 rounded-2xl text-xl font-bold transition-all duration-300 border-2 text-white disabled:cursor-default ${
                   feedback !== null
                     ? feedback === "correct" && rounds[currentRound].isCorrect
-                      ? "bg-green-600"
+                      ? "bg-green-600/40 border-green-400 scale-105"
                       : feedback === "wrong" && !rounds[currentRound].isCorrect
-                        ? "bg-green-600/30"
-                        : "bg-white/5"
-                    : "bg-green-600/80 active:scale-95"
-                } text-white disabled:cursor-default`}
+                        ? "bg-green-600/15 border-green-400/30"
+                        : "bg-white/3 border-white/5 opacity-40"
+                    : "bg-green-600/30 border-green-500/40 active:scale-95 active:bg-green-600/50"
+                }`}
+                style={
+                  pressedBtn === "true" && feedback === "correct"
+                    ? { animation: "tf-correct-glow 0.6s ease-out" }
+                    : pressedBtn === "true"
+                      ? { animation: "tf-press 0.2s ease-out" }
+                      : undefined
+                }
               >
-                ✅ True
+                <span className="text-2xl block mb-1">👍</span>
+                True
               </button>
               <button
                 onClick={() => handleAnswer(false)}
                 disabled={feedback !== null}
-                className={`py-5 rounded-xl text-lg font-bold transition-all ${
+                className={`py-6 rounded-2xl text-xl font-bold transition-all duration-300 border-2 text-white disabled:cursor-default ${
                   feedback !== null
                     ? feedback === "correct" && !rounds[currentRound].isCorrect
-                      ? "bg-red-600"
+                      ? "bg-red-600/40 border-red-400 scale-105"
                       : feedback === "wrong" && rounds[currentRound].isCorrect
-                        ? "bg-red-600/30"
-                        : "bg-white/5"
-                    : "bg-red-600/80 active:scale-95"
-                } text-white disabled:cursor-default`}
+                        ? "bg-red-600/15 border-red-400/30"
+                        : "bg-white/3 border-white/5 opacity-40"
+                    : "bg-red-600/30 border-red-500/40 active:scale-95 active:bg-red-600/50"
+                }`}
+                style={
+                  pressedBtn === "false" && feedback === "correct"
+                    ? { animation: "tf-correct-glow 0.6s ease-out" }
+                    : pressedBtn === "false"
+                      ? { animation: "tf-press 0.2s ease-out" }
+                      : undefined
+                }
               >
-                ❌ False
+                <span className="text-2xl block mb-1">👎</span>
+                False
               </button>
             </div>
-
-            {/* Feedback */}
-            {feedback && (
-              <p className={`text-center font-semibold ${feedback === "correct" ? "text-green-400" : "text-red-400"}`}>
-                {feedback === "correct" ? `Correct! +${CORRECT_POINTS} pts` : `Wrong! -${WRONG_PENALTY} pts`}
-              </p>
-            )}
           </div>
         )}
       </div>
