@@ -5,14 +5,14 @@ import { speak } from "@/lib/speech";
 import type { TopicId } from "@/types";
 
 const PHRASES = [
-  "great choice",
-  "let's play",
-  "wooooo",
-  "game changer",
-  "fabulous",
-  "magnific",
-  "think about everything",
-  "own your langworld",
+  "страхотен избор",
+  "да играем",
+  "уууууу",
+  "това ще е велико",
+  "фантастично",
+  "магнифик",
+  "мисли за всичко",
+  "владей своя ЛангУърлд",
 ];
 
 let phraseIndex = 0;
@@ -74,7 +74,7 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
             <button
               key={game.type}
               onClick={() => {
-                speak(PHRASES[phraseIndex % PHRASES.length], "en");
+                speak(PHRASES[phraseIndex % PHRASES.length], "bg");
                 phraseIndex++;
                 router.push(`/game/${topicId}/${game.type}`);
               }}
