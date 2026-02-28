@@ -128,7 +128,8 @@ export function HelpButton() {
     <>
       <button
         onClick={handleOpen}
-        className="absolute bottom-6 right-4 z-30 w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-300"
+        className="absolute bottom-6 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-300"
+        style={{ zIndex: 9999 }}
       >
         <span className="text-2xl">🧑‍🏫</span>
       </button>

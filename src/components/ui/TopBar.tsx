@@ -24,7 +24,7 @@ export function TopBar() {
   };
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-30 safe-area">
+    <div className="absolute top-0 left-0 right-0 safe-area" style={{ zIndex: 9999 }}>
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
           <span className="text-amber-400 text-sm">⭐</span>
