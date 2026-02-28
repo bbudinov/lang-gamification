@@ -1,6 +1,6 @@
 export type Language = "en" | "bg" | "es";
 
-export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work";
+export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "sports" | "music";
 
 export interface WordEntry {
   id: string;
@@ -20,7 +20,7 @@ export interface Topic {
   color: string;
 }
 
-export type GameType = "memory-match" | "falling-words" | "sentence-arrange" | "fill-blank" | "listen-choose";
+export type GameType = "memory-match" | "word-quiz" | "true-false" | "word-scramble" | "listen-choose";
 
 export interface GameResult {
   topicId: TopicId;

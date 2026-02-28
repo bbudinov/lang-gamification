@@ -28,10 +28,12 @@ export function Island({ topic, onSelect }: IslandProps) {
     }
   });
 
+  const hasContent = topic.words.length > 0;
+
   const handleClick = () => {
-    if (unlocked) {
+    if (unlocked && hasContent) {
       onSelect(topic);
-    } else if (canAfford) {
+    } else if (!unlocked && canAfford && hasContent) {
       unlockTopic(topic.id);
     }
   };
@@ -95,7 +97,9 @@ export function Island({ topic, onSelect }: IslandProps) {
           </p>
           {!unlocked && (
             <p className="text-xs mt-0.5">
-              {canAfford ? (
+              {!hasContent ? (
+                <span className="text-slate-500">🔒 Coming soon</span>
+              ) : canAfford ? (
                 <span className="text-green-400 font-semibold">Tap to unlock!</span>
               ) : (
                 <span className="text-amber-400">🔒 {topic.unlockCost} pts</span>

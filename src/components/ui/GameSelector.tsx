@@ -23,6 +23,18 @@ const GAMES = [
     emoji: "🎯",
     description: "Listen and pick the right translation",
   },
+  {
+    type: "true-false",
+    name: "True or False",
+    emoji: "✅",
+    description: "Is this translation correct?",
+  },
+  {
+    type: "word-scramble",
+    name: "Word Scramble",
+    emoji: "🔤",
+    description: "Unscramble letters to spell the word",
+  },
 ];
 
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {

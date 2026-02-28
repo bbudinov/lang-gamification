@@ -27,7 +27,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
     <div className="w-full h-full" style={{ touchAction: "none" }}>
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 8, 8], fov: 50 }}
+        camera={{ position: [0, 12, 12], fov: 50 }}
         style={{ touchAction: "none" }}
       >
         <PerformanceMonitor
@@ -35,7 +35,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
           onIncline={() => setDpr(1.5)}
         />
         <color attach="background" args={["#0a1628"]} />
-        <fog attach="fog" args={["#0a1628", 15, 30]} />
+        <fog attach="fog" args={["#0a1628", 20, 40]} />
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 10, 5]} intensity={0.8} />
 
@@ -47,13 +47,14 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
         </Suspense>
 
         <OrbitControls
-          enableRotate={false}
+          enableRotate={true}
           enablePan={true}
           enableZoom={true}
-          minDistance={4}
-          maxDistance={15}
-          maxPolarAngle={Math.PI / 3}
-          touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }}
+          minDistance={5}
+          maxDistance={25}
+          minPolarAngle={Math.PI / 6}
+          maxPolarAngle={Math.PI / 2.5}
+          touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
         />
       </Canvas>
     </div>

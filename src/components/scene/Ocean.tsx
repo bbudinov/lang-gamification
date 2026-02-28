@@ -15,7 +15,7 @@ export function Ocean() {
 
   return (
     <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-      <planeGeometry args={[60, 60]} />
+      <planeGeometry args={[100, 100]} />
       <meshStandardMaterial
         color="#0ea5e9"
         transparent

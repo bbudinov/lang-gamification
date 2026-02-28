@@ -4,6 +4,8 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { MemoryMatch } from "@/components/game/MemoryMatch";
 import { WordQuiz } from "@/components/game/WordQuiz";
+import { TrueFalse } from "@/components/game/TrueFalse";
+import { WordScramble } from "@/components/game/WordScramble";
 import { topics } from "@/data/words";
 
 export default function GamePage({
@@ -35,6 +37,14 @@ export default function GamePage({
 
   if (gameType === "word-quiz") {
     return <WordQuiz topic={topic} />;
+  }
+
+  if (gameType === "true-false") {
+    return <TrueFalse topic={topic} />;
+  }
+
+  if (gameType === "word-scramble") {
+    return <WordScramble topic={topic} />;
   }
 
   return (
