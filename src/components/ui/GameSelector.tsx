@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { speak } from "@/lib/speech";
+import { speakAndWait } from "@/lib/speech";
 import type { TopicId } from "@/types";
 
 const PHRASES = [
@@ -53,6 +54,19 @@ const GAMES = [
 
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {
   const router = useRouter();
+  const [navigating, setNavigating] = useState(false);
+
+  const handleGameSelect = async (gameType: string) => {
+    if (navigating) return;
+    setNavigating(true);
+
+    const phrase = PHRASES[phraseIndex % PHRASES.length];
+    phraseIndex++;
+
+    // Wait for phrase to finish, then navigate
+    await speakAndWait(phrase, "bg", 3000);
+    router.push(`/game/${topicId}/${gameType}`);
+  };
 
   return (
     <div
@@ -73,12 +87,11 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
           {GAMES.map((game) => (
             <button
               key={game.type}
-              onClick={() => {
-                speak(PHRASES[phraseIndex % PHRASES.length], "bg");
-                phraseIndex++;
-                router.push(`/game/${topicId}/${game.type}`);
-              }}
-              className="w-full flex items-center gap-4 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl p-4 transition-colors text-left"
+              onClick={() => handleGameSelect(game.type)}
+              disabled={navigating}
+              className={`w-full flex items-center gap-4 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl p-4 transition-colors text-left ${
+                navigating ? "opacity-50 cursor-default" : ""
+              }`}
             >
               <span className="text-3xl">{game.emoji}</span>
               <div>

@@ -89,7 +89,7 @@ export function Island({ topic, onSelect }: IslandProps) {
       </Float>
 
       {/* Label */}
-      <Html center position={[0, 2, 0]} distanceFactor={8}>
+      <Html center position={[0, 2, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
         <div className="text-center pointer-events-none select-none">
           <div className="text-3xl">{topic.emoji}</div>
           <p className="text-white text-sm font-bold whitespace-nowrap drop-shadow-lg">

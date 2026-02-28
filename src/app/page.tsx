@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { initSpeech, speak } from "@/lib/speech";
 
@@ -32,11 +32,19 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [narrating, setNarrating] = useState(false);
   const [storyLine, setStoryLine] = useState("");
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     initSpeech();
     const timer = setTimeout(() => setReady(true), 800);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+    };
   }, []);
 
   const handleStart = () => {
@@ -50,7 +58,7 @@ export default function Home() {
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    STORY_PARTS.forEach((part, i) => {
+    STORY_PARTS.forEach((part) => {
       const t = setTimeout(() => {
         setStoryLine(part.text);
         speak(part.text, "bg");
@@ -64,10 +72,14 @@ export default function Home() {
     }, 38000);
     timers.push(navTimer);
 
-    return () => timers.forEach(clearTimeout);
+    timersRef.current = timers;
   };
 
   const handleSkip = () => {
+    // Clear ALL pending story timers
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
