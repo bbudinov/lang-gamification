@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/gameStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { GameHUD } from "./GameHUD";
-import { playWordAudio } from "@/lib/speech";
+import { playWordAudio, playPopSound, playDingSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { GAME_CONFIG } from "@/lib/constants";
 import type { Topic, MemoryCard as MemoryCardType } from "@/types";
@@ -78,6 +78,8 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     completeGame,
   } = useGameStore();
 
+  const [shakingPair, setShakingPair] = useState<string | null>(null);
+
   // Keep screen awake during gameplay
   useEffect(() => {
     requestWakeLock();
@@ -89,6 +91,12 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     const generated = generateCards(topic, nativeLanguage, targetLanguage);
     initMemoryGame(generated, cfg.PAIRS_COUNT);
   }, [topic, nativeLanguage, targetLanguage, initMemoryGame, cfg.PAIRS_COUNT]);
+
+  // Handle card flip sound
+  const handleFlip = (cardId: string) => {
+    playPopSound();
+    flipCard(cardId);
+  };
 
   // Check for match when 2 cards are flipped
   useEffect(() => {
@@ -103,10 +111,11 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     }
 
     if (result.isMatch) {
-      // Find the matched word to speak it
+      // Match found!
+      playDingSound();
       const matchedWord = topic.words.find((w) => w.id === result.pairId);
       if (matchedWord) {
-        playWordAudio(matchedWord.id, targetLanguage);
+        setTimeout(() => playWordAudio(matchedWord.id, targetLanguage), 200);
       }
 
       addScore(cfg.MATCH_POINTS);
@@ -115,9 +124,19 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
         setLocked(false);
       }, 400);
     } else {
+      // Mismatch — shake the cards
       addScore(-cfg.MISMATCH_PENALTY);
+
+      // Find which pair ID the flipped cards belong to (for shake)
+      const flippedCardObjs = cards.filter((c) => flippedCards.includes(c.id));
+      if (flippedCardObjs.length === 2) {
+        // Use a unique key to trigger shake
+        setShakingPair(flippedCardObjs.map((c) => c.id).join(","));
+      }
+
       setTimeout(() => {
         resetFlipped();
+        setShakingPair(null);
         setLocked(false);
       }, cfg.FLIP_DELAY_MS);
     }
@@ -144,6 +163,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
   const handleReplay = () => {
     const generated = generateCards(topic, nativeLanguage, targetLanguage);
     initMemoryGame(generated, cfg.PAIRS_COUNT);
+    setShakingPair(null);
   };
 
   if (cards.length === 0) {
@@ -195,8 +215,9 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
               <MemoryCard
                 key={card.id}
                 card={card}
-                onFlip={flipCard}
+                onFlip={handleFlip}
                 disabled={isLocked}
+                shaking={shakingPair?.includes(card.id) ?? false}
               />
             ))}
           </div>
