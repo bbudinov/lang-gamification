@@ -119,9 +119,13 @@ export function TrueFalse({ topic }: TrueFalseProps) {
       }
 
       // Card exit animation, then move to next
+      // Correct: longer delay so popup + audio finish before next round
+      const exitDelay = isRight ? 1800 : 800;
+      const nextDelay = isRight ? 2300 : 1200;
+
       setTimeout(() => {
         setExiting(true);
-      }, 800);
+      }, exitDelay);
 
       setTimeout(() => {
         setPressedBtn(null);
@@ -146,7 +150,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
           setCardKey((k) => k + 1);
           setFeedback(null);
         }
-      }, 1200);
+      }, nextDelay);
     },
     [feedback, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult]
   );
