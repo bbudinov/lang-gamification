@@ -181,7 +181,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
           onIncline={() => setDpr(1.5)}
         />
         <color attach="background" args={[dn.bgColor]} />
-        <fog attach="fog" args={[dn.fogColor, 25, 55]} />
+        <fog attach="fog" args={[dn.fogColor, 30, 65]} />
         <ambientLight color={dn.ambientColor} intensity={dn.ambientIntensity} />
         <directionalLight
           position={[5, 10, 5]}
