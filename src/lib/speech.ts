@@ -13,6 +13,8 @@ const RATE_MAP: Record<Language, number> = {
   es: 0.85,
 };
 
+const VOICE_STORAGE_KEY = "langworld-voice-pref";
+
 let voicesLoaded = false;
 let cachedVoices: SpeechSynthesisVoice[] = [];
 
@@ -45,6 +47,34 @@ function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
+/** Get all available voices for a language */
+export async function getVoicesForLanguage(
+  language: Language
+): Promise<{ name: string; lang: string }[]> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window))
+    return [];
+  const voices = await ensureVoices();
+  const langPrefix = LANG_MAP[language].split("-")[0];
+  return voices
+    .filter((v) => v.lang.startsWith(langPrefix))
+    .map((v) => ({ name: v.name, lang: v.lang }));
+}
+
+/** Save preferred voice name for a language */
+export function setPreferredVoice(language: Language, voiceName: string): void {
+  if (typeof window === "undefined") return;
+  const prefs = JSON.parse(localStorage.getItem(VOICE_STORAGE_KEY) || "{}");
+  prefs[language] = voiceName;
+  localStorage.setItem(VOICE_STORAGE_KEY, JSON.stringify(prefs));
+}
+
+/** Get saved preferred voice name for a language */
+function getPreferredVoiceName(language: Language): string | null {
+  if (typeof window === "undefined") return null;
+  const prefs = JSON.parse(localStorage.getItem(VOICE_STORAGE_KEY) || "{}");
+  return prefs[language] || null;
+}
+
 function findBestVoice(
   voices: SpeechSynthesisVoice[],
   language: Language
@@ -54,6 +84,13 @@ function findBestVoice(
 
   const matching = voices.filter((v) => v.lang.startsWith(langPrefix));
   if (matching.length === 0) return null;
+
+  // Check for user-saved preference
+  const preferredName = getPreferredVoiceName(language);
+  if (preferredName) {
+    const preferred = matching.find((v) => v.name === preferredName);
+    if (preferred) return preferred;
+  }
 
   // Prefer Google voices (higher quality on Chrome/Android)
   const google = matching.find((v) =>
@@ -98,6 +135,32 @@ export async function speak(text: string, language: Language): Promise<void> {
   utterance.volume = 1;
 
   const voice = findBestVoice(voices, language);
+  if (voice) utterance.voice = voice;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+/** Speak with a specific voice name (for testing voices) */
+export async function speakWithVoice(
+  text: string,
+  language: Language,
+  voiceName: string
+): Promise<void> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const voices = await ensureVoices();
+  const langPrefix = LANG_MAP[language].split("-")[0];
+  const voice = voices.find(
+    (v) => v.name === voiceName && v.lang.startsWith(langPrefix)
+  );
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = LANG_MAP[language];
+  utterance.rate = RATE_MAP[language];
+  utterance.pitch = 1.05;
+  utterance.volume = 1;
   if (voice) utterance.voice = voice;
 
   window.speechSynthesis.speak(utterance);

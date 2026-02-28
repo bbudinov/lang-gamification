@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { speak, stopSpeech } from "@/lib/speech";
+import { useState, useEffect } from "react";
+import {
+  speak,
+  stopSpeech,
+  getVoicesForLanguage,
+  speakWithVoice,
+  setPreferredVoice,
+} from "@/lib/speech";
 
 type RulesLang = "en" | "bg";
+
+const TEST_PHRASE: Record<RulesLang, string> = {
+  bg: "Здравей! Аз съм Професор Глоуб, твоят езиков помощник.",
+  en: "Hello! I am Professor Globe, your language guide.",
+};
 
 const RULES = {
   en: {
@@ -42,8 +53,8 @@ const RULES = {
       },
       {
         title: "🔓 Unlocking",
-        text: "🎨 Colors: 50 pts. More topics coming soon!",
-        speech: "Earn enough points to unlock new islands. Colors needs 50 points, and many more topics are coming soon!",
+        text: "Earn points to unlock new islands. Each island costs 500 more!",
+        speech: "Earn enough points to unlock new islands. Each new island costs 500 more points than the previous one!",
       },
       {
         title: "🌐 Languages",
@@ -88,8 +99,8 @@ const RULES = {
       },
       {
         title: "🔓 Отключване",
-        text: "🎨 Цветове: 50 точки. Скоро идват нови теми!",
-        speech: "Печели достатъчно точки, за да отключиш нови острови. Цветове иска 50 точки, а скоро идват много нови теми!",
+        text: "Печели точки за нови острови. Всеки следващ струва 500 повече!",
+        speech: "Печели достатъчно точки, за да отключиш нови острови. Всеки следващ остров струва 500 точки повече от предишния!",
       },
       {
         title: "🌐 Езици",
@@ -104,13 +115,32 @@ export function HelpButton() {
   const [showRules, setShowRules] = useState(false);
   const [lang, setLang] = useState<RulesLang>("bg");
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [bgVoices, setBgVoices] = useState<{ name: string; lang: string }[]>([]);
+  const [selectedVoiceIdx, setSelectedVoiceIdx] = useState(0);
+  const [showVoicePicker, setShowVoicePicker] = useState(false);
 
   const r = RULES[lang];
+
+  // Load available BG voices when panel opens
+  useEffect(() => {
+    if (showRules) {
+      getVoicesForLanguage("bg").then((voices) => {
+        setBgVoices(voices);
+      });
+    }
+  }, [showRules]);
 
   const handleOpen = () => {
     setShowRules(true);
     setActiveSection(null);
+    setShowVoicePicker(false);
     speak(r.greeting, lang);
+  };
+
+  const handleClose = () => {
+    stopSpeech();
+    setShowRules(false);
+    setShowVoicePicker(false);
   };
 
   const switchLang = (newLang: RulesLang) => {
@@ -122,6 +152,13 @@ export function HelpButton() {
   const handleSectionTap = (index: number) => {
     setActiveSection(index);
     speak(r.sections[index].speech, lang);
+  };
+
+  const handleVoiceSelect = (idx: number) => {
+    setSelectedVoiceIdx(idx);
+    const voice = bgVoices[idx];
+    setPreferredVoice("bg", voice.name);
+    speakWithVoice(TEST_PHRASE.bg, "bg", voice.name);
   };
 
   return (
@@ -137,7 +174,7 @@ export function HelpButton() {
       {showRules && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
-          onClick={() => { stopSpeech(); setShowRules(false); }}
+          onClick={handleClose}
         >
           <div
             className="bg-[#1a2744] rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 max-h-[80vh] overflow-y-auto"
@@ -179,6 +216,46 @@ export function HelpButton() {
               {lang === "en" ? "Tap any section to hear it" : "Натисни секция, за да я чуеш"}
             </p>
 
+            {/* Voice picker toggle */}
+            {bgVoices.length > 1 && (
+              <button
+                onClick={() => setShowVoicePicker(!showVoicePicker)}
+                className="w-full mb-3 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl py-2 px-3 transition-colors"
+              >
+                <span className="text-sm">🎙️</span>
+                <span className="text-slate-400 text-xs">
+                  {showVoicePicker
+                    ? lang === "en" ? "Hide voices" : "Скрий гласовете"
+                    : lang === "en" ? "Change voice" : "Смени гласа"}
+                </span>
+              </button>
+            )}
+
+            {/* Voice picker list */}
+            {showVoicePicker && bgVoices.length > 1 && (
+              <div className="mb-3 space-y-1.5">
+                <p className="text-slate-500 text-xs text-center mb-2">
+                  {lang === "en"
+                    ? "Tap a voice to hear it, then close to keep it"
+                    : "Натисни глас, за да го чуеш"}
+                </p>
+                {bgVoices.map((voice, idx) => (
+                  <button
+                    key={voice.name}
+                    onClick={() => handleVoiceSelect(idx)}
+                    className={`w-full text-left rounded-lg px-3 py-2 text-xs transition-all ${
+                      selectedVoiceIdx === idx
+                        ? "bg-blue-600/20 border border-blue-500/40 text-white"
+                        : "bg-white/5 border border-transparent text-slate-300 hover:bg-white/10"
+                    }`}
+                  >
+                    <span className="font-medium">{voice.name}</span>
+                    <span className="text-slate-500 ml-2">({voice.lang})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Rules - clickable sections */}
             <div className="space-y-2.5 text-sm text-slate-300 leading-relaxed">
               {r.sections.map((section, i) => (
@@ -208,7 +285,7 @@ export function HelpButton() {
             </div>
 
             <button
-              onClick={() => { stopSpeech(); setShowRules(false); }}
+              onClick={handleClose}
               className="w-full mt-4 bg-blue-600 text-white py-2.5 rounded-xl font-medium active:bg-blue-700 transition-colors"
             >
               {r.gotIt}
