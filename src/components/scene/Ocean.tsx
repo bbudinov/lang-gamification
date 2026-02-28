@@ -10,7 +10,7 @@ export function Ocean() {
 
   useFrame(({ clock }) => {
     if (ref.current) {
-      ref.current.position.y = Math.sin(clock.elapsedTime * 0.3) * 0.05 - 0.5;
+      ref.current.position.y = Math.sin(clock.elapsedTime * 0.4) * 0.08 - 0.5;
     }
   });
 
@@ -18,13 +18,13 @@ export function Ocean() {
     <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
       <planeGeometry args={[100, 100, 64, 64]} />
       <MeshDistortMaterial
-        color="#0ea5e9"
+        color="#1d8fd6"
         transparent
-        opacity={0.85}
-        roughness={0.3}
-        metalness={0.1}
-        speed={1.5}
-        factor={0.4}
+        opacity={0.9}
+        roughness={0.2}
+        metalness={0.15}
+        speed={2}
+        factor={0.6}
       />
     </mesh>
   );

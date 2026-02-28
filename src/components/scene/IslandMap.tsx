@@ -54,31 +54,42 @@ function useDayNightCycle(): DayNightConfig {
     } else {
       return {
         ambientColor: "#b3d4fc",
-        ambientIntensity: 0.3,
-        directionalColor: "#6b8cce",
-        directionalIntensity: 0.4,
-        fogColor: "#060d1f",
-        bgColor: "#060d1f",
+        ambientIntensity: 0.5,
+        directionalColor: "#8baae0",
+        directionalIntensity: 0.6,
+        fogColor: "#0a1628",
+        bgColor: "#0a1628",
       };
     }
   }, []);
 }
 
-// Camera animator — lerps camera toward selected island
+// Camera animator — only lerps when a target island is selected
 function CameraAnimator({
   targetPos,
 }: {
   targetPos: [number, number, number] | null;
 }) {
   const controlsRef = useRef<any>(null);
-  const defaultTarget = useMemo(() => new THREE.Vector3(0, 0, 2), []);
-  const defaultCamPos = useMemo(() => new THREE.Vector3(0, 12, 12), []);
+  const prevTarget = useRef<[number, number, number] | null>(null);
+  const returningRef = useRef(false);
+  const returnedRef = useRef(false);
+  const savedCamPos = useRef<THREE.Vector3 | null>(null);
+  const savedTarget = useRef<THREE.Vector3 | null>(null);
 
   useFrame(({ camera }) => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
 
     if (targetPos) {
+      // Save user's camera position when first focusing
+      if (!prevTarget.current) {
+        savedCamPos.current = camera.position.clone();
+        savedTarget.current = controls.target.clone();
+      }
+      prevTarget.current = targetPos;
+      returnedRef.current = false;
+
       // Zoom toward island
       const islandVec = new THREE.Vector3(targetPos[0], targetPos[1] + 1, targetPos[2]);
       const camTarget = new THREE.Vector3(
@@ -88,12 +99,43 @@ function CameraAnimator({
       );
       controls.target.lerp(islandVec, 0.04);
       camera.position.lerp(camTarget, 0.04);
-    } else {
-      // Return to default
-      controls.target.lerp(defaultTarget, 0.04);
-      camera.position.lerp(defaultCamPos, 0.04);
+      controls.update();
+    } else if (prevTarget.current && !returnedRef.current) {
+      // Just deselected — smoothly return to saved position
+      returningRef.current = true;
+      prevTarget.current = null;
+
+      const restoreCam = savedCamPos.current ?? new THREE.Vector3(0, 12, 12);
+      const restoreTarget = savedTarget.current ?? new THREE.Vector3(0, 0, 2);
+
+      controls.target.lerp(restoreTarget, 0.06);
+      camera.position.lerp(restoreCam, 0.06);
+      controls.update();
+
+      // Check if close enough to stop
+      if (camera.position.distanceTo(restoreCam) < 0.3) {
+        returnedRef.current = true;
+        returningRef.current = false;
+        savedCamPos.current = null;
+        savedTarget.current = null;
+      }
+    } else if (returningRef.current) {
+      // Still returning to saved position
+      const restoreCam = savedCamPos.current ?? new THREE.Vector3(0, 12, 12);
+      const restoreTarget = savedTarget.current ?? new THREE.Vector3(0, 0, 2);
+
+      controls.target.lerp(restoreTarget, 0.06);
+      camera.position.lerp(restoreCam, 0.06);
+      controls.update();
+
+      if (camera.position.distanceTo(restoreCam) < 0.3) {
+        returnedRef.current = true;
+        returningRef.current = false;
+        savedCamPos.current = null;
+        savedTarget.current = null;
+      }
     }
-    controls.update();
+    // When no target and not returning — do nothing, let user freely control camera
   });
 
   return (
