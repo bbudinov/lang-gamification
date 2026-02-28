@@ -64,7 +64,11 @@ function useDayNightCycle(): DayNightConfig {
   }, []);
 }
 
-// Camera animator — only lerps when a target island is selected
+// Home position — centered on all islands
+const HOME_CAM = new THREE.Vector3(0, 15, 18);
+const HOME_TARGET = new THREE.Vector3(0, 0, 5);
+
+// Camera animator — intro zoom + island focus
 function CameraAnimator({
   targetPos,
 }: {
@@ -76,10 +80,23 @@ function CameraAnimator({
   const returnedRef = useRef(false);
   const savedCamPos = useRef<THREE.Vector3 | null>(null);
   const savedTarget = useRef<THREE.Vector3 | null>(null);
+  const introRef = useRef(true);
 
   useFrame(({ camera }) => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
+
+    // Intro zoom-in on first load
+    if (introRef.current) {
+      controls.target.lerp(HOME_TARGET, 0.03);
+      camera.position.lerp(HOME_CAM, 0.03);
+      controls.update();
+
+      if (camera.position.distanceTo(HOME_CAM) < 0.5) {
+        introRef.current = false;
+      }
+      return;
+    }
 
     if (targetPos) {
       // Save user's camera position when first focusing
@@ -104,25 +121,11 @@ function CameraAnimator({
       // Just deselected — smoothly return to saved position
       returningRef.current = true;
       prevTarget.current = null;
+    }
 
-      const restoreCam = savedCamPos.current ?? new THREE.Vector3(0, 12, 12);
-      const restoreTarget = savedTarget.current ?? new THREE.Vector3(0, 0, 2);
-
-      controls.target.lerp(restoreTarget, 0.06);
-      camera.position.lerp(restoreCam, 0.06);
-      controls.update();
-
-      // Check if close enough to stop
-      if (camera.position.distanceTo(restoreCam) < 0.3) {
-        returnedRef.current = true;
-        returningRef.current = false;
-        savedCamPos.current = null;
-        savedTarget.current = null;
-      }
-    } else if (returningRef.current) {
-      // Still returning to saved position
-      const restoreCam = savedCamPos.current ?? new THREE.Vector3(0, 12, 12);
-      const restoreTarget = savedTarget.current ?? new THREE.Vector3(0, 0, 2);
+    if (returningRef.current) {
+      const restoreCam = savedCamPos.current ?? HOME_CAM;
+      const restoreTarget = savedTarget.current ?? HOME_TARGET;
 
       controls.target.lerp(restoreTarget, 0.06);
       camera.position.lerp(restoreCam, 0.06);
@@ -135,7 +138,7 @@ function CameraAnimator({
         savedTarget.current = null;
       }
     }
-    // When no target and not returning — do nothing, let user freely control camera
+    // When no target and not returning — do nothing, let user freely control
   });
 
   return (
@@ -173,7 +176,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
     <div className="w-full h-full relative z-0" style={{ touchAction: "none" }}>
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 12, 12], fov: 50 }}
+        camera={{ position: [0, 25, 28], fov: 50 }}
         style={{ touchAction: "none" }}
       >
         <PerformanceMonitor
