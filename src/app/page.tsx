@@ -1,15 +1,23 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { initSpeech } from "@/lib/speech";
 
 export default function Home() {
   const router = useRouter();
 
+  // Preload voices as early as possible
+  useEffect(() => {
+    initSpeech();
+  }, []);
+
   const handleStart = () => {
-    // Unlock audio context via user interaction
+    // Unlock speech synthesis via user gesture
     if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance("");
-      utterance.volume = 0;
+      const utterance = new SpeechSynthesisUtterance(".");
+      utterance.volume = 0.01;
+      utterance.rate = 10;
       window.speechSynthesis.speak(utterance);
     }
     router.replace("/map");
