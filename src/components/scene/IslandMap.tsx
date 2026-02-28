@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useState, useCallback, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useState, useCallback, useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerformanceMonitor, ContactShadows } from "@react-three/drei";
+import * as THREE from "three";
 import { Island } from "./Island";
 import { Ocean } from "./Ocean";
 import { Clouds } from "./Clouds";
@@ -24,7 +25,6 @@ function useDayNightCycle(): DayNightConfig {
     const hour = new Date().getHours();
 
     if (hour >= 6 && hour < 12) {
-      // Morning: warm, gentle
       return {
         ambientColor: "#fff5e6",
         ambientIntensity: 0.5,
@@ -34,7 +34,6 @@ function useDayNightCycle(): DayNightConfig {
         bgColor: "#1a1a3e",
       };
     } else if (hour >= 12 && hour < 17) {
-      // Afternoon: bright
       return {
         ambientColor: "#ffffff",
         ambientIntensity: 0.7,
@@ -44,7 +43,6 @@ function useDayNightCycle(): DayNightConfig {
         bgColor: "#0d1b3e",
       };
     } else if (hour >= 17 && hour < 21) {
-      // Evening: sunset
       return {
         ambientColor: "#ffccbc",
         ambientIntensity: 0.45,
@@ -54,7 +52,6 @@ function useDayNightCycle(): DayNightConfig {
         bgColor: "#1a0e2e",
       };
     } else {
-      // Night (21-6): cool blue, dim
       return {
         ambientColor: "#b3d4fc",
         ambientIntensity: 0.3,
@@ -67,11 +64,59 @@ function useDayNightCycle(): DayNightConfig {
   }, []);
 }
 
-interface IslandMapProps {
-  onSelectTopic: (topic: Topic) => void;
+// Camera animator — lerps camera toward selected island
+function CameraAnimator({
+  targetPos,
+}: {
+  targetPos: [number, number, number] | null;
+}) {
+  const controlsRef = useRef<any>(null);
+  const defaultTarget = useMemo(() => new THREE.Vector3(0, 0, 2), []);
+  const defaultCamPos = useMemo(() => new THREE.Vector3(0, 12, 12), []);
+
+  useFrame(({ camera }) => {
+    if (!controlsRef.current) return;
+    const controls = controlsRef.current;
+
+    if (targetPos) {
+      // Zoom toward island
+      const islandVec = new THREE.Vector3(targetPos[0], targetPos[1] + 1, targetPos[2]);
+      const camTarget = new THREE.Vector3(
+        targetPos[0] * 0.3,
+        8,
+        targetPos[2] + 8
+      );
+      controls.target.lerp(islandVec, 0.04);
+      camera.position.lerp(camTarget, 0.04);
+    } else {
+      // Return to default
+      controls.target.lerp(defaultTarget, 0.04);
+      camera.position.lerp(defaultCamPos, 0.04);
+    }
+    controls.update();
+  });
+
+  return (
+    <OrbitControls
+      ref={controlsRef}
+      enableRotate={true}
+      enablePan={true}
+      enableZoom={true}
+      minDistance={5}
+      maxDistance={45}
+      minPolarAngle={Math.PI / 6}
+      maxPolarAngle={Math.PI / 2.5}
+      touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
+    />
+  );
 }
 
-export function IslandMap({ onSelectTopic }: IslandMapProps) {
+interface IslandMapProps {
+  onSelectTopic: (topic: Topic) => void;
+  focusPosition?: [number, number, number] | null;
+}
+
+export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProps) {
   const [dpr, setDpr] = useState(1.5);
   const dn = useDayNightCycle();
 
@@ -120,16 +165,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
           />
         </Suspense>
 
-        <OrbitControls
-          enableRotate={true}
-          enablePan={true}
-          enableZoom={true}
-          minDistance={5}
-          maxDistance={45}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={Math.PI / 2.5}
-          touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
-        />
+        <CameraAnimator targetPos={focusPosition} />
       </Canvas>
     </div>
   );
