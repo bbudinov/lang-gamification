@@ -13,29 +13,63 @@ import { playPopSound, playDingSound } from "@/lib/speech";
 
 interface IslandVisual {
   scale: number;
+  height: number; // cone height multiplier
   groundColor: string;
   beachColor: string;
   decoration: "trees" | "palms" | "rocks" | "crystals" | "house" | "flowers";
+  satellites: number; // 0-3 small satellite islands
 }
 
 const ISLAND_VISUALS: Record<string, IslandVisual> = {
-  animals:  { scale: 1.35, groundColor: "#16a34a", beachColor: "#fbbf24", decoration: "trees" },
-  colors:   { scale: 1.0,  groundColor: "#a855f7", beachColor: "#fde68a", decoration: "crystals" },
-  food:     { scale: 1.2,  groundColor: "#65a30d", beachColor: "#fbbf24", decoration: "flowers" },
-  numbers:  { scale: 1.0,  groundColor: "#64748b", beachColor: "#d4a76a", decoration: "rocks" },
-  family:   { scale: 1.15, groundColor: "#ea580c", beachColor: "#fde68a", decoration: "house" },
-  body:     { scale: 0.9,  groundColor: "#0891b2", beachColor: "#a8d8ea", decoration: "rocks" },
-  weather:  { scale: 1.2,  groundColor: "#0284c7", beachColor: "#bae6fd", decoration: "palms" },
-  travel:   { scale: 1.05, groundColor: "#d97706", beachColor: "#fef3c7", decoration: "palms" },
-  school:   { scale: 0.95, groundColor: "#dc2626", beachColor: "#fecaca", decoration: "house" },
-  work:     { scale: 0.9,  groundColor: "#475569", beachColor: "#cbd5e1", decoration: "rocks" },
-  sports:   { scale: 1.0,  groundColor: "#16a34a", beachColor: "#bbf7d0", decoration: "flowers" },
-  music:    { scale: 0.85, groundColor: "#7c3aed", beachColor: "#ddd6fe", decoration: "crystals" },
+  animals:  { scale: 1.5,  height: 1.2, groundColor: "#16a34a", beachColor: "#fbbf24", decoration: "trees",    satellites: 3 },
+  colors:   { scale: 1.1,  height: 0.8, groundColor: "#a855f7", beachColor: "#fde68a", decoration: "crystals", satellites: 1 },
+  food:     { scale: 1.35, height: 1.0, groundColor: "#65a30d", beachColor: "#fbbf24", decoration: "flowers",  satellites: 2 },
+  numbers:  { scale: 1.05, height: 1.1, groundColor: "#64748b", beachColor: "#d4a76a", decoration: "rocks",    satellites: 1 },
+  family:   { scale: 1.3,  height: 1.0, groundColor: "#ea580c", beachColor: "#fde68a", decoration: "house",    satellites: 2 },
+  body:     { scale: 0.85, height: 0.7, groundColor: "#0891b2", beachColor: "#a8d8ea", decoration: "rocks",    satellites: 0 },
+  weather:  { scale: 1.4,  height: 1.3, groundColor: "#0284c7", beachColor: "#bae6fd", decoration: "palms",    satellites: 2 },
+  travel:   { scale: 1.15, height: 0.9, groundColor: "#d97706", beachColor: "#fef3c7", decoration: "palms",    satellites: 1 },
+  school:   { scale: 1.0,  height: 1.0, groundColor: "#dc2626", beachColor: "#fecaca", decoration: "house",    satellites: 1 },
+  work:     { scale: 0.9,  height: 0.8, groundColor: "#475569", beachColor: "#cbd5e1", decoration: "rocks",    satellites: 0 },
+  sports:   { scale: 1.1,  height: 0.9, groundColor: "#16a34a", beachColor: "#bbf7d0", decoration: "flowers",  satellites: 1 },
+  music:    { scale: 0.8,  height: 0.7, groundColor: "#7c3aed", beachColor: "#ddd6fe", decoration: "crystals", satellites: 0 },
 };
 
 const DEFAULT_VISUAL: IslandVisual = {
-  scale: 1.0, groundColor: "#6b7280", beachColor: "#fbbf24", decoration: "trees",
+  scale: 1.0, height: 1.0, groundColor: "#6b7280", beachColor: "#fbbf24", decoration: "trees", satellites: 0,
 };
+
+// ─── Satellite mini-islands ─────────────────────────────────────
+
+function SatelliteIslands({ count, color, beachColor }: { count: number; color: string; beachColor: string }) {
+  if (count === 0) return null;
+
+  const positions: [number, number, number][] = [
+    [2.4, -0.15, 0.8],
+    [-2.2, -0.15, -0.5],
+    [1.0, -0.15, -2.3],
+  ];
+
+  return (
+    <>
+      {positions.slice(0, count).map((pos, i) => {
+        const s = 0.3 + i * 0.05;
+        return (
+          <group key={i} position={pos} scale={s}>
+            <mesh>
+              <coneGeometry args={[1.2, 0.6, 6]} />
+              <meshStandardMaterial color={color} flatShading />
+            </mesh>
+            <mesh position={[0, -0.2, 0]}>
+              <cylinderGeometry args={[1.3, 1.0, 0.1, 6]} />
+              <meshStandardMaterial color={beachColor} flatShading />
+            </mesh>
+          </group>
+        );
+      })}
+    </>
+  );
+}
 
 // ─── Decoration components ──────────────────────────────────────
 
@@ -278,6 +312,8 @@ export function Island({ topic, onSelect }: IslandProps) {
   const groundColor = unlocked ? visual.groundColor : "#6b7280";
   const decoColor = unlocked ? visual.groundColor : "#4b5563";
 
+  const coneH = 1 * visual.height;
+
   return (
     <group ref={ref} position={topic.position} scale={visual.scale}>
       <Float speed={1.5} rotationIntensity={0} floatIntensity={0.5}>
@@ -286,9 +322,9 @@ export function Island({ topic, onSelect }: IslandProps) {
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
         >
-          {/* Island base */}
+          {/* Island base — height varies */}
           <mesh position={[0, 0, 0]}>
-            <coneGeometry args={[1.4, 1, 6]} />
+            <coneGeometry args={[1.4, coneH, 6]} />
             <meshStandardMaterial
               color={groundColor}
               flatShading
@@ -298,7 +334,7 @@ export function Island({ topic, onSelect }: IslandProps) {
           </mesh>
 
           {/* Beach ring */}
-          <mesh position={[0, -0.3, 0]}>
+          <mesh position={[0, -coneH * 0.3, 0]}>
             <cylinderGeometry args={[1.5, 1.2, 0.15, 6]} />
             <meshStandardMaterial color={unlocked ? visual.beachColor : "#9ca3af"} flatShading />
           </mesh>
@@ -307,11 +343,18 @@ export function Island({ topic, onSelect }: IslandProps) {
           <Decorations type={visual.decoration} color={decoColor} />
         </group>
 
+        {/* Satellite mini-islands */}
+        <SatelliteIslands
+          count={visual.satellites}
+          color={groundColor}
+          beachColor={unlocked ? visual.beachColor : "#9ca3af"}
+        />
+
         {/* Unlock sparkles */}
         {unlockEffect && (
           <Sparkles
             count={30}
-            scale={3}
+            scale={4}
             size={6}
             speed={2}
             opacity={0.8}
@@ -321,7 +364,7 @@ export function Island({ topic, onSelect }: IslandProps) {
       </Float>
 
       {/* Label */}
-      <Html center position={[0, 2.2, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
+      <Html center position={[0, 2.5, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
         <div className="text-center pointer-events-none select-none">
           <div className="text-3xl">{topic.emoji}</div>
           <p className="text-white text-sm font-bold whitespace-nowrap drop-shadow-lg">

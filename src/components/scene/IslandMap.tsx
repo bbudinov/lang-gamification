@@ -65,9 +65,9 @@ function useDayNightCycle(): DayNightConfig {
   }, []);
 }
 
-// Home position — centered on all islands
-const HOME_CAM = new THREE.Vector3(0, 15, 18);
-const HOME_TARGET = new THREE.Vector3(0, 0, 5);
+// Home position — centered on all islands (spread layout: x:-9..9, z:-5..21)
+const HOME_CAM = new THREE.Vector3(0, 18, 22);
+const HOME_TARGET = new THREE.Vector3(0, 0, 8);
 
 // Camera animator — intro zoom + island focus
 function CameraAnimator({
