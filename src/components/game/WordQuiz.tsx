@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { playWordAudio } from "@/lib/speech";
+import { MatchPopup } from "./MatchPopup";
+import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -65,6 +66,9 @@ export function WordQuiz({ topic }: WordQuizProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [popup, setPopup] = useState<{ emoji: string; word: string } | null>(null);
+  const [shaking, setShaking] = useState(false);
+  const [roundKey, setRoundKey] = useState(0);
 
   // Wake lock
   useEffect(() => {
@@ -82,6 +86,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
     setSelected(null);
     setIsCorrect(null);
     setGameCompleted(false);
+    setPopup(null);
+    setRoundKey(0);
   }, [topic, targetLanguage, nativeLanguage]);
 
   // Speak the word when round changes
@@ -96,6 +102,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
     (index: number) => {
       if (selected !== null || gameCompleted) return;
 
+      playPopSound();
       const round = rounds[currentRound];
       const correct = index === round.correctIndex;
 
@@ -103,11 +110,19 @@ export function WordQuiz({ topic }: WordQuizProps) {
       setIsCorrect(correct);
 
       if (correct) {
+        playDingSound();
         setScore((s) => s + CORRECT_POINTS);
-        playWordAudio(round.word.id, targetLanguage);
+
+        // Show popup
+        const targetText = round.word[targetLanguage as keyof WordEntry] as string;
+        setPopup({ emoji: round.word.emoji, word: targetText });
+        setTimeout(() => playWordAudio(round.word.id, targetLanguage), 300);
       } else {
+        playBuzzSound();
         setScore((s) => Math.max(0, s - WRONG_PENALTY));
         setMistakes((m) => m + 1);
+        setShaking(true);
+        setTimeout(() => setShaking(false), 500);
       }
 
       // Move to next round after delay
@@ -127,10 +142,11 @@ export function WordQuiz({ topic }: WordQuizProps) {
           setGameCompleted(true);
         } else {
           setCurrentRound((r) => r + 1);
+          setRoundKey((k) => k + 1);
           setSelected(null);
           setIsCorrect(null);
         }
-      }, 1200);
+      }, 1500);
     },
     [selected, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult]
   );
@@ -144,6 +160,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
     setSelected(null);
     setIsCorrect(null);
     setGameCompleted(false);
+    setPopup(null);
+    setRoundKey(0);
   };
 
   const handleSpeak = () => {
@@ -162,6 +180,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
   }
 
   const round = rounds[currentRound];
+  const progressPct = ((currentRound + (selected !== null ? 1 : 0)) / rounds.length) * 100;
 
   return (
     <div className="min-h-screen bg-[#0a1628] relative">
@@ -170,9 +189,17 @@ export function WordQuiz({ topic }: WordQuizProps) {
         topicName={topic.name[targetLanguage]}
       />
 
+      {popup && (
+        <MatchPopup
+          emoji={popup.emoji}
+          word={popup.word}
+          onDone={() => setPopup(null)}
+        />
+      )}
+
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-in fade-in">
             <div className="text-5xl mb-2">🎉</div>
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-1">
@@ -200,49 +227,65 @@ export function WordQuiz({ topic }: WordQuizProps) {
           </div>
         ) : (
           <div className="w-full max-w-sm space-y-8">
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white/10 rounded-full h-2">
+            {/* Progress bar with walking emoji */}
+            <div className="flex items-center gap-2 relative">
+              <div className="flex-1 bg-white/10 rounded-full h-3 relative overflow-hidden">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${((currentRound + 1) / rounds.length) * 100}%`,
-                  }}
+                  className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <span className="text-slate-400 text-xs">
+              <span
+                className="absolute text-lg transition-all duration-700 ease-out -top-5"
+                style={{
+                  left: `calc(${Math.min(progressPct, 95)}% - 8px)`,
+                  animation: "quiz-walk 0.4s ease-in-out infinite",
+                }}
+              >
+                {topic.emoji}
+              </span>
+              <span className="text-slate-400 text-xs min-w-[32px] text-right">
                 {currentRound + 1}/{rounds.length}
               </span>
             </div>
 
-            {/* Word display */}
-            <div className="text-center space-y-3">
+            {/* Score display */}
+            <div className="text-center">
+              <span className="text-amber-400 font-bold text-sm">⭐ {score}</span>
+            </div>
+
+            {/* Floating word display */}
+            <div className={`text-center space-y-3 ${shaking ? "quiz-shake" : ""}`}>
               <p className="text-slate-400 text-sm">What does this mean?</p>
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-4xl">{round.word.emoji}</span>
-                <span className="text-2xl font-bold text-white">
+              <div className="quiz-float flex items-center justify-center gap-3 py-4">
+                <span className="text-5xl drop-shadow-lg">{round.word.emoji}</span>
+                <span className="text-3xl font-bold text-white drop-shadow-md">
                   {round.word[targetLanguage as keyof WordEntry] as string}
                 </span>
               </div>
               <button
                 onClick={handleSpeak}
-                className="text-blue-400 text-sm active:text-blue-300 transition-colors"
+                className="text-blue-400 text-sm active:text-blue-300 transition-colors bg-blue-400/10 px-4 py-1.5 rounded-full"
               >
                 🔊 Listen again
               </button>
             </div>
 
-            {/* Options */}
-            <div className="grid grid-cols-1 gap-3">
+            {/* Options with staggered slide-in */}
+            <div className="grid grid-cols-1 gap-3" key={roundKey}>
               {round.options.map((option, index) => {
-                let bg = "bg-white/10 active:bg-white/20";
+                let styles = "bg-white/8 border-white/10 active:bg-white/15 active:scale-[0.98]";
+                let icon = "";
+
                 if (selected !== null) {
                   if (index === round.correctIndex) {
-                    bg = "bg-green-600/80";
+                    styles = "bg-green-600/30 border-green-400/60 scale-[1.02]";
+                    icon = "✅ ";
                   } else if (index === selected && !isCorrect) {
-                    bg = "bg-red-600/80";
+                    styles = "bg-red-600/30 border-red-400/60 quiz-shake";
+                    icon = "❌ ";
                   } else {
-                    bg = "bg-white/5";
+                    styles = "bg-white/3 border-white/5 opacity-50";
                   }
                 }
 
@@ -251,24 +294,27 @@ export function WordQuiz({ topic }: WordQuizProps) {
                     key={index}
                     onClick={() => handleSelect(index)}
                     disabled={selected !== null}
-                    className={`${bg} text-white text-lg font-medium py-4 px-6 rounded-xl transition-all disabled:cursor-default ${
-                      selected === null ? "active:scale-[0.98]" : ""
-                    }`}
+                    className={`${styles} text-white text-lg font-medium py-4 px-6 rounded-2xl transition-all duration-300 disabled:cursor-default border-2`}
+                    style={{
+                      animation: `quiz-option-in 0.3s ease-out ${index * 60}ms both`,
+                    }}
                   >
-                    {option}
+                    {icon}{option}
                   </button>
                 );
               })}
             </div>
 
-            {/* Feedback */}
+            {/* Feedback text */}
             {selected !== null && (
-              <div className="text-center">
+              <div className="text-center animate-in fade-in duration-300">
                 {isCorrect ? (
-                  <p className="text-green-400 font-semibold">Correct! +{CORRECT_POINTS} pts</p>
+                  <p className="text-green-400 font-semibold text-lg">
+                    Correct! +{CORRECT_POINTS} pts 🎉
+                  </p>
                 ) : (
                   <p className="text-red-400 font-semibold">
-                    Wrong! The answer is: {round.options[round.correctIndex]}
+                    The answer is: <span className="text-white">{round.options[round.correctIndex]}</span>
                   </p>
                 )}
               </div>

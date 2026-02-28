@@ -87,3 +87,53 @@ html, body {
   0% { transform: translateY(10px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
+
+/* Word Quiz — floating word */
+@keyframes quiz-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.quiz-float {
+  animation: quiz-float 2.5s ease-in-out infinite;
+}
+
+/* Word Quiz — button press */
+@keyframes quiz-press {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+  100% { transform: translateY(0); }
+}
+
+/* Word Quiz — shake on wrong */
+@keyframes quiz-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+.quiz-shake {
+  animation: quiz-shake 0.5s ease-in-out;
+}
+
+/* Word Quiz — correct pulse */
+@keyframes quiz-correct-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Word Quiz — option slide in */
+@keyframes quiz-option-in {
+  0% { transform: translateX(-20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Word Quiz — progress walker */
+@keyframes quiz-walk {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-5deg); }
+  75% { transform: translateY(-3px) rotate(5deg); }
+}

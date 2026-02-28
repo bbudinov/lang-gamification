@@ -148,6 +148,27 @@ export function playDingSound(): void {
   } catch {}
 }
 
+/** Short "buzz" for wrong answer */
+export function playBuzzSound(): void {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.2);
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {}
+}
+
 /** Short "whoosh" for navigation */
 export function playWhooshSound(): void {
   try {
