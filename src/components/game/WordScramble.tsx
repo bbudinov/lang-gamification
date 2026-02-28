@@ -227,7 +227,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
                       : "bg-white/10 text-white/20 border border-dashed border-white/20"
                   }`}
                 >
-                  {i < built.length ? built[i] : char}
+                  {i < built.length ? built[i] : ""}
                 </div>
               ))}
             </div>
