@@ -1,6 +1,7 @@
 "use client";
 
 import { useProgressStore } from "@/stores/progressStore";
+import { InstallPWA } from "./InstallPWA";
 import type { Language } from "@/types";
 
 const LANG_LABELS: Record<Language, string> = {
@@ -30,18 +31,21 @@ export function TopBar() {
           <span className="text-white text-sm font-semibold">{totalPoints}</span>
         </div>
 
-        <button
-          onClick={cycleTarget}
-          className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
-        >
-          <span className="text-xs text-slate-400">
-            {LANG_LABELS[nativeLanguage]}
-          </span>
-          <span className="text-white text-xs">→</span>
-          <span className="text-sm text-white font-semibold">
-            {LANG_LABELS[targetLanguage]}
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          <InstallPWA />
+          <button
+            onClick={cycleTarget}
+            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
+          >
+            <span className="text-xs text-slate-400">
+              {LANG_LABELS[nativeLanguage]}
+            </span>
+            <span className="text-white text-xs">→</span>
+            <span className="text-sm text-white font-semibold">
+              {LANG_LABELS[targetLanguage]}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

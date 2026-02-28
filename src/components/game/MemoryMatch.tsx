@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/gameStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { GameHUD } from "./GameHUD";
 import { speak } from "@/lib/speech";
+import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { GAME_CONFIG } from "@/lib/constants";
 import type { Topic, MemoryCard as MemoryCardType } from "@/types";
 
@@ -76,6 +77,12 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     addScore,
     completeGame,
   } = useGameStore();
+
+  // Keep screen awake during gameplay
+  useEffect(() => {
+    requestWakeLock();
+    return () => releaseWakeLock();
+  }, []);
 
   // Initialize game
   useEffect(() => {
