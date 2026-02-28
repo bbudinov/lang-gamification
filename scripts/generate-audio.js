@@ -1,7 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 
-const API_KEY = "AIzaSyDWs6SVldMkScm2taEAOnu0AubM_QqP9BU";
+// Set your Google Cloud TTS API key here before running
+const API_KEY = process.env.GOOGLE_TTS_API_KEY || "";
+if (!API_KEY) {
+  console.error("Set GOOGLE_TTS_API_KEY env variable before running this script");
+  process.exit(1);
+}
 const API_URL = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`;
 
 const VOICES = {
