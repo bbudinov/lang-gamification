@@ -24,7 +24,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
   );
 
   return (
-    <div className="w-full h-full" style={{ touchAction: "none" }}>
+    <div className="w-full h-full relative z-0" style={{ touchAction: "none" }}>
       <Canvas
         dpr={dpr}
         camera={{ position: [0, 12, 12], fov: 50 }}
@@ -35,7 +35,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
           onIncline={() => setDpr(1.5)}
         />
         <color attach="background" args={["#0a1628"]} />
-        <fog attach="fog" args={["#0a1628", 20, 40]} />
+        <fog attach="fog" args={["#0a1628", 25, 55]} />
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 10, 5]} intensity={0.8} />
 
@@ -51,7 +51,7 @@ export function IslandMap({ onSelectTopic }: IslandMapProps) {
           enablePan={true}
           enableZoom={true}
           minDistance={5}
-          maxDistance={25}
+          maxDistance={45}
           minPolarAngle={Math.PI / 6}
           maxPolarAngle={Math.PI / 2.5}
           touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
