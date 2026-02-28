@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { MeshDistortMaterial } from "@react-three/drei";
 import type { Mesh } from "three";
 
 export function Ocean() {
@@ -15,12 +16,15 @@ export function Ocean() {
 
   return (
     <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-      <planeGeometry args={[100, 100]} />
-      <meshStandardMaterial
+      <planeGeometry args={[100, 100, 64, 64]} />
+      <MeshDistortMaterial
         color="#0ea5e9"
         transparent
         opacity={0.85}
         roughness={0.3}
+        metalness={0.1}
+        speed={1.5}
+        factor={0.4}
       />
     </mesh>
   );

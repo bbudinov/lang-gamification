@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html, Float } from "@react-three/drei";
+import { Html, Float, Sparkles } from "@react-three/drei";
 import type { Group } from "three";
 import type { Topic, Language } from "@/types";
 import { useProgressStore } from "@/stores/progressStore";
+import { playPopSound, playDingSound } from "@/lib/speech";
 
 interface IslandProps {
   topic: Topic;
@@ -15,6 +16,8 @@ interface IslandProps {
 export function Island({ topic, onSelect }: IslandProps) {
   const ref = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
+  const [unlockEffect, setUnlockEffect] = useState(false);
+  const unlockProgress = useRef(0);
   const { isTopicUnlocked, totalPoints, unlockTopic, targetLanguage } =
     useProgressStore();
 
@@ -22,9 +25,23 @@ export function Island({ topic, onSelect }: IslandProps) {
   const canAfford = totalPoints >= topic.unlockCost;
   const lang: Language = targetLanguage;
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (ref.current) {
       ref.current.rotation.y = Math.sin(clock.elapsedTime * 0.5 + topic.position[0]) * 0.1;
+
+      // Unlock animation
+      if (unlockEffect) {
+        unlockProgress.current += delta / 1.5;
+        if (unlockProgress.current >= 1) {
+          setUnlockEffect(false);
+          unlockProgress.current = 0;
+          ref.current.scale.setScalar(1);
+        } else {
+          const t = unlockProgress.current;
+          const s = 1 + 0.3 * Math.sin(t * Math.PI);
+          ref.current.scale.setScalar(s);
+        }
+      }
     }
   });
 
@@ -32,9 +49,13 @@ export function Island({ topic, onSelect }: IslandProps) {
 
   const handleClick = () => {
     if (unlocked && hasContent) {
+      playPopSound();
       onSelect(topic);
     } else if (!unlocked && canAfford && hasContent) {
+      playDingSound();
       unlockTopic(topic.id);
+      setUnlockEffect(true);
+      unlockProgress.current = 0;
     }
   };
 
@@ -55,8 +76,8 @@ export function Island({ topic, onSelect }: IslandProps) {
             <meshStandardMaterial
               color={islandColor}
               flatShading
-              emissive={hovered && unlocked ? topic.color : "#000000"}
-              emissiveIntensity={hovered ? 0.3 : 0}
+              emissive={unlockEffect ? topic.color : hovered && unlocked ? topic.color : "#000000"}
+              emissiveIntensity={unlockEffect ? 1.5 : hovered ? 0.3 : 0}
             />
           </mesh>
 
@@ -86,6 +107,18 @@ export function Island({ topic, onSelect }: IslandProps) {
             <meshStandardMaterial color="#92400e" flatShading />
           </mesh>
         </group>
+
+        {/* Unlock sparkles */}
+        {unlockEffect && (
+          <Sparkles
+            count={30}
+            scale={3}
+            size={6}
+            speed={2}
+            opacity={0.8}
+            color={topic.color}
+          />
+        )}
       </Float>
 
       {/* Label */}
