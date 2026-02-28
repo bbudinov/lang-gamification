@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback, useMemo, useRef } from "react";
+import { Suspense, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerformanceMonitor, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -84,6 +84,11 @@ function CameraAnimator({
   const introRef = useRef(true);
   const introStartTime = useRef(0);
   const userInteracted = useRef(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  }, []);
 
   useFrame(({ camera, clock }) => {
     if (!controlsRef.current) return;
@@ -162,11 +167,11 @@ function CameraAnimator({
       enableRotate={true}
       enablePan={true}
       enableZoom={true}
-      zoomToCursor={true}
+      zoomToCursor={!isTouchDevice}
       screenSpacePanning={true}
       enableDamping={true}
       dampingFactor={0.08}
-      minDistance={5}
+      minDistance={3}
       maxDistance={100}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
