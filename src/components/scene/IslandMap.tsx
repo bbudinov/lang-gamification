@@ -82,15 +82,28 @@ function CameraAnimator({
   const savedCamPos = useRef<THREE.Vector3 | null>(null);
   const savedTarget = useRef<THREE.Vector3 | null>(null);
   const introRef = useRef(true);
+  const introStartTime = useRef(0);
+  const userInteracted = useRef(false);
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera, clock }) => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
 
-    // Intro zoom-in on first load
+    // Track intro start time
+    if (introRef.current && introStartTime.current === 0) {
+      introStartTime.current = clock.elapsedTime;
+    }
+
+    // Intro zoom-in on first load — cancel on user touch or after 3s
     if (introRef.current) {
-      controls.target.lerp(HOME_TARGET, 0.03);
-      camera.position.lerp(HOME_CAM, 0.03);
+      const elapsed = clock.elapsedTime - introStartTime.current;
+      if (userInteracted.current || elapsed > 3) {
+        introRef.current = false;
+        return;
+      }
+
+      controls.target.lerp(HOME_TARGET, 0.05);
+      camera.position.lerp(HOME_CAM, 0.05);
       controls.update();
 
       if (camera.position.distanceTo(HOME_CAM) < 0.5) {
@@ -100,7 +113,6 @@ function CameraAnimator({
     }
 
     if (targetPos) {
-      // Save user's camera position when first focusing
       if (!prevTarget.current) {
         savedCamPos.current = camera.position.clone();
         savedTarget.current = controls.target.clone();
@@ -108,7 +120,6 @@ function CameraAnimator({
       prevTarget.current = targetPos;
       returnedRef.current = false;
 
-      // Zoom toward island
       const islandVec = new THREE.Vector3(targetPos[0], targetPos[1] + 1, targetPos[2]);
       const camTarget = new THREE.Vector3(
         targetPos[0] * 0.3,
@@ -119,7 +130,6 @@ function CameraAnimator({
       camera.position.lerp(camTarget, 0.04);
       controls.update();
     } else if (prevTarget.current && !returnedRef.current) {
-      // Just deselected — smoothly return to saved position
       returningRef.current = true;
       prevTarget.current = null;
     }
@@ -139,8 +149,12 @@ function CameraAnimator({
         savedTarget.current = null;
       }
     }
-    // When no target and not returning — do nothing, let user freely control
   });
+
+  // Cancel intro on any user interaction
+  const handleInteractionStart = useCallback(() => {
+    userInteracted.current = true;
+  }, []);
 
   return (
     <OrbitControls
@@ -150,11 +164,14 @@ function CameraAnimator({
       enableZoom={true}
       zoomToCursor={true}
       screenSpacePanning={true}
+      enableDamping={true}
+      dampingFactor={0.08}
       minDistance={5}
       maxDistance={100}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
       touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
+      onStart={handleInteractionStart}
     />
   );
 }
