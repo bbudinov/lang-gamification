@@ -1,7 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { speak } from "@/lib/speech";
 import type { TopicId } from "@/types";
+
+const PHRASES = [
+  "great choice",
+  "let's play",
+  "wooooo",
+  "game changer",
+  "fabulous",
+  "magnific",
+  "think about everything",
+  "own your langworld",
+];
+
+let phraseIndex = 0;
 
 interface GameSelectorProps {
   topicId: TopicId;
@@ -59,7 +73,11 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
           {GAMES.map((game) => (
             <button
               key={game.type}
-              onClick={() => router.push(`/game/${topicId}/${game.type}`)}
+              onClick={() => {
+                speak(PHRASES[phraseIndex % PHRASES.length], "en");
+                phraseIndex++;
+                router.push(`/game/${topicId}/${game.type}`);
+              }}
               className="w-full flex items-center gap-4 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl p-4 transition-colors text-left"
             >
               <span className="text-3xl">{game.emoji}</span>
