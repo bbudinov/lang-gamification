@@ -102,7 +102,7 @@ const RULES = {
 
 export function HelpButton() {
   const [showRules, setShowRules] = useState(false);
-  const [lang, setLang] = useState<RulesLang>("en");
+  const [lang, setLang] = useState<RulesLang>("bg");
   const [activeSection, setActiveSection] = useState<number | null>(null);
 
   const r = RULES[lang];
