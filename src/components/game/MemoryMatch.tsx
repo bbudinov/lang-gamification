@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/gameStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
+import { MatchPopup } from "./MatchPopup";
 import { GameHUD } from "./GameHUD";
 import { playWordAudio, playPopSound, playDingSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
@@ -79,6 +80,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
   } = useGameStore();
 
   const [shakingPair, setShakingPair] = useState<string | null>(null);
+  const [matchPopup, setMatchPopup] = useState<{ emoji: string; word: string } | null>(null);
 
   // Keep screen awake during gameplay
   useEffect(() => {
@@ -115,14 +117,16 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
       playDingSound();
       const matchedWord = topic.words.find((w) => w.id === result.pairId);
       if (matchedWord) {
-        setTimeout(() => playWordAudio(matchedWord.id, targetLanguage), 200);
+        const targetText = matchedWord[targetLanguage as keyof typeof matchedWord] as string;
+        setMatchPopup({ emoji: matchedWord.emoji, word: targetText });
+        setTimeout(() => playWordAudio(matchedWord.id, targetLanguage), 300);
       }
 
       addScore(cfg.MATCH_POINTS);
       setTimeout(() => {
         markMatched(result.pairId);
         setLocked(false);
-      }, 400);
+      }, 600);
     } else {
       // Mismatch — shake the cards
       addScore(-cfg.MISMATCH_PENALTY);
@@ -164,6 +168,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     const generated = generateCards(topic, nativeLanguage, targetLanguage);
     initMemoryGame(generated, cfg.PAIRS_COUNT);
     setShakingPair(null);
+    setMatchPopup(null);
   };
 
   if (cards.length === 0) {
@@ -180,6 +185,14 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
         topicEmoji={topic.emoji}
         topicName={topic.name[targetLanguage]}
       />
+
+      {matchPopup && (
+        <MatchPopup
+          emoji={matchPopup.emoji}
+          word={matchPopup.word}
+          onDone={() => setMatchPopup(null)}
+        />
+      )}
 
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
