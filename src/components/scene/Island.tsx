@@ -27,7 +27,11 @@ export function Island({ topic, onSelect }: IslandProps) {
 
   useFrame(({ clock }, delta) => {
     if (ref.current) {
-      ref.current.rotation.y = Math.sin(clock.elapsedTime * 0.5 + topic.position[0]) * 0.1;
+      const t = clock.elapsedTime;
+      const offset = topic.position[0] + topic.position[2]; // unique per island
+      ref.current.rotation.y = Math.sin(t * 0.5 + offset) * 0.15;
+      ref.current.rotation.x = Math.sin(t * 0.4 + offset * 1.3) * 0.06;
+      ref.current.rotation.z = Math.cos(t * 0.3 + offset * 0.7) * 0.04;
 
       // Unlock animation
       if (unlockEffect) {
@@ -64,7 +68,7 @@ export function Island({ topic, onSelect }: IslandProps) {
 
   return (
     <group ref={ref} position={topic.position}>
-      <Float speed={1.5} rotationIntensity={0} floatIntensity={0.3}>
+      <Float speed={1.5} rotationIntensity={0} floatIntensity={0.5}>
         <group
           onClick={handleClick}
           onPointerEnter={() => setHovered(true)}
