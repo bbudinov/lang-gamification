@@ -1,26 +1,45 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { initSpeech } from "@/lib/speech";
+import { initSpeech, speak } from "@/lib/speech";
 
 export default function Home() {
   const router = useRouter();
+  const [ready, setReady] = useState(false);
 
-  // Preload voices as early as possible
+  // Preload voices and try to speak welcome
   useEffect(() => {
     initSpeech();
+    const timer = setTimeout(() => {
+      setReady(true);
+      // Try welcome speech (works if user previously interacted with the site)
+      try {
+        const welcome = new SpeechSynthesisUtterance("Welcome to the LangWorld game!");
+        welcome.lang = "en-US";
+        welcome.rate = 0.9;
+        welcome.pitch = 1.1;
+        window.speechSynthesis?.speak(welcome);
+      } catch {
+        // Blocked by auto-play policy on first visit — that's OK
+      }
+    }, 800);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleStart = () => {
-    // Unlock speech synthesis via user gesture
+    // Unlock speech via user gesture, then say "Enjoy the game"
     if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(".");
-      utterance.volume = 0.01;
-      utterance.rate = 10;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance("Enjoy the game!");
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;
+      utterance.pitch = 1.1;
+      utterance.volume = 1;
       window.speechSynthesis.speak(utterance);
     }
-    router.replace("/map");
+    // Navigate after a short delay so speech starts
+    setTimeout(() => router.replace("/map"), 600);
   };
 
   return (
@@ -31,7 +50,9 @@ export default function Home() {
 
       <button
         onClick={handleStart}
-        className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-transform"
+        className={`bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
+          ready ? "opacity-100 scale-100" : "opacity-0 scale-90"
+        }`}
       >
         Start Playing
       </button>

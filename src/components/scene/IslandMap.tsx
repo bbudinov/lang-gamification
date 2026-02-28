@@ -1,15 +1,27 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerformanceMonitor } from "@react-three/drei";
 import { Island } from "./Island";
 import { Ocean } from "./Ocean";
 import { topics } from "@/data/words";
 import { TOUCH } from "three";
+import type { Topic } from "@/types";
 
-export function IslandMap() {
+interface IslandMapProps {
+  onSelectTopic: (topic: Topic) => void;
+}
+
+export function IslandMap({ onSelectTopic }: IslandMapProps) {
   const [dpr, setDpr] = useState(1.5);
+
+  const handleSelect = useCallback(
+    (topic: Topic) => {
+      onSelectTopic(topic);
+    },
+    [onSelectTopic]
+  );
 
   return (
     <div className="w-full h-full" style={{ touchAction: "none" }}>
@@ -30,7 +42,7 @@ export function IslandMap() {
         <Suspense fallback={null}>
           <Ocean />
           {topics.map((topic) => (
-            <Island key={topic.id} topic={topic} />
+            <Island key={topic.id} topic={topic} onSelect={handleSelect} />
           ))}
         </Suspense>
 

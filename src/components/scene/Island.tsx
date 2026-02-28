@@ -3,18 +3,17 @@
 import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, Float } from "@react-three/drei";
-import { useRouter } from "next/navigation";
 import type { Group } from "three";
 import type { Topic, Language } from "@/types";
 import { useProgressStore } from "@/stores/progressStore";
 
 interface IslandProps {
   topic: Topic;
+  onSelect: (topic: Topic) => void;
 }
 
-export function Island({ topic }: IslandProps) {
+export function Island({ topic, onSelect }: IslandProps) {
   const ref = useRef<Group>(null);
-  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const { isTopicUnlocked, totalPoints, unlockTopic, targetLanguage } =
     useProgressStore();
@@ -31,7 +30,7 @@ export function Island({ topic }: IslandProps) {
 
   const handleClick = () => {
     if (unlocked) {
-      router.push(`/game/${topic.id}/memory-match`);
+      onSelect(topic);
     } else if (canAfford) {
       unlockTopic(topic.id);
     }

@@ -1,7 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { TopBar } from "@/components/ui/TopBar";
+import { GameSelector } from "@/components/ui/GameSelector";
+import { HelpButton } from "@/components/ui/HelpButton";
+import { useProgressStore } from "@/stores/progressStore";
+import type { Topic } from "@/types";
 
 const IslandMap = dynamic(
   () =>
@@ -22,10 +27,23 @@ const IslandMap = dynamic(
 );
 
 export default function MapPage() {
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const { targetLanguage } = useProgressStore();
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#0a1628] relative">
       <TopBar />
-      <IslandMap />
+      <IslandMap onSelectTopic={setSelectedTopic} />
+      <HelpButton />
+
+      {selectedTopic && (
+        <GameSelector
+          topicId={selectedTopic.id}
+          topicName={selectedTopic.name[targetLanguage]}
+          topicEmoji={selectedTopic.emoji}
+          onClose={() => setSelectedTopic(null)}
+        />
+      )}
     </div>
   );
 }

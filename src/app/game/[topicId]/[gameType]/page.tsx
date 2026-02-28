@@ -3,6 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { MemoryMatch } from "@/components/game/MemoryMatch";
+import { WordQuiz } from "@/components/game/WordQuiz";
 import { topics } from "@/data/words";
 
 export default function GamePage({
@@ -30,6 +31,10 @@ export default function GamePage({
 
   if (gameType === "memory-match") {
     return <MemoryMatch topic={topic} />;
+  }
+
+  if (gameType === "word-quiz") {
+    return <WordQuiz topic={topic} />;
   }
 
   return (
