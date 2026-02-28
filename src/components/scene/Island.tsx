@@ -251,6 +251,164 @@ function Decorations({ type, color }: { type: IslandVisual["decoration"]; color:
   }
 }
 
+// ─── Ambient effects for unlocked islands ───────────────────────
+
+// Orbiting objects (butterflies for animals, notes for music, etc.)
+function OrbitingParticles({ count, color, speed, yBase, radius, size }: {
+  count: number; color: string; speed: number; yBase: number; radius: number; size: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.elapsedTime * speed;
+    groupRef.current.children.forEach((child, i) => {
+      const offset = (i / count) * Math.PI * 2;
+      child.position.x = Math.cos(t + offset) * radius;
+      child.position.z = Math.sin(t + offset) * radius;
+      child.position.y = yBase + Math.sin(t * 1.5 + offset) * 0.15;
+      child.rotation.y = t + offset;
+    });
+  });
+  return (
+    <group ref={groupRef}>
+      {Array.from({ length: count }).map((_, i) => (
+        <mesh key={i}>
+          <boxGeometry args={[size, size * 0.3, size * 1.5]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} flatShading />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Rising particles (steam, hearts, snowflakes — float up and loop)
+function RisingParticles({ count, color, speed, spread, maxY, size }: {
+  count: number; color: string; speed: number; spread: number; maxY: number; size: number;
+}) {
+  const meshRefs = useRef<THREE.Mesh[]>([]);
+  const offsets = useRef(Array.from({ length: count }, () => ({
+    x: (Math.random() - 0.5) * spread,
+    z: (Math.random() - 0.5) * spread,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.7 + Math.random() * 0.6,
+  })));
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    meshRefs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const o = offsets.current[i];
+      const yProgress = ((t * speed * o.speed + o.phase) % maxY);
+      mesh.position.set(
+        o.x + Math.sin(t * 0.5 + o.phase) * 0.1,
+        0.5 + yProgress,
+        o.z + Math.cos(t * 0.5 + o.phase) * 0.1
+      );
+      (mesh.material as THREE.MeshStandardMaterial).opacity = 1 - yProgress / maxY;
+    });
+  });
+
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { if (el) meshRefs.current[i] = el; }}
+        >
+          <sphereGeometry args={[size, 4, 4]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.3}
+            transparent
+            opacity={0.8}
+            flatShading
+          />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+function IslandAmbience({ topicId }: { topicId: string }) {
+  switch (topicId) {
+    case "animals":
+      // Butterflies orbiting
+      return <OrbitingParticles count={3} color="#fbbf24" speed={0.6} yBase={1.2} radius={1.0} size={0.08} />;
+    case "colors":
+      // Colorful orbs orbiting
+      return (
+        <group>
+          <OrbitingParticles count={4} color="#ef4444" speed={0.4} yBase={1.0} radius={0.8} size={0.06} />
+        </group>
+      );
+    case "food":
+      // Steam wisps rising
+      return <RisingParticles count={3} color="#e2e8f0" speed={0.3} spread={0.5} maxY={1.5} size={0.06} />;
+    case "weather":
+      // Snowflakes/rain drops falling — we reverse direction with rising + rotation
+      return <RisingParticles count={4} color="#bae6fd" speed={0.4} spread={1.0} maxY={2.0} size={0.04} />;
+    case "music":
+      // Musical notes rising
+      return <RisingParticles count={3} color="#c084fc" speed={0.25} spread={0.6} maxY={1.8} size={0.05} />;
+    case "family":
+      // Hearts rising
+      return <RisingParticles count={2} color="#f472b6" speed={0.2} spread={0.4} maxY={1.5} size={0.05} />;
+    default:
+      return null;
+  }
+}
+
+// ─── Bubbles for unlock rise effect ─────────────────────────────
+
+function UnlockBubbles({ active, color }: { active: boolean; color: string }) {
+  const meshRefs = useRef<THREE.Mesh[]>([]);
+  const offsets = useRef(Array.from({ length: 8 }, () => ({
+    x: (Math.random() - 0.5) * 2.5,
+    z: (Math.random() - 0.5) * 2.5,
+    speed: 1.5 + Math.random() * 2,
+    phase: Math.random() * Math.PI * 2,
+    size: 0.04 + Math.random() * 0.08,
+  })));
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    meshRefs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const o = offsets.current[i];
+      const y = ((t * o.speed + o.phase) % 3.0) - 1.5;
+      mesh.position.set(
+        o.x + Math.sin(t + o.phase) * 0.2,
+        y,
+        o.z + Math.cos(t * 0.8 + o.phase) * 0.2
+      );
+      mesh.scale.setScalar(o.size * (1 - Math.max(0, y) / 2));
+    });
+  });
+
+  if (!active) return null;
+
+  return (
+    <>
+      {offsets.current.map((o, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { if (el) meshRefs.current[i] = el; }}
+        >
+          <sphereGeometry args={[1, 6, 6]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.5}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
 // ─── Island component ───────────────────────────────────────────
 
 interface IslandProps {
@@ -262,7 +420,9 @@ export function Island({ topic, onSelect }: IslandProps) {
   const ref = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
   const [unlockEffect, setUnlockEffect] = useState(false);
+  const [showBubbles, setShowBubbles] = useState(false);
   const unlockProgress = useRef(0);
+  const riseY = useRef(0); // 0 = risen, negative = submerged
   const { isTopicUnlocked, totalPoints, unlockTopic, targetLanguage } =
     useProgressStore();
 
@@ -279,18 +439,26 @@ export function Island({ topic, onSelect }: IslandProps) {
       ref.current.rotation.x = Math.sin(t * 0.4 + offset * 1.3) * 0.06;
       ref.current.rotation.z = Math.cos(t * 0.3 + offset * 0.7) * 0.04;
 
-      // Unlock animation
+      // Unlock animation — rise from water + scale pop
       if (unlockEffect) {
-        unlockProgress.current += delta / 1.5;
+        unlockProgress.current += delta / 2.0; // 2 seconds total
         if (unlockProgress.current >= 1) {
           setUnlockEffect(false);
+          setShowBubbles(false);
           unlockProgress.current = 0;
+          riseY.current = 0;
           ref.current.scale.set(visual.scale, visual.scale, visual.scale);
         } else {
           const p = unlockProgress.current;
-          const s = visual.scale * (1 + 0.3 * Math.sin(p * Math.PI));
-          ref.current.scale.setScalar(s);
+          // Rise from -2.5 to 0 (ease out)
+          const riseEase = 1 - Math.pow(1 - Math.min(p * 1.3, 1), 3);
+          riseY.current = -2.5 * (1 - riseEase);
+          // Scale pop in second half
+          const scalePop = p > 0.5 ? 1 + 0.25 * Math.sin((p - 0.5) * 2 * Math.PI) : riseEase * 0.8 + 0.2;
+          ref.current.scale.setScalar(visual.scale * scalePop);
         }
+        // Apply rise offset
+        ref.current.position.y = topic.position[1] + riseY.current;
       }
     }
   });
@@ -305,7 +473,9 @@ export function Island({ topic, onSelect }: IslandProps) {
       playDingSound();
       unlockTopic(topic.id);
       setUnlockEffect(true);
+      setShowBubbles(true);
       unlockProgress.current = 0;
+      riseY.current = -2.5;
     }
   };
 
@@ -350,6 +520,11 @@ export function Island({ topic, onSelect }: IslandProps) {
           beachColor={unlocked ? visual.beachColor : "#9ca3af"}
         />
 
+        {/* Ambient effects for unlocked islands */}
+        {unlocked && !unlockEffect && (
+          <IslandAmbience topicId={topic.id} />
+        )}
+
         {/* Unlock sparkles */}
         {unlockEffect && (
           <Sparkles
@@ -362,6 +537,9 @@ export function Island({ topic, onSelect }: IslandProps) {
           />
         )}
       </Float>
+
+      {/* Bubbles during rise-from-water */}
+      <UnlockBubbles active={showBubbles} color={topic.color} />
 
       {/* Label */}
       <Html center position={[0, 2.5, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
