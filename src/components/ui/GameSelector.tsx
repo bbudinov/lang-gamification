@@ -2,18 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { speakAndWait } from "@/lib/speech";
+import { playPhraseAudioAndWait } from "@/lib/speech";
 import type { TopicId } from "@/types";
 
-const PHRASES = [
-  "страхотен избор",
-  "да играем",
-  "уууууу",
-  "това ще е велико",
-  "фантастично",
-  "магнифик",
-  "мисли за всичко",
-  "владей своя ЛангУърлд",
+const PHRASE_IDS = [
+  "motiv1", "motiv2", "motiv3", "motiv4",
+  "motiv5", "motiv6", "motiv7", "motiv8",
 ];
 
 let phraseIndex = 0;
@@ -60,11 +54,11 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
     if (navigating) return;
     setNavigating(true);
 
-    const phrase = PHRASES[phraseIndex % PHRASES.length];
+    const phraseId = PHRASE_IDS[phraseIndex % PHRASE_IDS.length];
     phraseIndex++;
 
     // Wait for phrase to finish, then navigate
-    await speakAndWait(phrase, "bg", 3000);
+    await playPhraseAudioAndWait(phraseId, 3000);
     router.push(`/game/${topicId}/${gameType}`);
   };
 

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { speak } from "@/lib/speech";
+import { playWordAudio } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -81,8 +81,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   useEffect(() => {
     if (rounds.length > 0 && currentRound < rounds.length && feedback === null) {
       const word = rounds[currentRound].word;
-      const text = word[targetLanguage as keyof WordEntry] as string;
-      setTimeout(() => speak(text, targetLanguage), 300);
+      setTimeout(() => playWordAudio(word.id, targetLanguage), 300);
     }
   }, [currentRound, rounds, targetLanguage, feedback]);
 

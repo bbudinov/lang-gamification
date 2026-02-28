@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { speak } from "@/lib/speech";
+import { playWordAudio } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -85,8 +85,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
   useEffect(() => {
     if (words.length > 0 && currentWord < words.length && !wordComplete) {
       const word = words[currentWord];
-      const nativeText = word[nativeLanguage as keyof WordEntry] as string;
-      setTimeout(() => speak(nativeText, nativeLanguage), 300);
+      setTimeout(() => playWordAudio(word.id, nativeLanguage), 300);
     }
   }, [currentWord, words, nativeLanguage, wordComplete]);
 
@@ -109,7 +108,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
       if (newBuilt.length === target.length) {
         setWordComplete(true);
         setScore((s) => s + CORRECT_POINTS);
-        speak(target, targetLanguage);
+        playWordAudio(word.id, targetLanguage);
 
         setTimeout(() => {
           if (currentWord + 1 >= words.length) {

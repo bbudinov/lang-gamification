@@ -1,12 +1,97 @@
 import type { Language } from "@/types";
 
+// ─── Audio player (pre-generated MP3 files) ─────────────────────
+
+let currentAudio: HTMLAudioElement | null = null;
+
+/** Stop any currently playing audio */
+export function stopAudio(): void {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+  // Also stop Web Speech API if it was used
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+/** Play a pre-generated word audio file: /audio/{lang}/{wordId}.mp3 */
+export function playWordAudio(wordId: string, language: Language): void {
+  stopAudio();
+  const audio = new Audio(`/audio/${language}/${wordId}.mp3`);
+  currentAudio = audio;
+  audio.play().catch(() => {});
+}
+
+/** Play a pre-generated phrase audio file: /audio/phrases/{phraseId}.mp3 */
+export function playPhraseAudio(phraseId: string): void {
+  stopAudio();
+  const audio = new Audio(`/audio/phrases/${phraseId}.mp3`);
+  currentAudio = audio;
+  audio.play().catch(() => {});
+}
+
+/** Play a word audio and wait for it to finish */
+export function playWordAudioAndWait(
+  wordId: string,
+  language: Language,
+  maxWaitMs = 10000
+): Promise<void> {
+  return new Promise((resolve) => {
+    stopAudio();
+    const audio = new Audio(`/audio/${language}/${wordId}.mp3`);
+    currentAudio = audio;
+
+    let resolved = false;
+    const done = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    audio.onended = done;
+    audio.onerror = done;
+    setTimeout(done, maxWaitMs);
+    audio.play().catch(done);
+  });
+}
+
+/** Play a phrase audio and wait for it to finish */
+export function playPhraseAudioAndWait(
+  phraseId: string,
+  maxWaitMs = 20000
+): Promise<void> {
+  return new Promise((resolve) => {
+    stopAudio();
+    const audio = new Audio(`/audio/phrases/${phraseId}.mp3`);
+    currentAudio = audio;
+
+    let resolved = false;
+    const done = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    audio.onended = done;
+    audio.onerror = done;
+    setTimeout(done, maxWaitMs);
+    audio.play().catch(done);
+  });
+}
+
+// ─── Legacy Web Speech API (kept as fallback) ────────────────────
+
 const LANG_MAP: Record<Language, string> = {
   en: "en-US",
   bg: "bg-BG",
   es: "es-ES",
 };
 
-// Rate per language — slower for BG to sound more natural
 const RATE_MAP: Record<Language, number> = {
   en: 0.9,
   bg: 0.75,
@@ -47,7 +132,6 @@ function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
-/** Get all available voices for a language */
 export async function getVoicesForLanguage(
   language: Language
 ): Promise<{ name: string; lang: string }[]> {
@@ -60,7 +144,6 @@ export async function getVoicesForLanguage(
     .map((v) => ({ name: v.name, lang: v.lang }));
 }
 
-/** Save preferred voice name for a language */
 export function setPreferredVoice(language: Language, voiceName: string): void {
   if (typeof window === "undefined") return;
   const prefs = JSON.parse(localStorage.getItem(VOICE_STORAGE_KEY) || "{}");
@@ -68,7 +151,6 @@ export function setPreferredVoice(language: Language, voiceName: string): void {
   localStorage.setItem(VOICE_STORAGE_KEY, JSON.stringify(prefs));
 }
 
-/** Get saved preferred voice name for a language */
 function getPreferredVoiceName(language: Language): string | null {
   if (typeof window === "undefined") return null;
   const prefs = JSON.parse(localStorage.getItem(VOICE_STORAGE_KEY) || "{}");
@@ -81,46 +163,40 @@ function findBestVoice(
 ): SpeechSynthesisVoice | null {
   const locale = LANG_MAP[language];
   const langPrefix = locale.split("-")[0];
-
   const matching = voices.filter((v) => v.lang.startsWith(langPrefix));
   if (matching.length === 0) return null;
 
-  // Check for user-saved preference
   const preferredName = getPreferredVoiceName(language);
   if (preferredName) {
     const preferred = matching.find((v) => v.name === preferredName);
     if (preferred) return preferred;
   }
 
-  // Prefer Google voices (higher quality on Chrome/Android)
   const google = matching.find((v) =>
     v.name.toLowerCase().includes("google")
   );
   if (google) return google;
 
-  // Prefer network/premium voices (localService=false means cloud-based)
   const premium = matching.find((v) => !v.localService);
   if (premium) return premium;
 
-  // Prefer exact locale match (e.g. bg-BG over bg)
   const exact = matching.find((v) => v.lang === locale);
   if (exact) return exact;
 
   return matching[0];
 }
 
-/** Cancel any ongoing speech */
+/** Cancel any ongoing speech (legacy alias) */
 export function stopSpeech(): void {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  stopAudio();
 }
 
-// Call on app start (from splash screen) to preload voices
 export function initSpeech(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   ensureVoices();
 }
 
+/** Speak text using Web Speech API (fallback for dynamic text) */
 export async function speak(text: string, language: Language): Promise<void> {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
@@ -140,7 +216,6 @@ export async function speak(text: string, language: Language): Promise<void> {
   window.speechSynthesis.speak(utterance);
 }
 
-/** Speak with a specific voice name (for testing voices) */
 export async function speakWithVoice(
   text: string,
   language: Language,
@@ -166,10 +241,6 @@ export async function speakWithVoice(
   window.speechSynthesis.speak(utterance);
 }
 
-/**
- * Speak text and return a promise that resolves when speech ends.
- * Does NOT cancel previous speech — caller is responsible.
- */
 export function speakAndWait(
   text: string,
   language: Language,

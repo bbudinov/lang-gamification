@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { initSpeech, speakAndWait, stopSpeech } from "@/lib/speech";
+import { initSpeech, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
 
 const STORY_PARTS = [
   "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.",
@@ -30,7 +30,7 @@ export default function Home() {
   useEffect(() => {
     return () => {
       skippedRef.current = true;
-      stopSpeech();
+      stopAudio();
     };
   }, []);
 
@@ -39,14 +39,10 @@ export default function Home() {
     setNarrating(true);
     skippedRef.current = false;
 
-    // Unlock speech via user gesture
-    stopSpeech();
-
     for (let i = 0; i < STORY_PARTS.length; i++) {
       if (skippedRef.current) return;
 
-      const text = STORY_PARTS[i];
-      setStoryLine(text);
+      setStoryLine(STORY_PARTS[i]);
 
       // Add a 2-second pause before the joke (last part)
       if (i === STORY_PARTS.length - 1) {
@@ -54,7 +50,7 @@ export default function Home() {
         if (skippedRef.current) return;
       }
 
-      await speakAndWait(text, "bg", 20000);
+      await playPhraseAudioAndWait(`story${i + 1}`, 25000);
 
       if (skippedRef.current) return;
 
@@ -63,7 +59,6 @@ export default function Home() {
     }
 
     if (!skippedRef.current) {
-      // Short pause after story ends before navigating
       await new Promise((r) => setTimeout(r, 1500));
       if (!skippedRef.current) {
         router.replace("/map");
@@ -73,7 +68,7 @@ export default function Home() {
 
   const handleSkip = () => {
     skippedRef.current = true;
-    stopSpeech();
+    stopAudio();
     router.replace("/map");
   };
 

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { speak } from "@/lib/speech";
+import { playWordAudio } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -88,8 +88,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
   useEffect(() => {
     if (rounds.length > 0 && currentRound < rounds.length && selected === null) {
       const word = rounds[currentRound].word;
-      const text = word[targetLanguage as keyof WordEntry] as string;
-      setTimeout(() => speak(text, targetLanguage), 300);
+      setTimeout(() => playWordAudio(word.id, targetLanguage), 300);
     }
   }, [currentRound, rounds, targetLanguage, selected]);
 
@@ -105,7 +104,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
 
       if (correct) {
         setScore((s) => s + CORRECT_POINTS);
-        speak(round.word[targetLanguage as keyof WordEntry] as string, targetLanguage);
+        playWordAudio(round.word.id, targetLanguage);
       } else {
         setScore((s) => Math.max(0, s - WRONG_PENALTY));
         setMistakes((m) => m + 1);
@@ -150,7 +149,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
   const handleSpeak = () => {
     if (rounds.length > 0 && currentRound < rounds.length) {
       const word = rounds[currentRound].word;
-      speak(word[targetLanguage as keyof WordEntry] as string, targetLanguage);
+      playWordAudio(word.id, targetLanguage);
     }
   };
 

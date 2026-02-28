@@ -1,111 +1,106 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  speak,
-  stopSpeech,
-  getVoicesForLanguage,
-  speakWithVoice,
-  setPreferredVoice,
-} from "@/lib/speech";
+import { useState } from "react";
+import { playPhraseAudio, stopAudio } from "@/lib/speech";
 
 type RulesLang = "en" | "bg";
 
-const TEST_PHRASE: Record<RulesLang, string> = {
-  bg: "Здравей! Аз съм Професор Глоуб, твоят езиков помощник.",
-  en: "Hello! I am Professor Globe, your language guide.",
+// Map section index to phrase audio IDs
+const SECTION_AUDIO: Record<RulesLang, string[]> = {
+  en: [
+    "rules-islands-en",
+    "rules-memory-en",
+    "rules-quiz-en",
+    "rules-truefalse-en",
+    "rules-scramble-en",
+    "rules-unlock-en",
+    "rules-lang-en",
+  ],
+  bg: [
+    "rules-islands-bg",
+    "rules-memory-bg",
+    "rules-quiz-bg",
+    "rules-truefalse-bg",
+    "rules-scramble-bg",
+    "rules-unlock-bg",
+    "rules-lang-bg",
+  ],
 };
 
 const RULES = {
   en: {
-    greeting: "Hi there! Let me explain how the game works.",
     subtitle: "Your language guide",
     gotIt: "Got it!",
     sections: [
       {
         title: "🗺️ Islands",
         text: "Tap an island to choose a game. Each island is a topic. Earn points to unlock new ones!",
-        speech: "Tap an island to choose a game. Each island is a topic. Earn points to unlock new ones!",
       },
       {
         title: "🃏 Memory Match",
         text: "Flip cards to find matching word pairs.",
         details: ["✅ Correct match: +10 pts", "❌ Wrong match: -2 pts", "🏆 Complete all: +50 bonus"],
-        speech: "Memory Match. Flip cards to find matching word pairs. You get 10 points for a correct match, lose 2 for a wrong one, and earn 50 bonus points for completing all pairs!",
       },
       {
         title: "🎯 Word Quiz",
         text: "Listen to a word and pick the right translation.",
         details: ["✅ Correct: +15 pts", "❌ Wrong: -5 pts", "🏆 Complete all: +60 bonus"],
-        speech: "Word Quiz. Listen to a word and pick the right translation. You earn 15 points for a correct answer, lose 5 for a wrong one, and get 60 bonus points for finishing!",
       },
       {
         title: "✅ True or False",
         text: "See a word and its translation. Decide if it's correct!",
         details: ["✅ Correct: +10 pts", "❌ Wrong: -5 pts", "🏆 Complete all: +40 bonus"],
-        speech: "True or False. You see a word and a translation. Decide if the translation is correct or not! You earn 10 points for a right answer and lose 5 for a wrong one.",
       },
       {
         title: "🔤 Word Scramble",
         text: "Tap the scrambled letters in the right order to spell the word.",
         details: ["✅ Correct: +20 pts", "❌ Wrong letter: -3 pts", "🏆 Complete all: +50 bonus"],
-        speech: "Word Scramble. The letters of a word are mixed up. Tap them in the right order to spell the translation! You earn 20 points per word and lose 3 for each wrong tap.",
       },
       {
         title: "🔓 Unlocking",
         text: "Earn points to unlock new islands. Each island costs 500 more!",
-        speech: "Earn enough points to unlock new islands. Each new island costs 500 more points than the previous one!",
       },
       {
         title: "🌐 Languages",
         text: "Switch between English, Bulgarian, and Spanish using the button in the top right corner.",
-        speech: "You can switch between English, Bulgarian, and Spanish using the language button in the top right corner.",
       },
     ],
   },
   bg: {
-    greeting: "Здравей! Нека ти обясня как работи играта.",
     subtitle: "Твоят езиков помощник",
     gotIt: "Разбрах!",
     sections: [
       {
         title: "🗺️ Острови",
         text: "Натисни остров, за да избереш игра. Всеки остров е тема. Печели точки, за да отключиш нови!",
-        speech: "Натисни остров, за да избереш игра. Всеки остров е тема. Печели точки, за да отключиш нови!",
       },
       {
         title: "🃏 Memory Match",
         text: "Обръщай карти и намери съвпадащи двойки думи.",
         details: ["✅ Вярна двойка: +10 точки", "❌ Грешна двойка: -2 точки", "🏆 Завърши всички: +50 бонус"],
-        speech: "Мемори Мач. Обръщай карти и намери съвпадащи двойки думи. Получаваш 10 точки за вярна двойка, губиш 2 за грешна, и печелиш 50 бонус точки ако завършиш всички!",
       },
       {
         title: "🎯 Word Quiz",
         text: "Чуй дума и избери правилния превод.",
         details: ["✅ Вярно: +15 точки", "❌ Грешно: -5 точки", "🏆 Завърши всички: +60 бонус"],
-        speech: "Уърд Куиз. Чуй дума и избери правилния превод от четири варианта. Получаваш 15 точки за верен отговор, губиш 5 за грешен, и печелиш 60 бонус точки ако завършиш!",
       },
       {
         title: "✅ Вярно или Грешно",
         text: "Виждаш дума и превод. Реши дали е вярно!",
         details: ["✅ Вярно: +10 точки", "❌ Грешно: -5 точки", "🏆 Завърши всички: +40 бонус"],
-        speech: "Вярно или Грешно. Виждаш дума и превод. Реши дали преводът е верен или не! Получаваш 10 точки за правилен отговор и губиш 5 за грешен.",
       },
       {
         title: "🔤 Word Scramble",
         text: "Натискай разбърканите букви в правилния ред, за да изпишеш думата.",
         details: ["✅ Вярно: +20 точки", "❌ Грешна буква: -3 точки", "🏆 Завърши всички: +50 бонус"],
-        speech: "Уърд Скрамбъл. Буквите на дума са разбъркани. Натискай ги в правилния ред, за да изпишеш превода! Получаваш 20 точки за всяка дума и губиш 3 за грешно натискане.",
       },
       {
         title: "🔓 Отключване",
         text: "Печели точки за нови острови. Всеки следващ струва 500 повече!",
-        speech: "Печели достатъчно точки, за да отключиш нови острови. Всеки следващ остров струва 500 точки повече от предишния!",
       },
       {
         title: "🌐 Езици",
         text: "Превключвай между английски, български и испански с бутона горе вдясно.",
-        speech: "Можеш да превключваш между английски, български и испански с бутона за език горе вдясно.",
       },
     ],
   },
@@ -115,50 +110,29 @@ export function HelpButton() {
   const [showRules, setShowRules] = useState(false);
   const [lang, setLang] = useState<RulesLang>("bg");
   const [activeSection, setActiveSection] = useState<number | null>(null);
-  const [bgVoices, setBgVoices] = useState<{ name: string; lang: string }[]>([]);
-  const [selectedVoiceIdx, setSelectedVoiceIdx] = useState(0);
-  const [showVoicePicker, setShowVoicePicker] = useState(false);
 
   const r = RULES[lang];
-
-  // Load available BG voices when panel opens
-  useEffect(() => {
-    if (showRules) {
-      getVoicesForLanguage("bg").then((voices) => {
-        setBgVoices(voices);
-      });
-    }
-  }, [showRules]);
 
   const handleOpen = () => {
     setShowRules(true);
     setActiveSection(null);
-    setShowVoicePicker(false);
-    speak(r.greeting, lang);
+    playPhraseAudio(`rules-greeting-${lang}`);
   };
 
   const handleClose = () => {
-    stopSpeech();
+    stopAudio();
     setShowRules(false);
-    setShowVoicePicker(false);
   };
 
   const switchLang = (newLang: RulesLang) => {
     setLang(newLang);
     setActiveSection(null);
-    speak(RULES[newLang].greeting, newLang);
+    playPhraseAudio(`rules-greeting-${newLang}`);
   };
 
   const handleSectionTap = (index: number) => {
     setActiveSection(index);
-    speak(r.sections[index].speech, lang);
-  };
-
-  const handleVoiceSelect = (idx: number) => {
-    setSelectedVoiceIdx(idx);
-    const voice = bgVoices[idx];
-    setPreferredVoice("bg", voice.name);
-    speakWithVoice(TEST_PHRASE.bg, "bg", voice.name);
+    playPhraseAudio(SECTION_AUDIO[lang][index]);
   };
 
   return (
@@ -215,46 +189,6 @@ export function HelpButton() {
             <p className="text-slate-500 text-xs mb-3 text-center">
               {lang === "en" ? "Tap any section to hear it" : "Натисни секция, за да я чуеш"}
             </p>
-
-            {/* Voice picker toggle */}
-            {bgVoices.length > 0 && (
-              <button
-                onClick={() => setShowVoicePicker(!showVoicePicker)}
-                className="w-full mb-3 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl py-2 px-3 transition-colors"
-              >
-                <span className="text-sm">🎙️</span>
-                <span className="text-slate-400 text-xs">
-                  {showVoicePicker
-                    ? lang === "en" ? "Hide voices" : "Скрий гласовете"
-                    : lang === "en" ? "Change voice" : "Смени гласа"}
-                </span>
-              </button>
-            )}
-
-            {/* Voice picker list */}
-            {showVoicePicker && bgVoices.length > 0 && (
-              <div className="mb-3 space-y-1.5">
-                <p className="text-slate-500 text-xs text-center mb-2">
-                  {lang === "en"
-                    ? "Tap a voice to hear it, then close to keep it"
-                    : "Натисни глас, за да го чуеш"}
-                </p>
-                {bgVoices.map((voice, idx) => (
-                  <button
-                    key={voice.name}
-                    onClick={() => handleVoiceSelect(idx)}
-                    className={`w-full text-left rounded-lg px-3 py-2 text-xs transition-all ${
-                      selectedVoiceIdx === idx
-                        ? "bg-blue-600/20 border border-blue-500/40 text-white"
-                        : "bg-white/5 border border-transparent text-slate-300 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="font-medium">{voice.name}</span>
-                    <span className="text-slate-500 ml-2">({voice.lang})</span>
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Rules - clickable sections */}
             <div className="space-y-2.5 text-sm text-slate-300 leading-relaxed">
