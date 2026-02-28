@@ -259,9 +259,11 @@ export function TrueFalse({ topic }: TrueFalseProps) {
               <div className="tf-float bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/15 rounded-3xl p-8 space-y-4 shadow-2xl">
                 <p className="text-slate-400 text-sm text-center">Is this translation correct?</p>
 
-                {/* Original word */}
+                {/* Original word — emoji hidden until answered */}
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-5xl drop-shadow-lg">{round.word.emoji}</span>
+                  {feedback && (
+                    <span className="text-5xl drop-shadow-lg animate-in zoom-in duration-300">{round.word.emoji}</span>
+                  )}
                   <span className="text-3xl font-bold text-white drop-shadow-md">
                     {round.word[targetLanguage as keyof WordEntry] as string}
                   </span>
