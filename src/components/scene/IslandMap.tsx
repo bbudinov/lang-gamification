@@ -148,8 +148,10 @@ function CameraAnimator({
       enableRotate={true}
       enablePan={true}
       enableZoom={true}
+      zoomToCursor={true}
+      screenSpacePanning={true}
       minDistance={5}
-      maxDistance={60}
+      maxDistance={100}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
       touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
