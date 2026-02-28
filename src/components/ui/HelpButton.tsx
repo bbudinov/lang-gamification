@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { speak } from "@/lib/speech";
+import { speak, stopSpeech } from "@/lib/speech";
 
 type RulesLang = "en" | "bg";
 
@@ -137,7 +137,7 @@ export function HelpButton() {
       {showRules && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
-          onClick={() => setShowRules(false)}
+          onClick={() => { stopSpeech(); setShowRules(false); }}
         >
           <div
             className="bg-[#1a2744] rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 max-h-[80vh] overflow-y-auto"
@@ -208,7 +208,7 @@ export function HelpButton() {
             </div>
 
             <button
-              onClick={() => setShowRules(false)}
+              onClick={() => { stopSpeech(); setShowRules(false); }}
               className="w-full mt-4 bg-blue-600 text-white py-2.5 rounded-xl font-medium active:bg-blue-700 transition-colors"
             >
               {r.gotIt}

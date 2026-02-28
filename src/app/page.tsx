@@ -2,29 +2,15 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { initSpeech, speak } from "@/lib/speech";
+import { initSpeech, speakAndWait, stopSpeech } from "@/lib/speech";
 
 const STORY_PARTS = [
-  {
-    text: "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.",
-    delay: 0,
-  },
-  {
-    text: "Всеки остров пазел тайните на различни думи и езици. Но с времето хората забравили тези тайни и островите потънали в мъгла.",
-    delay: 6000,
-  },
-  {
-    text: "Само един смел изследовател можел да ги събуди отново — и този изследовател си ТИ!",
-    delay: 13000,
-  },
-  {
-    text: "Професор Глоуб ще ти бъде водач. Открий всеки остров, научи думите му и събери най-голямата награда на света — ПОЗНАНИЕТО!",
-    delay: 19000,
-  },
-  {
-    text: "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди — точки, звезди и изненади по пътя!",
-    delay: 29000,
-  },
+  "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.",
+  "Всеки остров пазел тайните на различни думи и езици. Но с времето хората забравили тези тайни и островите потънали в мъгла.",
+  "Само един смел изследовател можел да ги събуди отново — и този изследовател си ТИ!",
+  "Професор Глоуб ще ти бъде водач. Открий всеки остров, научи думите му и събери най-голямата награда на света — ПОЗНАНИЕТО!",
+  // Pause before the joke
+  "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди — точки, звезди и изненади по пътя!",
 ];
 
 export default function Home() {
@@ -32,7 +18,7 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [narrating, setNarrating] = useState(false);
   const [storyLine, setStoryLine] = useState("");
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const skippedRef = useRef(false);
 
   useEffect(() => {
     initSpeech();
@@ -40,49 +26,54 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Cleanup timers on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      timersRef.current.forEach(clearTimeout);
+      skippedRef.current = true;
+      stopSpeech();
     };
   }, []);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (narrating) return;
     setNarrating(true);
+    skippedRef.current = false;
 
     // Unlock speech via user gesture
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+    stopSpeech();
+
+    for (let i = 0; i < STORY_PARTS.length; i++) {
+      if (skippedRef.current) return;
+
+      const text = STORY_PARTS[i];
+      setStoryLine(text);
+
+      // Add a 2-second pause before the joke (last part)
+      if (i === STORY_PARTS.length - 1) {
+        await new Promise((r) => setTimeout(r, 2000));
+        if (skippedRef.current) return;
+      }
+
+      await speakAndWait(text, "bg", 20000);
+
+      if (skippedRef.current) return;
+
+      // Small pause between parts
+      await new Promise((r) => setTimeout(r, 800));
     }
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    STORY_PARTS.forEach((part) => {
-      const t = setTimeout(() => {
-        setStoryLine(part.text);
-        speak(part.text, "bg");
-      }, part.delay);
-      timers.push(t);
-    });
-
-    // Navigate to map after the story ends
-    const navTimer = setTimeout(() => {
-      router.replace("/map");
-    }, 38000);
-    timers.push(navTimer);
-
-    timersRef.current = timers;
+    if (!skippedRef.current) {
+      // Short pause after story ends before navigating
+      await new Promise((r) => setTimeout(r, 1500));
+      if (!skippedRef.current) {
+        router.replace("/map");
+      }
+    }
   };
 
   const handleSkip = () => {
-    // Clear ALL pending story timers
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    skippedRef.current = true;
+    stopSpeech();
     router.replace("/map");
   };
 

@@ -6,13 +6,26 @@ const LANG_MAP: Record<Language, string> = {
   es: "es-ES",
 };
 
+// Rate per language — slower for BG to sound more natural
+const RATE_MAP: Record<Language, number> = {
+  en: 0.9,
+  bg: 0.75,
+  es: 0.85,
+};
+
 let voicesLoaded = false;
+let cachedVoices: SpeechSynthesisVoice[] = [];
 
 function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
   return new Promise((resolve) => {
+    if (cachedVoices.length > 0) {
+      resolve(cachedVoices);
+      return;
+    }
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
       voicesLoaded = true;
+      cachedVoices = voices;
       resolve(voices);
       return;
     }
@@ -24,7 +37,8 @@ function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
       "voiceschanged",
       () => {
         voicesLoaded = true;
-        resolve(window.speechSynthesis.getVoices());
+        cachedVoices = window.speechSynthesis.getVoices();
+        resolve(cachedVoices);
       },
       { once: true }
     );
@@ -41,17 +55,27 @@ function findBestVoice(
   const matching = voices.filter((v) => v.lang.startsWith(langPrefix));
   if (matching.length === 0) return null;
 
-  // Prefer Google voices (higher quality, especially on Android)
+  // Prefer Google voices (higher quality on Chrome/Android)
   const google = matching.find((v) =>
     v.name.toLowerCase().includes("google")
   );
   if (google) return google;
+
+  // Prefer network/premium voices (localService=false means cloud-based)
+  const premium = matching.find((v) => !v.localService);
+  if (premium) return premium;
 
   // Prefer exact locale match (e.g. bg-BG over bg)
   const exact = matching.find((v) => v.lang === locale);
   if (exact) return exact;
 
   return matching[0];
+}
+
+/** Cancel any ongoing speech */
+export function stopSpeech(): void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
 }
 
 // Call on app start (from splash screen) to preload voices
@@ -69,8 +93,8 @@ export async function speak(text: string, language: Language): Promise<void> {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = LANG_MAP[language];
-  utterance.rate = 0.85;
-  utterance.pitch = 1.1;
+  utterance.rate = RATE_MAP[language];
+  utterance.pitch = 1.05;
   utterance.volume = 1;
 
   const voice = findBestVoice(voices, language);
@@ -81,12 +105,12 @@ export async function speak(text: string, language: Language): Promise<void> {
 
 /**
  * Speak text and return a promise that resolves when speech ends.
- * Used when we need to wait for speech to finish before navigating.
+ * Does NOT cancel previous speech — caller is responsible.
  */
 export function speakAndWait(
   text: string,
   language: Language,
-  maxWaitMs = 3000
+  maxWaitMs = 15000
 ): Promise<void> {
   return new Promise(async (resolve) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -94,14 +118,12 @@ export function speakAndWait(
       return;
     }
 
-    window.speechSynthesis.cancel();
-
     const voices = await ensureVoices();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = LANG_MAP[language];
-    utterance.rate = 0.85;
-    utterance.pitch = 1.1;
+    utterance.rate = RATE_MAP[language];
+    utterance.pitch = 1.05;
     utterance.volume = 1;
 
     const voice = findBestVoice(voices, language);
