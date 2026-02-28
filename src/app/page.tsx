@@ -79,7 +79,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a1628] px-6">
-      <div className="text-7xl mb-6 animate-bounce">🌍</div>
+      <img src="/icons/icon-192.png" alt="LangWorld" className="w-24 h-24 mb-6 animate-bounce" />
       <h1 className="text-4xl font-bold text-white mb-2">LangWorld</h1>
       <p className="text-slate-400 text-sm mb-10">Learn languages through play</p>
 
