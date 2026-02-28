@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { Island } from "./Island";
 import { Ocean } from "./Ocean";
 import { Clouds } from "./Clouds";
+import { Boat } from "./Boat";
 import { topics } from "@/data/words";
 import { TOUCH } from "three";
 import type { Topic } from "@/types";
@@ -197,6 +198,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
           {topics.map((topic) => (
             <Island key={topic.id} topic={topic} onSelect={handleSelect} />
           ))}
+          <Boat />
           <Clouds />
           <ContactShadows
             position={[0, -0.4, 0]}
