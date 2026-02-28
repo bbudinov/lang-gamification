@@ -1,4 +1,4 @@
-const CACHE_NAME = "langworld-v1";
+const CACHE_NAME = "langworld-v2";
 const STATIC_ASSETS = ["/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -32,8 +32,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets — cache first
-  if (event.request.url.match(/\.(png|jpg|svg|ico|woff2?|glb|gltf)(\?|$)/)) {
+  // Static assets — cache first (images, audio, fonts)
+  if (event.request.url.match(/\.(png|jpg|svg|ico|woff2?|glb|gltf|mp3)(\?|$)/)) {
     event.respondWith(
       caches.match(event.request).then(
         (cached) =>
