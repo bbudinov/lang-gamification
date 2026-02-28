@@ -217,7 +217,7 @@ export function HelpButton() {
             </p>
 
             {/* Voice picker toggle */}
-            {bgVoices.length > 1 && (
+            {bgVoices.length > 0 && (
               <button
                 onClick={() => setShowVoicePicker(!showVoicePicker)}
                 className="w-full mb-3 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl py-2 px-3 transition-colors"
@@ -232,7 +232,7 @@ export function HelpButton() {
             )}
 
             {/* Voice picker list */}
-            {showVoicePicker && bgVoices.length > 1 && (
+            {showVoicePicker && bgVoices.length > 0 && (
               <div className="mb-3 space-y-1.5">
                 <p className="text-slate-500 text-xs text-center mb-2">
                   {lang === "en"
