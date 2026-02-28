@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
-import { playWordAudio } from "@/lib/speech";
+import { MatchPopup } from "./MatchPopup";
+import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import type { Topic, WordEntry } from "@/types";
 
@@ -47,6 +48,9 @@ export function WordScramble({ topic }: WordScrambleProps) {
   const [wrongTap, setWrongTap] = useState(false);
   const [wordComplete, setWordComplete] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [popup, setPopup] = useState<{ emoji: string; word: string } | null>(null);
+  const [roundKey, setRoundKey] = useState(0);
+  const [lastFilledIndex, setLastFilledIndex] = useState(-1);
 
   useEffect(() => {
     requestWakeLock();
@@ -60,6 +64,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
       setBuilt([]);
       setWordComplete(false);
       setWrongTap(false);
+      setLastFilledIndex(-1);
 
       const letters: ScrambleLetter[] = targetText.split("").map((char, i) => ({
         char,
@@ -78,6 +83,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
     setScore(0);
     setMistakes(0);
     setGameCompleted(false);
+    setPopup(null);
+    setRoundKey(0);
     if (selected.length > 0) initRound(selected[0]);
   }, [topic, targetLanguage, nativeLanguage, initRound]);
 
@@ -98,16 +105,23 @@ export function WordScramble({ topic }: WordScrambleProps) {
     const expectedChar = target[built.length];
 
     if (letter.char === expectedChar) {
+      playPopSound();
       const newBuilt = [...built, letter.char];
       setBuilt(newBuilt);
+      setLastFilledIndex(newBuilt.length - 1);
       setScrambled((prev) =>
         prev.map((l, i) => (i === index ? { ...l, used: true } : l))
       );
       setWrongTap(false);
 
       if (newBuilt.length === target.length) {
+        playDingSound();
         setWordComplete(true);
         setScore((s) => s + CORRECT_POINTS);
+
+        const word = words[currentWord];
+        const targetText = word[targetLanguage as keyof WordEntry] as string;
+        setPopup({ emoji: word.emoji, word: targetText });
         playWordAudio(word.id, targetLanguage);
 
         setTimeout(() => {
@@ -127,11 +141,13 @@ export function WordScramble({ topic }: WordScrambleProps) {
           } else {
             const next = currentWord + 1;
             setCurrentWord(next);
+            setRoundKey((k) => k + 1);
             initRound(words[next]);
           }
-        }, 1200);
+        }, 1500);
       }
     } else {
+      playBuzzSound();
       setWrongTap(true);
       setMistakes((m) => m + 1);
       setScore((s) => Math.max(0, s - WRONG_TAP_PENALTY));
@@ -146,6 +162,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
     setScore(0);
     setMistakes(0);
     setGameCompleted(false);
+    setPopup(null);
+    setRoundKey(0);
     if (selected.length > 0) initRound(selected[0]);
   };
 
@@ -158,14 +176,23 @@ export function WordScramble({ topic }: WordScrambleProps) {
   }
 
   const word = words[currentWord];
+  const progressPct = ((currentWord + (wordComplete ? 1 : 0)) / words.length) * 100;
 
   return (
     <div className="min-h-screen bg-[#0a1628] relative">
       <GameHUD topicEmoji={topic.emoji} topicName={topic.name[targetLanguage]} />
 
+      {popup && (
+        <MatchPopup
+          emoji={popup.emoji}
+          word={popup.word}
+          onDone={() => setPopup(null)}
+        />
+      )}
+
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-in fade-in">
             <div className="text-5xl mb-2">🎉</div>
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-1">
@@ -191,72 +218,119 @@ export function WordScramble({ topic }: WordScrambleProps) {
           </div>
         ) : (
           <div className="w-full max-w-sm space-y-6">
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white/10 rounded-full h-2">
+            {/* Progress bar with walking emoji */}
+            <div className="flex items-center gap-2 relative">
+              <div className="flex-1 bg-white/10 rounded-full h-3 relative overflow-hidden">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${((currentWord + 1) / words.length) * 100}%` }}
+                  className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <span className="text-slate-400 text-xs">
+              <span
+                className="absolute text-lg transition-all duration-700 ease-out -top-5"
+                style={{
+                  left: `calc(${Math.min(progressPct, 95)}% - 8px)`,
+                  animation: "quiz-walk 0.4s ease-in-out infinite",
+                }}
+              >
+                {topic.emoji}
+              </span>
+              <span className="text-slate-400 text-xs min-w-[32px] text-right">
                 {currentWord + 1}/{words.length}
               </span>
+            </div>
+
+            {/* Score */}
+            <div className="text-center">
+              <span className="text-amber-400 font-bold text-sm">⭐ {score}</span>
             </div>
 
             {/* Hint: native word + emoji */}
             <div className="text-center space-y-2">
               <p className="text-slate-400 text-sm">Spell the translation:</p>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-3xl">{word.emoji}</span>
-                <span className="text-xl font-bold text-white">
+              <div className="quiz-float flex items-center justify-center gap-3 py-2">
+                <span className="text-5xl drop-shadow-lg">{word.emoji}</span>
+                <span className="text-2xl font-bold text-white drop-shadow-md">
                   {word[nativeLanguage as keyof WordEntry] as string}
                 </span>
               </div>
+              <button
+                onClick={() => playWordAudio(word.id, nativeLanguage)}
+                className="text-blue-400 text-sm active:text-blue-300 transition-colors bg-blue-400/10 px-4 py-1.5 rounded-full"
+              >
+                🔊 Listen again
+              </button>
             </div>
 
-            {/* Built word display */}
-            <div className="flex justify-center gap-1.5 min-h-[52px]">
-              {target.split("").map((char, i) => (
-                <div
-                  key={i}
-                  className={`w-9 h-11 rounded-lg flex items-center justify-center text-lg font-bold transition-all ${
-                    i < built.length
-                      ? "bg-blue-600 text-white scale-100"
-                      : "bg-white/10 text-white/20 border border-dashed border-white/20"
-                  }`}
-                >
-                  {i < built.length ? built[i] : ""}
-                </div>
-              ))}
+            {/* Built word display — glowing slots */}
+            <div
+              className={`flex justify-center gap-2 min-h-[56px] ${wrongTap ? "" : ""}`}
+              style={wrongTap ? { animation: "ws-wrong-shake 0.4s ease-in-out" } : undefined}
+            >
+              {target.split("").map((char, i) => {
+                const isFilled = i < built.length;
+                const justFilled = i === lastFilledIndex;
+                const isComplete = wordComplete;
+
+                return (
+                  <div
+                    key={`${roundKey}-${i}`}
+                    className={`w-10 h-12 rounded-xl flex items-center justify-center text-xl font-bold transition-all duration-300 ${
+                      isFilled
+                        ? isComplete
+                          ? "bg-green-600 text-white border-2 border-green-400"
+                          : "bg-blue-600 text-white border-2 border-blue-400"
+                        : "bg-white/5 text-white/15 border-2 border-dashed border-white/20"
+                    }`}
+                    style={
+                      justFilled && !isComplete
+                        ? { animation: "ws-slot-fill 0.35s ease-out" }
+                        : isComplete
+                          ? { animation: "ws-complete-glow 1.5s ease-in-out infinite", animationDelay: `${i * 50}ms` }
+                          : undefined
+                    }
+                  >
+                    {isFilled ? (
+                      <span className={isComplete ? "drop-shadow-lg" : ""}>
+                        {built[i]}
+                      </span>
+                    ) : (
+                      <span className="text-white/10">_</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Wrong tap feedback */}
+            {/* Feedback */}
             {wrongTap && (
-              <p className="text-red-400 text-center text-sm font-semibold animate-pulse">
+              <p className="text-red-400 text-center text-sm font-semibold">
                 Wrong letter! -{WRONG_TAP_PENALTY} pts
               </p>
             )}
-
-            {/* Word complete feedback */}
             {wordComplete && (
-              <p className="text-green-400 text-center font-semibold">
-                Correct! +{CORRECT_POINTS} pts
+              <p className="text-green-400 text-center font-semibold text-lg">
+                Correct! +{CORRECT_POINTS} pts 🎉
               </p>
             )}
 
-            {/* Scrambled letters */}
-            <div className="flex flex-wrap justify-center gap-2">
+            {/* Scrambled letter blocks */}
+            <div className="flex flex-wrap justify-center gap-2.5" key={roundKey}>
               {scrambled.map((letter, i) => (
                 <button
                   key={i}
                   onClick={() => handleLetterTap(i)}
                   disabled={letter.used || wordComplete}
-                  className={`w-11 h-11 rounded-xl text-lg font-bold transition-all ${
+                  className={`w-12 h-12 rounded-xl text-xl font-bold transition-all duration-300 disabled:cursor-default ${
                     letter.used
-                      ? "bg-white/5 text-white/10 scale-90"
-                      : "bg-white/10 text-white active:scale-90 active:bg-blue-600"
-                  } disabled:cursor-default`}
+                      ? "bg-white/3 text-white/10 scale-75 border border-white/5"
+                      : "text-white border-2 border-white/20 active:scale-90 active:border-blue-400 bg-gradient-to-b from-white/15 to-white/5 shadow-lg"
+                  }`}
+                  style={
+                    letter.used
+                      ? { animation: "ws-letter-used 0.3s ease-out forwards" }
+                      : { animation: `ws-letter-in 0.4s ease-out ${i * 50}ms both` }
+                  }
                 >
                   {letter.char}
                 </button>
