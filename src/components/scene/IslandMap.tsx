@@ -65,9 +65,9 @@ function useDayNightCycle(): DayNightConfig {
   }, []);
 }
 
-// Home position — centered on all islands (spread layout: x:-9..9, z:-5..21)
-const HOME_CAM = new THREE.Vector3(0, 18, 22);
-const HOME_TARGET = new THREE.Vector3(0, 0, 8);
+// Home position — centered on all islands (spread layout: x:-16..15, z:-9..36)
+const HOME_CAM = new THREE.Vector3(0, 28, 30);
+const HOME_TARGET = new THREE.Vector3(0, 0, 13);
 
 // Camera animator — intro zoom + island focus
 function CameraAnimator({
@@ -112,8 +112,8 @@ function CameraAnimator({
       const islandVec = new THREE.Vector3(targetPos[0], targetPos[1] + 1, targetPos[2]);
       const camTarget = new THREE.Vector3(
         targetPos[0] * 0.3,
-        8,
-        targetPos[2] + 8
+        10,
+        targetPos[2] + 10
       );
       controls.target.lerp(islandVec, 0.04);
       camera.position.lerp(camTarget, 0.04);
@@ -149,7 +149,7 @@ function CameraAnimator({
       enablePan={true}
       enableZoom={true}
       minDistance={5}
-      maxDistance={45}
+      maxDistance={60}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
       touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
@@ -177,7 +177,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
     <div className="w-full h-full relative z-0" style={{ touchAction: "none" }}>
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 25, 28], fov: 50 }}
+        camera={{ position: [0, 38, 40], fov: 50 }}
         style={{ touchAction: "none" }}
       >
         <PerformanceMonitor
@@ -185,7 +185,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
           onIncline={() => setDpr(1.5)}
         />
         <color attach="background" args={[dn.bgColor]} />
-        <fog attach="fog" args={[dn.fogColor, 30, 65]} />
+        <fog attach="fog" args={[dn.fogColor, 40, 90]} />
         <ambientLight color={dn.ambientColor} intensity={dn.ambientIntensity} />
         <directionalLight
           position={[5, 10, 5]}
@@ -203,7 +203,7 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
           <ContactShadows
             position={[0, -0.4, 0]}
             opacity={0.4}
-            scale={40}
+            scale={70}
             blur={2}
             far={4}
             resolution={64}

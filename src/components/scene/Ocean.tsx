@@ -23,7 +23,7 @@ export function Ocean() {
     <>
       {/* Deep ocean layer */}
       <mesh ref={baseRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.55, 0]}>
-        <planeGeometry args={[120, 120, 64, 64]} />
+        <planeGeometry args={[160, 160, 64, 64]} />
         <MeshDistortMaterial
           color="#0c6da8"
           emissive="#062a4a"
@@ -39,7 +39,7 @@ export function Ocean() {
 
       {/* Surface wave layer — lighter, more visible crests */}
       <mesh ref={topRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.4, 0]}>
-        <planeGeometry args={[120, 120, 48, 48]} />
+        <planeGeometry args={[160, 160, 48, 48]} />
         <MeshDistortMaterial
           color="#2da0e2"
           emissive="#1a7ab8"
