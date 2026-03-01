@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { playPhraseAudioAndWait, playPopSound } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { getTopicPhrases } from "@/data/phrases";
+import { getNPC } from "@/data/npcs";
 import type { TopicId } from "@/types";
 
 const PHRASE_IDS = [
@@ -21,7 +22,7 @@ interface GameSelectorProps {
   onClose: () => void;
 }
 
-const GAMES: { type: string; name: string; emoji: string; description: string; requiresPhrases?: boolean }[] = [
+const GAMES: { type: string; name: string; emoji: string; description: string; requiresPhrases?: boolean; requiresNPC?: boolean }[] = [
   {
     type: "memory-match",
     name: "Memory Match",
@@ -66,6 +67,13 @@ const GAMES: { type: string; name: string; emoji: string; description: string; r
     description: "Repeat phrases after Professor Globe",
     requiresPhrases: true,
   },
+  {
+    type: "npc-talk",
+    name: "NPC Talk",
+    emoji: "💬",
+    description: "Chat with a character using AI",
+    requiresNPC: true,
+  },
 ];
 
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {
@@ -73,6 +81,7 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
   const [navigating, setNavigating] = useState(false);
   const [globeSpeaking, setGlobeSpeaking] = useState(false);
   const hasPhrases = getTopicPhrases(topicId).length > 0;
+  const hasNPC = !!getNPC(topicId);
 
   const handleGameSelect = async (gameType: string) => {
     if (navigating) return;
@@ -108,7 +117,7 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
 
         <div className="space-y-3">
           {GAMES.map((game, i) => {
-            const disabled = navigating || (game.requiresPhrases && !hasPhrases);
+            const disabled = navigating || (game.requiresPhrases && !hasPhrases) || (game.requiresNPC && !hasNPC);
             return (
               <button
                 key={game.type}

@@ -9,6 +9,7 @@ import { WordScramble } from "@/components/game/WordScramble";
 import { FillScene } from "@/components/game/FillScene";
 import { SayIt } from "@/components/game/SayIt";
 import { ListenRepeat } from "@/components/game/ListenRepeat";
+import { DialogueBox } from "@/components/dialogue/DialogueBox";
 import { topics } from "@/data/words";
 
 export default function GamePage({
@@ -60,6 +61,10 @@ export default function GamePage({
 
   if (gameType === "listen-repeat") {
     return <ListenRepeat topic={topic} />;
+  }
+
+  if (gameType === "npc-talk") {
+    return <DialogueBox topic={topic} />;
   }
 
   return (
