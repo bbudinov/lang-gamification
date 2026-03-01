@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { playPhraseAudioAndWait, playPopSound } from "@/lib/speech";
+import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import type { TopicId } from "@/types";
 
 const PHRASE_IDS = [
@@ -49,6 +50,7 @@ const GAMES = [
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
+  const [globeSpeaking, setGlobeSpeaking] = useState(false);
 
   const handleGameSelect = async (gameType: string) => {
     if (navigating) return;
@@ -58,7 +60,9 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
     const phraseId = PHRASE_IDS[phraseIndex % PHRASE_IDS.length];
     phraseIndex++;
 
+    setGlobeSpeaking(true);
     await playPhraseAudioAndWait(phraseId, 3000);
+    setGlobeSpeaking(false);
     router.push(`/game/${topicId}/${gameType}`);
   };
 
@@ -72,8 +76,11 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-5">
-          <span className="text-4xl inline-block animate-bounce">{topicEmoji}</span>
-          <h2 className="text-xl font-bold text-white mt-1">{topicName}</h2>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <ProfessorGlobe size={52} speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />
+            <span className="text-4xl">{topicEmoji}</span>
+          </div>
+          <h2 className="text-xl font-bold text-white">{topicName}</h2>
           <p className="text-slate-400 text-sm">Choose a game</p>
         </div>
 

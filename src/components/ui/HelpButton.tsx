@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { playPhraseAudio, stopAudio } from "@/lib/speech";
+import { playPhraseAudio, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
+import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 
 type RulesLang = "en" | "bg";
 
@@ -110,39 +111,47 @@ export function HelpButton() {
   const [showRules, setShowRules] = useState(false);
   const [lang, setLang] = useState<RulesLang>("bg");
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [globeSpeaking, setGlobeSpeaking] = useState(false);
 
   const r = RULES[lang];
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     setShowRules(true);
     setActiveSection(null);
-    playPhraseAudio(`rules-greeting-${lang}`);
+    setGlobeSpeaking(true);
+    await playPhraseAudioAndWait(`rules-greeting-${lang}`, 5000);
+    setGlobeSpeaking(false);
   };
 
   const handleClose = () => {
     stopAudio();
+    setGlobeSpeaking(false);
     setShowRules(false);
   };
 
-  const switchLang = (newLang: RulesLang) => {
+  const switchLang = async (newLang: RulesLang) => {
     setLang(newLang);
     setActiveSection(null);
-    playPhraseAudio(`rules-greeting-${newLang}`);
+    setGlobeSpeaking(true);
+    await playPhraseAudioAndWait(`rules-greeting-${newLang}`, 5000);
+    setGlobeSpeaking(false);
   };
 
-  const handleSectionTap = (index: number) => {
+  const handleSectionTap = async (index: number) => {
     setActiveSection(index);
-    playPhraseAudio(SECTION_AUDIO[lang][index]);
+    setGlobeSpeaking(true);
+    await playPhraseAudioAndWait(SECTION_AUDIO[lang][index], 10000);
+    setGlobeSpeaking(false);
   };
 
   return (
     <>
       <button
         onClick={handleOpen}
-        className="absolute bottom-20 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-300"
+        className="absolute bottom-20 right-4 w-14 h-14 rounded-full bg-[#0a1628] shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-400/50"
         style={{ zIndex: 9999 }}
       >
-        <span className="text-2xl">🧑‍🏫</span>
+        <ProfessorGlobe size={38} />
       </button>
 
       {showRules && (
@@ -157,9 +166,7 @@ export function HelpButton() {
             {/* Header + language toggle */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center border-2 border-amber-300 shrink-0">
-                  <span className="text-xl">🧑‍🏫</span>
-                </div>
+                <ProfessorGlobe size={48} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
                 <div>
                   <p className="text-white font-bold">Professor Globe</p>
                   <p className="text-slate-400 text-xs">{r.subtitle}</p>

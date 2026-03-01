@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { initSpeech, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
+import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 
 const STORY_PARTS = [
   "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.",
@@ -18,6 +19,8 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [narrating, setNarrating] = useState(false);
   const [storyLine, setStoryLine] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [globeEmotion, setGlobeEmotion] = useState<"idle" | "happy" | "thinking" | "surprised">("idle");
   const skippedRef = useRef(false);
 
   useEffect(() => {
@@ -43,14 +46,20 @@ export default function Home() {
       if (skippedRef.current) return;
 
       setStoryLine(STORY_PARTS[i]);
+      setGlobeEmotion(i === STORY_PARTS.length - 1 ? "happy" : i === 2 ? "surprised" : "idle");
 
       // Add a 2-second pause before the joke (last part)
       if (i === STORY_PARTS.length - 1) {
+        setIsSpeaking(false);
+        setGlobeEmotion("thinking");
         await new Promise((r) => setTimeout(r, 2000));
         if (skippedRef.current) return;
+        setGlobeEmotion("happy");
       }
 
+      setIsSpeaking(true);
       await playPhraseAudioAndWait(`story${i + 1}`, 25000);
+      setIsSpeaking(false);
 
       if (skippedRef.current) return;
 
@@ -90,11 +99,17 @@ export default function Home() {
       ) : (
         <div className="w-full max-w-md space-y-6 text-center">
           {/* Professor Globe narrating */}
-          <div className="flex items-start gap-3 bg-white/5 rounded-2xl p-4 min-h-[100px]">
-            <span className="text-4xl shrink-0">🌐</span>
-            <p className="text-white text-sm leading-relaxed text-left animate-pulse">
-              {storyLine}
-            </p>
+          <div className="flex flex-col items-center gap-4">
+            <ProfessorGlobe
+              size={96}
+              speaking={isSpeaking}
+              emotion={globeEmotion}
+            />
+            <div className="bg-white/5 rounded-2xl p-4 min-h-[80px] w-full">
+              <p className="text-white text-sm leading-relaxed text-center">
+                {storyLine}
+              </p>
+            </div>
           </div>
 
           <button
