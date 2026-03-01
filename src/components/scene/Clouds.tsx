@@ -111,11 +111,11 @@ function Cloud({ data }: { data: CloudData }) {
         <mesh key={i} position={s.offset}>
           <dodecahedronGeometry args={[s.radius, 1]} />
           <meshStandardMaterial
-            color="#ffffff"
-            emissive="#8ab4d6"
-            emissiveIntensity={0.15}
+            color="#f0f4ff"
+            emissive="#7ca8cc"
+            emissiveIntensity={0.2}
             transparent
-            opacity={0.8}
+            opacity={0.75}
             flatShading
           />
         </mesh>

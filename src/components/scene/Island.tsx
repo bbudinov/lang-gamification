@@ -42,16 +42,18 @@ const DEFAULT_VISUAL: IslandVisual = {
 
 // ─── Organic island body ────────────────────────────────────────
 
-function IslandBody({ visual, unlocked, hovered, unlockEffect, topicColor }: {
-  visual: IslandVisual; unlocked: boolean; hovered: boolean; unlockEffect: boolean; topicColor: string;
+function IslandBody({ visual, unlocked, hovered, unlockEffect, topicColor, completedLevels = 0 }: {
+  visual: IslandVisual; unlocked: boolean; hovered: boolean; unlockEffect: boolean; topicColor: string; completedLevels?: number;
 }) {
   const gColor = unlocked ? visual.groundColor : "#6b7280";
   const cColor = unlocked ? visual.cliffColor : "#4b5563";
   const bColor = unlocked ? visual.beachColor : "#9ca3af";
   const h = visual.height;
 
-  const emissive = unlockEffect ? topicColor : hovered && unlocked ? topicColor : "#000000";
-  const emissiveI = unlockEffect ? 1.5 : hovered ? 0.3 : 0;
+  // Progress glow: 0 levels = 0, 1 = 0.08, 2 = 0.15, 3 = 0.25
+  const progressGlow = unlocked ? completedLevels * 0.08 : 0;
+  const emissive = unlockEffect ? topicColor : hovered && unlocked ? topicColor : (progressGlow > 0 ? topicColor : "#000000");
+  const emissiveI = unlockEffect ? 1.5 : hovered ? 0.3 : progressGlow;
 
   return (
     <>
@@ -455,6 +457,59 @@ function LevelDots({ topicId }: { topicId: string }) {
   );
 }
 
+// ─── Fog clouds around locked islands ────────────────────────────
+
+function LockedFog({ unlocked, unlockEffect }: { unlocked: boolean; unlockEffect: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const opacity = useRef(1);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.elapsedTime;
+
+    // Fade out on unlock
+    if (unlocked || unlockEffect) {
+      opacity.current = Math.max(0, opacity.current - 0.02);
+    }
+
+    groupRef.current.children.forEach((child, i) => {
+      const mesh = child as THREE.Mesh;
+      const phase = i * 1.3;
+      // Gentle swirl
+      mesh.position.x = Math.sin(t * 0.2 + phase) * (1.5 + i * 0.3);
+      mesh.position.z = Math.cos(t * 0.15 + phase) * (1.2 + i * 0.2);
+      mesh.position.y = 0.5 + Math.sin(t * 0.3 + phase) * 0.3;
+      mesh.scale.setScalar(0.8 + Math.sin(t * 0.25 + phase) * 0.15);
+      (mesh.material as THREE.MeshStandardMaterial).opacity = opacity.current * (0.4 + Math.sin(t * 0.4 + phase) * 0.1);
+    });
+
+    if (opacity.current <= 0) {
+      groupRef.current.visible = false;
+    }
+  });
+
+  if (unlocked && opacity.current <= 0) return null;
+
+  return (
+    <group ref={groupRef}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <mesh key={i}>
+          <dodecahedronGeometry args={[0.9 + i * 0.15, 1]} />
+          <meshStandardMaterial
+            color="#8b9dc3"
+            emissive="#4a6fa5"
+            emissiveIntensity={0.1}
+            transparent
+            opacity={0.45}
+            flatShading
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // ─── Bubbles for unlock rise effect ─────────────────────────────
 
 function UnlockBubbles({ active, color }: { active: boolean; color: string }) {
@@ -526,6 +581,7 @@ export function Island({ topic, onSelect }: IslandProps) {
   const canAfford = totalPoints >= topic.unlockCost;
   const lang: Language = targetLanguage;
   const visual = ISLAND_VISUALS[topic.id] ?? DEFAULT_VISUAL;
+  const completedLevels = useProgressStore((s) => s.getTopicCompletedLevels(topic.id));
 
   useFrame(({ clock }, delta) => {
     if (ref.current) {
@@ -588,6 +644,7 @@ export function Island({ topic, onSelect }: IslandProps) {
             hovered={hovered}
             unlockEffect={unlockEffect}
             topicColor={topic.color}
+            completedLevels={completedLevels}
           />
 
           {/* Category-specific decorations */}
@@ -619,6 +676,9 @@ export function Island({ topic, onSelect }: IslandProps) {
           />
         )}
       </Float>
+
+      {/* Fog around locked islands */}
+      {!unlocked && <LockedFog unlocked={unlocked} unlockEffect={unlockEffect} />}
 
       {/* Bubbles during rise-from-water */}
       <UnlockBubbles active={showBubbles} color={topic.color} />

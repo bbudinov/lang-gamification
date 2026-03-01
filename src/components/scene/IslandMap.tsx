@@ -8,7 +8,10 @@ import { Island } from "./Island";
 import { Ocean } from "./Ocean";
 import { Clouds } from "./Clouds";
 import { Boat } from "./Boat";
+import { Bridges } from "./Bridges";
+import { TreasureChest } from "./TreasureChest";
 import { topics } from "@/data/words";
+import { useProgressStore } from "@/stores/progressStore";
 import { TOUCH } from "three";
 import type { Topic } from "@/types";
 
@@ -184,6 +187,32 @@ function CameraAnimator({
   );
 }
 
+// Streak aura — orange glow when daily streak is active
+function StreakAura() {
+  const lightRef = useRef<THREE.PointLight>(null);
+  const { dailyStreak } = useProgressStore();
+
+  useFrame(({ clock }) => {
+    if (!lightRef.current || dailyStreak < 1) return;
+    const t = clock.elapsedTime;
+    // Gentle pulse
+    lightRef.current.intensity = 0.3 + Math.sin(t * 1.5) * 0.1 + dailyStreak * 0.05;
+  });
+
+  if (dailyStreak < 1) return null;
+
+  return (
+    <pointLight
+      ref={lightRef}
+      position={[0, 6, 13]}
+      color="#ff8c00"
+      intensity={0.3}
+      distance={60}
+      decay={1.5}
+    />
+  );
+}
+
 interface IslandMapProps {
   onSelectTopic: (topic: Topic) => void;
   focusPosition?: [number, number, number] | null;
@@ -219,14 +248,31 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
           color={dn.directionalColor}
           intensity={dn.directionalIntensity}
         />
+        {/* Rim/fill light for depth — subtle blue from below-behind */}
+        <directionalLight
+          position={[-8, 2, -10]}
+          color="#4a8bc2"
+          intensity={0.15}
+        />
+        {/* Warm accent from opposite side */}
+        <pointLight
+          position={[15, 4, 20]}
+          color="#ffd275"
+          intensity={0.2}
+          distance={40}
+          decay={2}
+        />
 
         <Suspense fallback={null}>
           <Ocean />
+          <Bridges />
+          <TreasureChest />
           {topics.map((topic) => (
             <Island key={topic.id} topic={topic} onSelect={handleSelect} />
           ))}
           <Boat />
           <Clouds />
+          <StreakAura />
           <ContactShadows
             position={[0, -0.4, 0]}
             opacity={0.4}

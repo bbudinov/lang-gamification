@@ -21,33 +21,33 @@ export function Ocean() {
 
   return (
     <>
-      {/* Deep ocean layer */}
+      {/* Deep ocean layer — rich deep blue */}
       <mesh ref={baseRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.55, 0]}>
         <planeGeometry args={[160, 160, 64, 64]} />
         <MeshDistortMaterial
-          color="#0c6da8"
-          emissive="#062a4a"
-          emissiveIntensity={0.4}
+          color="#0a5c8f"
+          emissive="#041e3a"
+          emissiveIntensity={0.5}
           transparent
           opacity={0.95}
-          roughness={0.3}
-          metalness={0.1}
+          roughness={0.25}
+          metalness={0.15}
           speed={1.5}
           factor={0.7}
         />
       </mesh>
 
-      {/* Surface wave layer — lighter, more visible crests */}
+      {/* Surface wave layer — vibrant cyan crests */}
       <mesh ref={topRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.4, 0]}>
         <planeGeometry args={[160, 160, 48, 48]} />
         <MeshDistortMaterial
-          color="#2da0e2"
-          emissive="#1a7ab8"
-          emissiveIntensity={0.3}
+          color="#1e90d4"
+          emissive="#0e6aaa"
+          emissiveIntensity={0.35}
           transparent
-          opacity={0.35}
-          roughness={0.15}
-          metalness={0.2}
+          opacity={0.4}
+          roughness={0.1}
+          metalness={0.25}
           speed={2.5}
           factor={0.9}
         />
