@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound } from "@/lib/speech";
+import { playPopSound, playDingSound, speak } from "@/lib/speech";
 import { askAI } from "@/lib/ai";
 import { topics } from "@/data/words";
 import type { TopicId } from "@/types";
@@ -67,7 +67,7 @@ interface MissionBoardProps {
 
 export function MissionBoard({ onClose }: MissionBoardProps) {
   const router = useRouter();
-  const { unlockedTopics, addPoints } = useProgressStore();
+  const { unlockedTopics, addPoints, targetLanguage } = useProgressStore();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -137,8 +137,16 @@ Only valid JSON, no markdown.`,
     setLoading(false);
   };
 
+  // Speak when missions are ready
+  useEffect(() => {
+    if (!loading && missions.length > 0) {
+      speak("Here are your missions! Pick one!", targetLanguage);
+    }
+  }, [loading, missions.length, targetLanguage]);
+
   const handleMissionStart = (mission: Mission) => {
     playPopSound();
+    speak(`Let's go! ${mission.title}!`, targetLanguage);
     // Give mission reward as bonus points
     addPoints(mission.reward);
     router.push(`/game/${mission.topicId}/${mission.gameType}`);
@@ -155,9 +163,9 @@ Only valid JSON, no markdown.`,
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-5">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <ProfessorGlobe size={48} emotion="happy" />
-            <span className="text-3xl">📋</span>
+          <div className="flex flex-col items-center mb-2">
+            <ProfessorGlobe size={80} emotion="happy" speaking={!loading && missions.length > 0} />
+            <span className="text-2xl mt-1">📋</span>
           </div>
           <h2 className="text-xl font-bold text-white">Missions</h2>
           <p className="text-slate-400 text-sm">Complete quests for bonus rewards!</p>
@@ -165,7 +173,7 @@ Only valid JSON, no markdown.`,
 
         {loading ? (
           <div className="flex flex-col items-center gap-3 py-8">
-            <ProfessorGlobe size={56} speaking emotion="thinking" />
+            <ProfessorGlobe size={80} speaking emotion="thinking" />
             <p className="text-slate-400 text-sm animate-pulse">Generating missions...</p>
           </div>
         ) : (

@@ -6,7 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
 import { askAI } from "@/lib/ai";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound } from "@/lib/speech";
+import { playPopSound, playDingSound, speak, speakAndWait, stopAudio } from "@/lib/speech";
 import type { Topic, Language } from "@/types";
 import { getNPC, type NPCData } from "@/data/npcs";
 
@@ -88,16 +88,38 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const [exchanges, setExchanges] = useState(0);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [score, setScore] = useState(0);
+  const [npcSpeaking, setNpcSpeaking] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const aiHistoryRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+  const speakingRef = useRef(false);
 
-  // Initialize with NPC greeting
+  // Speak NPC message with mouth-sync state
+  const speakNPC = useCallback(async (text: string) => {
+    speakingRef.current = true;
+    setNpcSpeaking(true);
+    await speakAndWait(text, targetLanguage);
+    if (speakingRef.current) {
+      setNpcSpeaking(false);
+      speakingRef.current = false;
+    }
+  }, [targetLanguage]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      speakingRef.current = false;
+      stopAudio();
+    };
+  }, []);
+
+  // Initialize with NPC greeting + voice
   useEffect(() => {
     if (!npc) return;
     const greeting = npc.greeting[targetLanguage];
     setMessages([{ role: "npc", text: greeting }]);
 
-    // Generate initial options from AI
+    // Speak greeting then generate options
+    speakNPC(greeting);
     generateOptions(greeting);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -174,6 +196,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       // AI failed — provide fallback
       const fallback = "That's great! I had fun talking with you! 😊";
       setMessages((prev) => [...prev, { role: "npc", text: fallback }]);
+      speakNPC(fallback);
       setOptions(["Bye!", "Me too!", "See you!"]);
       setLoading(false);
       return;
@@ -186,9 +209,10 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       addFact(npc.id, parsed.memory);
     }
 
-    // Add NPC response
+    // Add NPC response + speak it
     aiHistoryRef.current.push({ role: "assistant", content: parsed.message });
     setMessages((prev) => [...prev, { role: "npc", text: parsed.message }]);
+    speakNPC(parsed.message);
     setScore((s) => s + POINTS_PER_EXCHANGE);
     setExchanges(exchangeNum);
 
@@ -212,7 +236,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setOptions(parsed.options);
       setLoading(false);
     }
-  }, [loading, npc, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts]);
+  }, [loading, npc, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
 
   // No NPC for this topic
   if (!npc) {
@@ -231,7 +255,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   if (gameCompleted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
-        <span className="text-6xl">{npc.emoji}</span>
+        <div className="text-8xl" style={{ filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))" }}>
+          {npc.emoji}
+        </div>
         <h2 className="text-3xl font-bold text-white">Great Chat!</h2>
         <p className="text-slate-300 text-center">
           {npc.name} enjoyed talking with you!
@@ -308,31 +334,53 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* NPC role */}
-      <div className="px-4 mb-3">
-        <p className="text-slate-500 text-xs text-center">
-          {npc.role[targetLanguage]} — {npc.goal[targetLanguage]}
-        </p>
+      {/* Large NPC Character */}
+      <div className="flex flex-col items-center py-3 px-4">
+        <div className="relative">
+          <div
+            className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
+            style={{
+              filter: npcSpeaking
+                ? "drop-shadow(0 0 24px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 48px rgba(59, 130, 246, 0.3))"
+                : "drop-shadow(0 0 8px rgba(59, 130, 246, 0.2))",
+              animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+            }}
+          >
+            {npc.emoji}
+          </div>
+          {/* Sound wave indicator when speaking */}
+          {npcSpeaking && (
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+            </div>
+          )}
+        </div>
+        <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
+        <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
       </div>
 
       {/* Chat messages */}
-      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-3 pb-4">
+      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-2.5 pb-4">
         {messages.map((msg, i) => (
           <div
             key={i}
             className={`flex ${msg.role === "player" ? "justify-end" : "justify-start"}`}
           >
             {msg.role === "npc" && (
-              <span className="text-2xl mr-2 shrink-0 self-end">{npc.emoji}</span>
+              <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
             )}
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                 msg.role === "player"
                   ? "bg-blue-600 text-white rounded-br-md"
                   : "bg-white/10 text-white rounded-bl-md"
               }`}
               style={{
-                animation: `msg-in 0.3s ease-out ${i === messages.length - 1 ? "0ms" : "0ms"} both`,
+                animation: `msg-in 0.3s ease-out both`,
               }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
@@ -342,8 +390,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
         {loading && (
           <div className="flex justify-start">
-            <span className="text-2xl mr-2 shrink-0 self-end">{npc.emoji}</span>
-            <div className="bg-white/10 rounded-2xl rounded-bl-md px-4 py-3">
+            <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
+            <div className="bg-white/10 rounded-2xl rounded-bl-md px-4 py-2.5">
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -380,6 +428,30 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         @keyframes slide-up {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes npc-idle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        @keyframes npc-speak {
+          0%, 100% { transform: scale(1.1); }
+          50% { transform: scale(1.15); }
+        }
+        .animate-sound-1 {
+          animation: sound-wave 0.4s ease-in-out infinite;
+          height: 8px;
+        }
+        .animate-sound-2 {
+          animation: sound-wave 0.4s ease-in-out 0.1s infinite;
+          height: 14px;
+        }
+        .animate-sound-3 {
+          animation: sound-wave 0.4s ease-in-out 0.2s infinite;
+          height: 10px;
+        }
+        @keyframes sound-wave {
+          0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+          50% { transform: scaleY(1.2); opacity: 1; }
         }
       `}</style>
     </div>
