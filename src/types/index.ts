@@ -20,7 +20,21 @@ export interface Topic {
   color: string;
 }
 
-export type GameType = "memory-match" | "word-quiz" | "true-false" | "word-scramble" | "listen-choose";
+export interface PhraseEntry {
+  id: string;
+  topicId: TopicId;
+  /** Full sentence with ___ marking the blank */
+  sentence: Record<Language, string>;
+  /** The correct word to fill the blank */
+  answer: Record<Language, string>;
+  /** Emoji hint for the answer */
+  emoji: string;
+  /** Scene context shown at the top */
+  context: Record<Language, string>;
+  difficulty: 1 | 2 | 3;
+}
+
+export type GameType = "memory-match" | "word-quiz" | "true-false" | "word-scramble" | "listen-choose" | "fill-scene";
 
 export interface GameResult {
   topicId: TopicId;

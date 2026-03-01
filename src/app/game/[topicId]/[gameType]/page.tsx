@@ -6,6 +6,7 @@ import { MemoryMatch } from "@/components/game/MemoryMatch";
 import { WordQuiz } from "@/components/game/WordQuiz";
 import { TrueFalse } from "@/components/game/TrueFalse";
 import { WordScramble } from "@/components/game/WordScramble";
+import { FillScene } from "@/components/game/FillScene";
 import { topics } from "@/data/words";
 
 export default function GamePage({
@@ -45,6 +46,10 @@ export default function GamePage({
 
   if (gameType === "word-scramble") {
     return <WordScramble topic={topic} />;
+  }
+
+  if (gameType === "fill-scene") {
+    return <FillScene topic={topic} />;
   }
 
   return (

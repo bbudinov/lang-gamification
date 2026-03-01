@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { playPhraseAudioAndWait, playPopSound } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { getTopicPhrases } from "@/data/phrases";
 import type { TopicId } from "@/types";
 
 const PHRASE_IDS = [
@@ -20,7 +21,7 @@ interface GameSelectorProps {
   onClose: () => void;
 }
 
-const GAMES = [
+const GAMES: { type: string; name: string; emoji: string; description: string; requiresPhrases?: boolean }[] = [
   {
     type: "memory-match",
     name: "Memory Match",
@@ -45,12 +46,20 @@ const GAMES = [
     emoji: "🔤",
     description: "Unscramble letters to spell the word",
   },
+  {
+    type: "fill-scene",
+    name: "Fill the Scene",
+    emoji: "🎬",
+    description: "Complete sentences in real situations",
+    requiresPhrases: true,
+  },
 ];
 
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
   const [globeSpeaking, setGlobeSpeaking] = useState(false);
+  const hasPhrases = getTopicPhrases(topicId).length > 0;
 
   const handleGameSelect = async (gameType: string) => {
     if (navigating) return;
@@ -85,23 +94,26 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
         </div>
 
         <div className="space-y-3">
-          {GAMES.map((game, i) => (
-            <button
-              key={game.type}
-              onClick={() => handleGameSelect(game.type)}
-              disabled={navigating}
-              className={`w-full flex items-center gap-4 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl p-4 transition-all text-left ${
-                navigating ? "opacity-50 cursor-default" : ""
-              }`}
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <span className="text-3xl">{game.emoji}</span>
-              <div>
-                <p className="text-white font-semibold">{game.name}</p>
-                <p className="text-slate-400 text-xs">{game.description}</p>
-              </div>
-            </button>
-          ))}
+          {GAMES.map((game, i) => {
+            const disabled = navigating || (game.requiresPhrases && !hasPhrases);
+            return (
+              <button
+                key={game.type}
+                onClick={() => !disabled && handleGameSelect(game.type)}
+                disabled={disabled}
+                className={`w-full flex items-center gap-4 bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl p-4 transition-all text-left ${
+                  disabled ? "opacity-40 cursor-default" : ""
+                }`}
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <span className="text-3xl">{game.emoji}</span>
+                <div>
+                  <p className="text-white font-semibold">{game.name}</p>
+                  <p className="text-slate-400 text-xs">{game.description}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         <button
