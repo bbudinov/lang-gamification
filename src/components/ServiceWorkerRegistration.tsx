@@ -4,11 +4,36 @@ import { useEffect } from "react";
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .catch((err) => console.log("SW registration failed:", err));
-    }
+    if (!("serviceWorker" in navigator)) return;
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        // Check for updates on page load
+        registration.update();
+
+        // When a new SW is found, activate it immediately
+        registration.onupdatefound = () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.onstatechange = () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              // New version available — tell it to activate
+              newWorker.postMessage("SKIP_WAITING");
+            }
+          };
+        };
+
+        // When the new SW takes over, reload to get fresh assets
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      })
+      .catch((err) => console.log("SW registration failed:", err));
 
     // Prevent Android back button from exiting the PWA
     const preventBack = () => {
