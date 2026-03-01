@@ -70,6 +70,7 @@ export function MissionBoard({ onClose }: MissionBoardProps) {
   const { unlockedTopics, addPoints, targetLanguage } = useProgressStore();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [globeSpeaking, setGlobeSpeaking] = useState(false);
 
   useEffect(() => {
     generateMissions();
@@ -137,17 +138,21 @@ Only valid JSON, no markdown.`,
     setLoading(false);
   };
 
-  // Speak when missions are ready
+  // Speak when missions are ready — with timed speaking animation
   useEffect(() => {
     if (!loading && missions.length > 0) {
+      setGlobeSpeaking(true);
       speak("Here are your missions! Pick one!", targetLanguage);
+      // Stop speaking animation after 3 seconds
+      const timer = setTimeout(() => setGlobeSpeaking(false), 3000);
+      return () => clearTimeout(timer);
     }
   }, [loading, missions.length, targetLanguage]);
 
   const handleMissionStart = (mission: Mission) => {
     playPopSound();
+    setGlobeSpeaking(true);
     speak(`Let's go! ${mission.title}!`, targetLanguage);
-    // Give mission reward as bonus points
     addPoints(mission.reward);
     router.push(`/game/${mission.topicId}/${mission.gameType}`);
     onClose();
@@ -162,18 +167,19 @@ Only valid JSON, no markdown.`,
         className="bg-[#1a2744]/95 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-white/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-center mb-5">
-          <div className="flex flex-col items-center mb-2">
-            <ProfessorGlobe size={80} emotion="happy" speaking={!loading && missions.length > 0} />
-            <span className="text-2xl mt-1">📋</span>
+        <div className="text-center mb-4">
+          <div className="flex flex-col items-center mb-1">
+            <ProfessorGlobe size={140} emotion={globeSpeaking ? "happy" : "idle"} speaking={globeSpeaking} />
           </div>
-          <h2 className="text-xl font-bold text-white">Missions</h2>
-          <p className="text-slate-400 text-sm">Complete quests for bonus rewards!</p>
+          <h2 className="text-xl font-bold text-white mt-1">Missions</h2>
+          <p className="text-slate-400 text-xs mt-1">
+            Pick a mission to earn bonus points! Each mission takes you to a game on one of your islands.
+          </p>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center gap-3 py-8">
-            <ProfessorGlobe size={80} speaking emotion="thinking" />
+          <div className="flex flex-col items-center gap-3 py-6">
+            <ProfessorGlobe size={100} speaking emotion="thinking" />
             <p className="text-slate-400 text-sm animate-pulse">Generating missions...</p>
           </div>
         ) : (

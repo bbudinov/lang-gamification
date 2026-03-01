@@ -75,12 +75,14 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-4">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <ProfessorGlobe size={52} speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />
-            <span className="text-4xl">{topicEmoji}</span>
+          <div className="flex flex-col items-center mb-1">
+            <ProfessorGlobe size={100} speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />
+            <span className="text-3xl mt-1">{topicEmoji}</span>
           </div>
           <h2 className="text-xl font-bold text-white">{topicName}</h2>
-          <p className="text-slate-400 text-sm">Choose a game</p>
+          <p className="text-slate-400 text-xs mt-1">
+            Complete 2 games per level to unlock the next one!
+          </p>
         </div>
 
         <div className="space-y-4">
