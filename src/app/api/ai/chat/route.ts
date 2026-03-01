@@ -11,6 +11,17 @@ let windowStart = Date.now();
 const MAX_REQUESTS_PER_MINUTE = 30;
 
 export async function POST(req: NextRequest) {
+  // Origin check — only allow requests from our own domain
+  const origin = req.headers.get("origin") || "";
+  const referer = req.headers.get("referer") || "";
+  const allowedHosts = ["localhost", "langworld.vercel.app"];
+  const isAllowed = allowedHosts.some(
+    (h) => origin.includes(h) || referer.includes(h)
+  );
+  if (!isAllowed) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   // Rate limit check
   const now = Date.now();
   if (now - windowStart > 60_000) {
