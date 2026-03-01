@@ -258,7 +258,9 @@ export function WordQuiz({ topic }: WordQuizProps) {
             <div className={`text-center space-y-3 ${shaking ? "quiz-shake" : ""}`}>
               <p className="text-slate-400 text-sm">What does this mean?</p>
               <div className="quiz-float flex items-center justify-center gap-3 py-4">
-                <span className="text-5xl drop-shadow-lg">{round.word.emoji}</span>
+                {isCorrect && (
+                  <span className="text-5xl drop-shadow-lg animate-in zoom-in duration-300">{round.word.emoji}</span>
+                )}
                 <span className="text-3xl font-bold text-white drop-shadow-md">
                   {round.word[targetLanguage as keyof WordEntry] as string}
                 </span>

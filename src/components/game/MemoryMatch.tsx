@@ -32,7 +32,8 @@ function generateCards(topic: Topic, nativeLang: string, targetLang: string): Me
 
     cards.push({
       id: `${word.id}-native`,
-      text: `${word.emoji} ${nativeText}`,
+      text: nativeText,
+      emoji: word.emoji,
       language: nativeLang as MemoryCardType["language"],
       pairId: word.id,
       isFlipped: false,
@@ -40,7 +41,8 @@ function generateCards(topic: Topic, nativeLang: string, targetLang: string): Me
     });
     cards.push({
       id: `${word.id}-target`,
-      text: `${word.emoji} ${targetText}`,
+      text: targetText,
+      emoji: word.emoji,
       language: targetLang as MemoryCardType["language"],
       pairId: word.id,
       isFlipped: false,

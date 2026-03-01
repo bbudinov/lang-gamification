@@ -42,6 +42,7 @@ export interface PlayerProgress {
 export interface MemoryCard {
   id: string;
   text: string;
+  emoji: string;
   language: Language;
   pairId: string;
   isFlipped: boolean;

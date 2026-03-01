@@ -49,6 +49,9 @@ export function MemoryCard({ card, onFlip, disabled, shaking }: MemoryCardProps)
               : "bg-slate-800 border-slate-600"
           }`}
         >
+          {card.isMatched && (
+            <span className="text-2xl mb-1 animate-in zoom-in duration-300">{card.emoji}</span>
+          )}
           <span className={`text-sm font-semibold text-white text-center leading-tight break-words ${justMatched ? "animate-bounce" : ""}`}>
             {card.text}
           </span>

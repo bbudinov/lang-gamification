@@ -249,7 +249,9 @@ export function WordScramble({ topic }: WordScrambleProps) {
             <div className="text-center space-y-2">
               <p className="text-slate-400 text-sm">Spell the translation:</p>
               <div className="quiz-float flex items-center justify-center gap-3 py-2">
-                <span className="text-5xl drop-shadow-lg">{word.emoji}</span>
+                {wordComplete && (
+                  <span className="text-5xl drop-shadow-lg animate-in zoom-in duration-300">{word.emoji}</span>
+                )}
                 <span className="text-2xl font-bold text-white drop-shadow-md">
                   {word[nativeLanguage as keyof WordEntry] as string}
                 </span>
