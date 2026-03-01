@@ -186,6 +186,11 @@ const RULES_BG = [
   { id: "rules-quiz-bg", text: "Уърд Куиз. Чуй дума и избери правилния превод от четири варианта. Получаваш 15 точки за верен отговор, губиш 5 за грешен, и печелиш 60 бонус точки ако завършиш!", lang: "bg" },
   { id: "rules-truefalse-bg", text: "Вярно или Грешно. Виждаш дума и превод. Реши дали преводът е верен или не! Получаваш 10 точки за правилен отговор и губиш 5 за грешен.", lang: "bg" },
   { id: "rules-scramble-bg", text: "Уърд Скрамбъл. Буквите на дума са разбъркани. Натискай ги в правилния ред, за да изпишеш превода! Получаваш 20 точки за всяка дума и губиш 3 за грешно натискане.", lang: "bg" },
+  { id: "rules-levels-bg", text: "Всеки остров има 3 нива. Открий — научи нови думи. Използвай — приложи ги в контекст. Оцелей — истинска комуникация! Завърши 2 игри на ниво, за да отключиш следващото.", lang: "bg" },
+  { id: "rules-fillscene-bg", text: "Попълни сцената. Довърши изреченията в реални ситуации. Избери правилната дума за всяко празно място! Получаваш 15 точки за верен отговор и губиш 5 за грешен.", lang: "bg" },
+  { id: "rules-sayit-bg", text: "Кажи го! Упражнявай произношението си на глас. Играта слуша и проверява дали казваш думата правилно! Получаваш 20 точки за добро произношение.", lang: "bg" },
+  { id: "rules-listenrepeat-bg", text: "Слушай и повтори. Чуй как Професор Глоуб казва фраза, после я повтори! Получаваш 15 точки за добро повторение.", lang: "bg" },
+  { id: "rules-npctalk-bg", text: "Ен Пи Си разговор. Разговаряй с герой чрез изкуствен интелект! Води истински разговор, за да упражниш уменията си. Получаваш 10 точки за всеки отговор и 50 бонус ако завършиш чата!", lang: "bg" },
   { id: "rules-unlock-bg", text: "Печели достатъчно точки, за да отключиш нови острови. Всеки следващ остров струва 500 точки повече от предишния!", lang: "bg" },
   { id: "rules-lang-bg", text: "Можеш да превключваш между английски, български и испански с бутона за език горе вдясно.", lang: "bg" },
 ];
@@ -198,6 +203,11 @@ const RULES_EN = [
   { id: "rules-quiz-en", text: "Word Quiz. Listen to a word and pick the right translation. You earn 15 points for a correct answer, lose 5 for a wrong one, and get 60 bonus points for finishing!", lang: "en" },
   { id: "rules-truefalse-en", text: "True or False. You see a word and a translation. Decide if the translation is correct or not! You earn 10 points for a right answer and lose 5 for a wrong one.", lang: "en" },
   { id: "rules-scramble-en", text: "Word Scramble. The letters of a word are mixed up. Tap them in the right order to spell the translation! You earn 20 points per word and lose 3 for each wrong tap.", lang: "en" },
+  { id: "rules-levels-en", text: "Each island has 3 levels. Discover — learn new words. Use — apply them in context. Survive — real communication! Complete 2 games per level to unlock the next one.", lang: "en" },
+  { id: "rules-fillscene-en", text: "Fill the Scene. Complete sentences in real situations. Pick the right word for each blank! You earn 15 points for a correct answer and lose 5 for a wrong one.", lang: "en" },
+  { id: "rules-sayit-en", text: "Say It! Practice saying words out loud. The game listens and checks your pronunciation! You earn 20 points for good pronunciation.", lang: "en" },
+  { id: "rules-listenrepeat-en", text: "Listen and Repeat. Listen to Professor Globe say a phrase, then repeat it yourself! You earn 15 points for a good repeat.", lang: "en" },
+  { id: "rules-npctalk-en", text: "NPC Talk. Chat with a character using AI! Have a real conversation to practice your skills. You earn 10 points for each reply and 50 bonus points for completing the chat!", lang: "en" },
   { id: "rules-unlock-en", text: "Earn enough points to unlock new islands. Each new island costs 500 more points than the previous one!", lang: "en" },
   { id: "rules-lang-en", text: "You can switch between English, Bulgarian, and Spanish using the language button in the top right corner.", lang: "en" },
 ];
