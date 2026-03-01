@@ -69,17 +69,16 @@ export function Bridges() {
       const currentId = TOPIC_ORDER[i];
       const nextId = TOPIC_ORDER[i + 1];
 
-      // Both must be unlocked and current must have at least Level 1 completed
+      // Both must be unlocked
       if (!unlockedTopics.includes(currentId) || !unlockedTopics.includes(nextId)) continue;
-      if (getTopicCompletedLevels(currentId) < 1) continue;
 
       const currentTopic = topics.find((t) => t.id === currentId);
       const nextTopic = topics.find((t) => t.id === nextId);
       if (!currentTopic || !nextTopic) continue;
 
       const levels = getTopicCompletedLevels(currentId);
-      // Color based on completion: green (1 level), blue (2 levels), purple/gold (3 levels)
-      const color = levels >= 3 ? "#fbbf24" : levels >= 2 ? "#3b82f6" : "#22c55e";
+      // Color based on completion: white (0), green (1), blue (2), gold (3)
+      const color = levels >= 3 ? "#fbbf24" : levels >= 2 ? "#3b82f6" : levels >= 1 ? "#22c55e" : "#94a3b8";
 
       result.push({
         from: currentTopic.position,
