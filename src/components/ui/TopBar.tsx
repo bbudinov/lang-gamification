@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useProgressStore } from "@/stores/progressStore";
 import { InstallPWA } from "./InstallPWA";
 import type { Language } from "@/types";
@@ -13,8 +14,23 @@ const LANG_LABELS: Record<Language, string> = {
 const LANGUAGES: Language[] = ["en", "bg", "es"];
 
 export function TopBar() {
-  const { totalPoints, nativeLanguage, targetLanguage, setLanguages } =
-    useProgressStore();
+  const {
+    totalPoints,
+    nativeLanguage,
+    targetLanguage,
+    setLanguages,
+    energy,
+    maxEnergy,
+    dailyStreak,
+    todayGamesPlayed,
+    dailyGoalTarget,
+    checkAndUpdateStreak,
+  } = useProgressStore();
+
+  // Check streak on mount
+  useEffect(() => {
+    checkAndUpdateStreak();
+  }, [checkAndUpdateStreak]);
 
   const cycleTarget = () => {
     const available = LANGUAGES.filter((l) => l !== nativeLanguage);
@@ -23,15 +39,57 @@ export function TopBar() {
     setLanguages(nativeLanguage, next);
   };
 
+  const energyPercent = (energy / maxEnergy) * 100;
+  const energyColor = energyPercent > 60 ? "#22c55e" : energyPercent > 30 ? "#f59e0b" : "#ef4444";
+  const goalComplete = todayGamesPlayed >= dailyGoalTarget;
+
   return (
     <div className="absolute top-0 left-0 right-0 safe-area" style={{ zIndex: 9999 }}>
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-          <span className="text-amber-400 text-sm">⭐</span>
-          <span className="text-white text-sm font-semibold">{totalPoints}</span>
+        {/* Left: Points + Energy */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <span className="text-amber-400 text-sm">⭐</span>
+            <span className="text-white text-sm font-semibold">{totalPoints}</span>
+          </div>
+
+          {/* Energy bar */}
+          <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+            <span className="text-xs">⚡</span>
+            <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${energyPercent}%`,
+                  backgroundColor: energyColor,
+                  boxShadow: energyPercent < 30 ? `0 0 6px ${energyColor}` : "none",
+                  animation: energyPercent < 30 ? "pulse 1.5s ease-in-out infinite" : "none",
+                }}
+              />
+            </div>
+          </div>
         </div>
 
+        {/* Right: Streak + Language */}
         <div className="flex items-center gap-2">
+          {/* Streak */}
+          {dailyStreak > 0 && (
+            <div className={`flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 ${
+              goalComplete ? "ring-1 ring-amber-400/50" : ""
+            }`}>
+              <span className="text-sm" style={{ animation: "flame-flicker 1s ease-in-out infinite" }}>🔥</span>
+              <span className="text-white text-xs font-bold">{dailyStreak}</span>
+            </div>
+          )}
+
+          {/* Daily goal progress */}
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+            <span className="text-xs">{goalComplete ? "✅" : "🎯"}</span>
+            <span className="text-white text-xs">
+              {todayGamesPlayed}/{dailyGoalTarget}
+            </span>
+          </div>
+
           <InstallPWA />
           <button
             onClick={cycleTarget}
@@ -47,6 +105,13 @@ export function TopBar() {
           </button>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes flame-flicker {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15) rotate(5deg); }
+        }
+      `}</style>
     </div>
   );
 }

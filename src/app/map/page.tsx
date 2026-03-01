@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
+import { MissionBoard } from "@/components/missions/MissionBoard";
 import { useProgressStore } from "@/stores/progressStore";
 import type { Topic } from "@/types";
 
@@ -28,6 +29,7 @@ const IslandMap = dynamic(
 
 export default function MapPage() {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [showMissions, setShowMissions] = useState(false);
   const { targetLanguage } = useProgressStore();
 
   return (
@@ -38,6 +40,19 @@ export default function MapPage() {
         focusPosition={selectedTopic?.position ?? null}
       />
       <HelpButton />
+
+      {/* Mission button */}
+      <button
+        onClick={() => setShowMissions(true)}
+        className="absolute bottom-20 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
+        style={{ zIndex: 9999 }}
+      >
+        <span className="text-2xl">📋</span>
+      </button>
+
+      {showMissions && (
+        <MissionBoard onClose={() => setShowMissions(false)} />
+      )}
 
       {selectedTopic && (
         <GameSelector
