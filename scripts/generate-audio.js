@@ -101,6 +101,8 @@ const WORDS = [
 ];
 
 // Story intro phrases (BG only)
+// Note: Unicode stress marks (◌́) break Google Chirp3-HD TTS, so we use plain text here.
+// Display text in page.tsx has stress marks for visual guidance.
 const STORY_PHRASES = [
   { id: "story1", text: "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.", lang: "bg" },
   { id: "story2", text: "Всеки остров пазел тайните на различни думи и езици. Но с времето хората забравили тези тайни и островите потънали в мъгла.", lang: "bg" },
