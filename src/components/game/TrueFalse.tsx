@@ -7,6 +7,7 @@ import { GameHUD } from "./GameHUD";
 import { MatchPopup } from "./MatchPopup";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
+import { selectAdaptiveWords } from "@/lib/adaptive";
 import type { Topic, WordEntry } from "@/types";
 
 const ROUNDS = 10;
@@ -29,8 +30,8 @@ interface Round {
   isCorrect: boolean;
 }
 
-function generateRounds(topic: Topic, targetLang: string, nativeLang: string): Round[] {
-  const words = shuffle(topic.words).slice(0, ROUNDS);
+function generateRounds(topic: Topic, targetLang: string, nativeLang: string, mastery: Record<string, import("@/types").WordMastery>): Round[] {
+  const words = selectAdaptiveWords(topic.words, mastery, ROUNDS);
   return words.map((word) => {
     const correct = Math.random() > 0.4;
     const realTranslation = word[nativeLang as keyof WordEntry] as string;
@@ -52,7 +53,7 @@ interface TrueFalseProps {
 
 export function TrueFalse({ topic }: TrueFalseProps) {
   const router = useRouter();
-  const { nativeLanguage, targetLanguage, addPoints, addGameResult } =
+  const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
 
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -73,7 +74,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   }, []);
 
   useEffect(() => {
-    const generated = generateRounds(topic, targetLanguage, nativeLanguage);
+    const generated = generateRounds(topic, targetLanguage, nativeLanguage, wordMastery);
     setRounds(generated);
     setCurrentRound(0);
     setScore(0);
@@ -103,6 +104,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
       const isRight = userSaysTrue === round.isCorrect;
 
       setFeedback(isRight ? "correct" : "wrong");
+      updateWordMastery(round.word.id, isRight);
 
       if (isRight) {
         playDingSound();
@@ -152,11 +154,11 @@ export function TrueFalse({ topic }: TrueFalseProps) {
         }
       }, nextDelay);
     },
-    [feedback, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult]
+    [feedback, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult, updateWordMastery]
   );
 
   const handleReplay = () => {
-    const generated = generateRounds(topic, targetLanguage, nativeLanguage);
+    const generated = generateRounds(topic, targetLanguage, nativeLanguage, wordMastery);
     setRounds(generated);
     setCurrentRound(0);
     setScore(0);

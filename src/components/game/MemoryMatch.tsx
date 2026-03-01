@@ -10,7 +10,8 @@ import { GameHUD } from "./GameHUD";
 import { playWordAudio, playPopSound, playDingSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { GAME_CONFIG } from "@/lib/constants";
-import type { Topic, MemoryCard as MemoryCardType } from "@/types";
+import { selectAdaptiveWords } from "@/lib/adaptive";
+import type { Topic, MemoryCard as MemoryCardType, WordMastery } from "@/types";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -21,9 +22,9 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateCards(topic: Topic, nativeLang: string, targetLang: string): MemoryCardType[] {
+function generateCards(topic: Topic, nativeLang: string, targetLang: string, mastery: Record<string, WordMastery>): MemoryCardType[] {
   const cfg = GAME_CONFIG.MEMORY_MATCH;
-  const selected = shuffle(topic.words).slice(0, cfg.PAIRS_COUNT);
+  const selected = selectAdaptiveWords(topic.words, mastery, cfg.PAIRS_COUNT);
 
   const cards: MemoryCardType[] = [];
   for (const word of selected) {
@@ -60,7 +61,7 @@ interface MemoryMatchProps {
 export function MemoryMatch({ topic }: MemoryMatchProps) {
   const router = useRouter();
   const cfg = GAME_CONFIG.MEMORY_MATCH;
-  const { nativeLanguage, targetLanguage, addPoints, addGameResult } =
+  const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
   const {
     cards,
@@ -92,7 +93,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
 
   // Initialize game
   useEffect(() => {
-    const generated = generateCards(topic, nativeLanguage, targetLanguage);
+    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery);
     initMemoryGame(generated, cfg.PAIRS_COUNT);
   }, [topic, nativeLanguage, targetLanguage, initMemoryGame, cfg.PAIRS_COUNT]);
 
@@ -117,6 +118,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
     if (result.isMatch) {
       // Match found!
       playDingSound();
+      updateWordMastery(result.pairId, true);
       const matchedWord = topic.words.find((w) => w.id === result.pairId);
       if (matchedWord) {
         const targetText = matchedWord[targetLanguage as keyof typeof matchedWord] as string;
@@ -167,7 +169,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
   }, [matchedPairs, totalPairs, gameCompleted]);
 
   const handleReplay = () => {
-    const generated = generateCards(topic, nativeLanguage, targetLanguage);
+    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery);
     initMemoryGame(generated, cfg.PAIRS_COUNT);
     setShakingPair(null);
     setMatchPopup(null);

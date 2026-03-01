@@ -7,6 +7,7 @@ import { GameHUD } from "./GameHUD";
 import { MatchPopup } from "./MatchPopup";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
+import { selectAdaptiveWords } from "@/lib/adaptive";
 import type { Topic, WordEntry } from "@/types";
 
 const ROUNDS = 6;
@@ -35,7 +36,7 @@ interface WordScrambleProps {
 
 export function WordScramble({ topic }: WordScrambleProps) {
   const router = useRouter();
-  const { nativeLanguage, targetLanguage, addPoints, addGameResult } =
+  const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
 
   const [words, setWords] = useState<WordEntry[]>([]);
@@ -77,7 +78,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
   );
 
   useEffect(() => {
-    const selected = shuffle(topic.words).slice(0, ROUNDS);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS);
     setWords(selected);
     setCurrentWord(0);
     setScore(0);
@@ -118,6 +119,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
         playDingSound();
         setWordComplete(true);
         setScore((s) => s + CORRECT_POINTS);
+        updateWordMastery(words[currentWord].id, true);
 
         const word = words[currentWord];
         const targetText = word[targetLanguage as keyof WordEntry] as string;
@@ -156,7 +158,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
   };
 
   const handleReplay = () => {
-    const selected = shuffle(topic.words).slice(0, ROUNDS);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS);
     setWords(selected);
     setCurrentWord(0);
     setScore(0);

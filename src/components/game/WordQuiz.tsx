@@ -7,6 +7,7 @@ import { GameHUD } from "./GameHUD";
 import { MatchPopup } from "./MatchPopup";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
+import { selectAdaptiveWords } from "@/lib/adaptive";
 import type { Topic, WordEntry } from "@/types";
 
 const ROUNDS = 8;
@@ -30,8 +31,8 @@ interface Round {
   correctIndex: number;
 }
 
-function generateRounds(topic: Topic, targetLang: string, nativeLang: string): Round[] {
-  const words = shuffle(topic.words).slice(0, ROUNDS);
+function generateRounds(topic: Topic, targetLang: string, nativeLang: string, mastery: Record<string, import("@/types").WordMastery>): Round[] {
+  const words = selectAdaptiveWords(topic.words, mastery, ROUNDS);
   return words.map((word) => {
     const correctAnswer = word[nativeLang as keyof WordEntry] as string;
     const wrongWords = shuffle(
@@ -56,7 +57,7 @@ interface WordQuizProps {
 
 export function WordQuiz({ topic }: WordQuizProps) {
   const router = useRouter();
-  const { nativeLanguage, targetLanguage, addPoints, addGameResult } =
+  const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
 
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -78,7 +79,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
 
   // Generate rounds
   useEffect(() => {
-    const generated = generateRounds(topic, targetLanguage, nativeLanguage);
+    const generated = generateRounds(topic, targetLanguage, nativeLanguage, wordMastery);
     setRounds(generated);
     setCurrentRound(0);
     setScore(0);
@@ -108,6 +109,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
 
       setSelected(index);
       setIsCorrect(correct);
+
+      updateWordMastery(round.word.id, correct);
 
       if (correct) {
         playDingSound();
@@ -148,11 +151,11 @@ export function WordQuiz({ topic }: WordQuizProps) {
         }
       }, 1500);
     },
-    [selected, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult]
+    [selected, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult, updateWordMastery]
   );
 
   const handleReplay = () => {
-    const generated = generateRounds(topic, targetLanguage, nativeLanguage);
+    const generated = generateRounds(topic, targetLanguage, nativeLanguage, wordMastery);
     setRounds(generated);
     setCurrentRound(0);
     setScore(0);

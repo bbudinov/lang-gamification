@@ -39,6 +39,13 @@ export interface PlayerProgress {
   targetLanguage: Language;
 }
 
+export interface WordMastery {
+  correct: number;
+  wrong: number;
+  lastSeen: string;
+  streak: number;
+}
+
 export interface MemoryCard {
   id: string;
   text: string;
