@@ -10,7 +10,7 @@ if (!API_KEY) {
 const API_URL = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`;
 
 const VOICES = {
-  bg: "bg-BG-Chirp3-HD-Puck",
+  bg: "bg-BG-Standard-B",
   en: "en-US-Chirp3-HD-Puck",
   es: "es-ES-Chirp3-HD-Puck",
 };
