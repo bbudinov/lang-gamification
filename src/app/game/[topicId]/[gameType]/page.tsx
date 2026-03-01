@@ -7,6 +7,8 @@ import { WordQuiz } from "@/components/game/WordQuiz";
 import { TrueFalse } from "@/components/game/TrueFalse";
 import { WordScramble } from "@/components/game/WordScramble";
 import { FillScene } from "@/components/game/FillScene";
+import { SayIt } from "@/components/game/SayIt";
+import { ListenRepeat } from "@/components/game/ListenRepeat";
 import { topics } from "@/data/words";
 
 export default function GamePage({
@@ -50,6 +52,14 @@ export default function GamePage({
 
   if (gameType === "fill-scene") {
     return <FillScene topic={topic} />;
+  }
+
+  if (gameType === "say-it") {
+    return <SayIt topic={topic} />;
+  }
+
+  if (gameType === "listen-repeat") {
+    return <ListenRepeat topic={topic} />;
   }
 
   return (

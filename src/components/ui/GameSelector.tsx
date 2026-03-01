@@ -53,6 +53,19 @@ const GAMES: { type: string; name: string; emoji: string; description: string; r
     description: "Complete sentences in real situations",
     requiresPhrases: true,
   },
+  {
+    type: "say-it",
+    name: "Say It!",
+    emoji: "🎤",
+    description: "Practice saying words out loud",
+  },
+  {
+    type: "listen-repeat",
+    name: "Listen & Repeat",
+    emoji: "🗣️",
+    description: "Repeat phrases after Professor Globe",
+    requiresPhrases: true,
+  },
 ];
 
 export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSelectorProps) {
