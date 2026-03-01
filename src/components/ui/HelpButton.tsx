@@ -163,17 +163,13 @@ export function HelpButton() {
             className="bg-[#1a2744] rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header + language toggle */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <ProfessorGlobe size={48} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
-                <div>
-                  <p className="text-white font-bold">Professor Globe</p>
-                  <p className="text-slate-400 text-xs">{r.subtitle}</p>
-                </div>
-              </div>
+            {/* Header */}
+            <div className="flex flex-col items-center mb-4">
+              <ProfessorGlobe size={120} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+              <p className="text-white font-bold text-lg mt-1">Professor Globe</p>
+              <p className="text-slate-400 text-xs">{r.subtitle}</p>
 
-              <div className="flex bg-white/10 rounded-full p-0.5">
+              <div className="flex bg-white/10 rounded-full p-0.5 mt-2">
                 <button
                   onClick={() => switchLang("en")}
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
