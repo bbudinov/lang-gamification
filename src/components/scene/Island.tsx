@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html, Float, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import type { Group } from "three";
-import type { Topic, Language } from "@/types";
+import type { Topic, Language, LevelNumber } from "@/types";
 import { useProgressStore } from "@/stores/progressStore";
 import { playPopSound, playDingSound } from "@/lib/speech";
 
@@ -432,6 +432,29 @@ function IslandAmbience({ topicId }: { topicId: string }) {
   }
 }
 
+// ─── Level dots (HTML overlay on island label) ──────────────────
+
+const LEVEL_COLORS = ["#22c55e", "#3b82f6", "#a855f7"];
+
+function LevelDots({ topicId }: { topicId: string }) {
+  const completedLevels = useProgressStore((s) => s.getTopicCompletedLevels(topicId as import("@/types").TopicId));
+
+  return (
+    <div className="flex items-center justify-center gap-1.5 mt-1">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="w-2 h-2 rounded-full"
+          style={{
+            backgroundColor: i < completedLevels ? LEVEL_COLORS[i] : "#4b5563",
+            boxShadow: i < completedLevels ? `0 0 6px ${LEVEL_COLORS[i]}` : "none",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Bubbles for unlock rise effect ─────────────────────────────
 
 function UnlockBubbles({ active, color }: { active: boolean; color: string }) {
@@ -607,6 +630,7 @@ export function Island({ topic, onSelect }: IslandProps) {
           <p className="text-white text-sm font-bold whitespace-nowrap drop-shadow-lg">
             {topic.name[lang]}
           </p>
+          {unlocked && <LevelDots topicId={topic.id} />}
           {!unlocked && (
             <p className="text-xs mt-0.5">
               {!hasContent ? (

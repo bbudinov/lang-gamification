@@ -223,7 +223,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setScore(finalScore);
       addGameResult({
         topicId: topic.id,
-        gameType: "listen-choose",
+        gameType: "npc-talk",
         score: finalScore,
         maxScore: MAX_EXCHANGES * POINTS_PER_EXCHANGE + COMPLETION_BONUS,
         mistakes: 0,

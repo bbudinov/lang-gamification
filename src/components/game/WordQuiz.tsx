@@ -135,7 +135,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
           addPoints(finalScore);
           addGameResult({
             topicId: topic.id,
-            gameType: "listen-choose",
+            gameType: "word-quiz",
             score: finalScore,
             maxScore: ROUNDS * CORRECT_POINTS + COMPLETION_BONUS,
             mistakes: mistakes + (correct ? 0 : 1),

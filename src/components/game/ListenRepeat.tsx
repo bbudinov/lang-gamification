@@ -96,7 +96,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
       const pointsEarned = totalStars * 5 + COMPLETION_BONUS;
       addGameResult({
         topicId: topic.id,
-        gameType: "fill-scene", // reuse type
+        gameType: "listen-repeat",
         score: pointsEarned,
         maxScore: phrases.length * 15 + COMPLETION_BONUS,
         mistakes: 0,

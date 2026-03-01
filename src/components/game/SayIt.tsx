@@ -104,7 +104,7 @@ export function SayIt({ topic }: SayItProps) {
       setScore(finalScore);
       addGameResult({
         topicId: topic.id,
-        gameType: "listen-choose", // reuse existing type for now
+        gameType: "say-it",
         score: finalScore,
         maxScore: words.length * GOOD_POINTS + COMPLETION_BONUS,
         mistakes: 0, // No mistakes in Say It — only positive!

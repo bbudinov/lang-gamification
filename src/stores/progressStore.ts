@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Language, TopicId, GameResult, WordMastery } from "@/types";
+import type { Language, TopicId, GameResult, WordMastery, GameType, LevelNumber } from "@/types";
+import { LEVEL_GAMES, LEVEL_UNLOCK } from "@/lib/levels";
 
 interface ProgressState {
   totalPoints: number;
@@ -32,6 +33,16 @@ interface ProgressState {
   addEnergy: (amount: number) => void;
   useEnergy: (amount: number) => boolean;
   checkAndUpdateStreak: () => void;
+
+  // Level system (computed from gameResults)
+  getTopicLevelProgress: (topicId: TopicId, level: LevelNumber) => {
+    gamesCompleted: number;
+    avgScorePercent: number;
+    unlocked: boolean;
+    completed: boolean;
+  };
+  isLevelUnlocked: (topicId: TopicId, level: LevelNumber) => boolean;
+  getTopicCompletedLevels: (topicId: TopicId) => number;
 }
 
 function getToday(): string {
@@ -148,6 +159,64 @@ export const useProgressStore = create<ProgressState>()(
           // Streak broken
           set({ dailyStreak: 0 });
         }
+      },
+
+      // Level system — computed from gameResults
+      getTopicLevelProgress: (topicId, level) => {
+        const s = get();
+        const levelGames = LEVEL_GAMES[level];
+
+        // Best result per game type for this topic
+        const bestResults: Record<string, GameResult> = {};
+        for (const result of s.gameResults) {
+          if (result.topicId !== topicId) continue;
+          if (!levelGames.includes(result.gameType as GameType)) continue;
+
+          const pct = result.maxScore > 0 ? (result.score / result.maxScore) * 100 : 0;
+          const existing = bestResults[result.gameType];
+          const existingPct = existing && existing.maxScore > 0
+            ? (existing.score / existing.maxScore) * 100 : 0;
+          if (!existing || pct > existingPct) {
+            bestResults[result.gameType] = result;
+          }
+        }
+
+        const gamesCompleted = Object.keys(bestResults).length;
+        const scores = Object.values(bestResults).map(r =>
+          r.maxScore > 0 ? (r.score / r.maxScore) * 100 : 0
+        );
+        const avgScorePercent = scores.length > 0
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+        // Level 1 unlocked when island is unlocked, others when prev level completed
+        let unlocked = false;
+        if (level === 1) {
+          unlocked = s.unlockedTopics.includes(topicId);
+        } else {
+          const prevProgress = get().getTopicLevelProgress(topicId, (level - 1) as LevelNumber);
+          unlocked = prevProgress.completed;
+        }
+
+        const completed = gamesCompleted >= LEVEL_UNLOCK.requiredGames
+          && avgScorePercent >= LEVEL_UNLOCK.requiredAvgPercent;
+
+        return { gamesCompleted, avgScorePercent, unlocked, completed };
+      },
+
+      isLevelUnlocked: (topicId, level) => {
+        return get().getTopicLevelProgress(topicId, level).unlocked;
+      },
+
+      getTopicCompletedLevels: (topicId) => {
+        let count = 0;
+        for (let l = 1; l <= 3; l++) {
+          if (get().getTopicLevelProgress(topicId, l as LevelNumber).completed) {
+            count = l;
+          } else {
+            break;
+          }
+        }
+        return count;
       },
     }),
     { name: "langworld-progress" }
