@@ -12,14 +12,6 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-islands-en",
     "rules-stats-en",
     "rules-levels-en",
-    "rules-memory-en",
-    "rules-quiz-en",
-    "rules-truefalse-en",
-    "rules-scramble-en",
-    "rules-fillscene-en",
-    "rules-sayit-en",
-    "rules-listenrepeat-en",
-    "rules-npctalk-en",
     "rules-unlock-en",
     "rules-lang-en",
   ],
@@ -27,18 +19,15 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-islands-bg",
     "rules-stats-bg",
     "rules-levels-bg",
-    "rules-memory-bg",
-    "rules-quiz-bg",
-    "rules-truefalse-bg",
-    "rules-scramble-bg",
-    "rules-fillscene-bg",
-    "rules-sayit-bg",
-    "rules-listenrepeat-bg",
-    "rules-npctalk-bg",
     "rules-unlock-bg",
     "rules-lang-bg",
   ],
 };
+
+// Game-specific audio IDs — preserved for future use
+// "rules-memory-en/bg", "rules-quiz-en/bg", "rules-truefalse-en/bg",
+// "rules-scramble-en/bg", "rules-fillscene-en/bg", "rules-sayit-en/bg",
+// "rules-listenrepeat-en/bg", "rules-npctalk-en/bg"
 
 const RULES = {
   en: {
@@ -64,46 +53,6 @@ const RULES = {
         title: "📊 Levels",
         text: "Each island has 3 levels: Discover, Use, and Survive. Complete 2 games per level to unlock the next!",
         details: ["🔍 Level 1 — Learn new words", "✍️ Level 2 — Use words in context", "💬 Level 3 — Real communication"],
-      },
-      {
-        title: "🃏 Memory Match",
-        text: "Flip cards to find matching word pairs.",
-        details: ["✅ Correct match: +10 pts", "❌ Wrong match: -2 pts", "🏆 Complete all: +50 bonus"],
-      },
-      {
-        title: "🎯 Word Quiz",
-        text: "Listen to a word and pick the right translation.",
-        details: ["✅ Correct: +15 pts", "❌ Wrong: -5 pts", "🏆 Complete all: +60 bonus"],
-      },
-      {
-        title: "✅ True or False",
-        text: "See a word and its translation. Decide if it's correct!",
-        details: ["✅ Correct: +10 pts", "❌ Wrong: -5 pts", "🏆 Complete all: +40 bonus"],
-      },
-      {
-        title: "🔤 Word Scramble",
-        text: "Tap the scrambled letters in the right order to spell the word.",
-        details: ["✅ Correct: +20 pts", "❌ Wrong letter: -3 pts", "🏆 Complete all: +50 bonus"],
-      },
-      {
-        title: "🎬 Fill the Scene",
-        text: "Complete sentences in real situations. Pick the right word for each blank!",
-        details: ["✅ Correct: +15 pts", "❌ Wrong: -5 pts", "🏆 Complete all: +60 bonus"],
-      },
-      {
-        title: "🎤 Say It!",
-        text: "Practice saying words out loud. The game listens and checks your pronunciation!",
-        details: ["✅ Good pronunciation: +20 pts", "🔄 Try again if needed"],
-      },
-      {
-        title: "🗣️ Listen & Repeat",
-        text: "Listen to Professor Globe say a phrase, then repeat it yourself!",
-        details: ["✅ Good repeat: +15 pts", "🔄 Listen again anytime"],
-      },
-      {
-        title: "💬 NPC Talk",
-        text: "Chat with a character using AI! Have a real conversation to practice your skills.",
-        details: ["✅ Each reply: +10 pts", "🏆 Complete chat: +50 bonus"],
       },
       {
         title: "🔓 Unlocking",
@@ -138,46 +87,6 @@ const RULES = {
         title: "📊 Нива",
         text: "Всеки остров има 3 нива: Открий, Използвай и Оцелей. Завърши 2 игри на ниво, за да отключиш следващото!",
         details: ["🔍 Ниво 1 — Научи нови думи", "✍️ Ниво 2 — Използвай думите в контекст", "💬 Ниво 3 — Истинска комуникация"],
-      },
-      {
-        title: "🃏 Memory Match",
-        text: "Обръщай карти и намери съвпадащи двойки думи.",
-        details: ["✅ Вярна двойка: +10 точки", "❌ Грешна двойка: -2 точки", "🏆 Завърши всички: +50 бонус"],
-      },
-      {
-        title: "🎯 Word Quiz",
-        text: "Чуй дума и избери правилния превод.",
-        details: ["✅ Вярно: +15 точки", "❌ Грешно: -5 точки", "🏆 Завърши всички: +60 бонус"],
-      },
-      {
-        title: "✅ Вярно или Грешно",
-        text: "Виждаш дума и превод. Реши дали е вярно!",
-        details: ["✅ Вярно: +10 точки", "❌ Грешно: -5 точки", "🏆 Завърши всички: +40 бонус"],
-      },
-      {
-        title: "🔤 Word Scramble",
-        text: "Натискай разбърканите букви в правилния ред, за да изпишеш думата.",
-        details: ["✅ Вярно: +20 точки", "❌ Грешна буква: -3 точки", "🏆 Завърши всички: +50 бонус"],
-      },
-      {
-        title: "🎬 Попълни сцената",
-        text: "Довърши изреченията в реални ситуации. Избери правилната дума за всяко празно място!",
-        details: ["✅ Вярно: +15 точки", "❌ Грешно: -5 точки", "🏆 Завърши всички: +60 бонус"],
-      },
-      {
-        title: "🎤 Кажи го!",
-        text: "Упражнявай произношението си на глас. Играта слуша и проверява!",
-        details: ["✅ Добро произношение: +20 точки", "🔄 Опитай отново ако трябва"],
-      },
-      {
-        title: "🗣️ Слушай и повтори",
-        text: "Чуй как Професор Глобус казва фраза, после я повтори!",
-        details: ["✅ Добро повторение: +15 точки", "🔄 Чуй отново по всяко време"],
-      },
-      {
-        title: "💬 NPC разговор",
-        text: "Разговаряй с герой чрез AI! Води истински разговор, за да упражниш уменията си.",
-        details: ["✅ Всеки отговор: +10 точки", "🏆 Завърши чата: +50 бонус"],
       },
       {
         title: "🔓 Отключване",
