@@ -83,35 +83,34 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a1628] px-6">
-      <div className="mb-6 animate-bounce">
-        <ProfessorGlobe size={96} />
+      {/* Single Professor Globe — idle or speaking */}
+      <div className={narrating ? "mb-4" : "mb-6 animate-bounce"}>
+        <ProfessorGlobe
+          size={96}
+          speaking={isSpeaking}
+          emotion={globeEmotion}
+        />
       </div>
-      <h1 className="text-4xl font-bold text-white mb-2">LangWorld</h1>
-      <p className="text-slate-400 text-sm mb-10">Learn languages through play</p>
 
       {!narrating ? (
-        <button
-          onClick={handleStart}
-          className={`bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
-            ready ? "opacity-100 scale-100" : "opacity-0 scale-90"
-          }`}
-        >
-          Start Playing
-        </button>
+        <>
+          <h1 className="text-4xl font-bold text-white mb-2">LangWorld</h1>
+          <p className="text-slate-400 text-sm mb-10">Learn languages through play</p>
+          <button
+            onClick={handleStart}
+            className={`bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
+              ready ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
+            Start Playing
+          </button>
+        </>
       ) : (
         <div className="w-full max-w-md space-y-6 text-center">
-          {/* Professor Globe narrating */}
-          <div className="flex flex-col items-center gap-4">
-            <ProfessorGlobe
-              size={96}
-              speaking={isSpeaking}
-              emotion={globeEmotion}
-            />
-            <div className="bg-white/5 rounded-2xl p-4 min-h-[80px] w-full">
-              <p className="text-white text-sm leading-relaxed text-center">
-                {storyLine}
-              </p>
-            </div>
+          <div className="bg-white/5 rounded-2xl p-4 min-h-[80px] w-full">
+            <p className="text-white text-sm leading-relaxed text-center">
+              {storyLine}
+            </p>
           </div>
 
           <button
