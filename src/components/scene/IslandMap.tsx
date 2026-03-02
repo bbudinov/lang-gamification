@@ -175,9 +175,9 @@ function CameraAnimator({
       enableDamping={true}
       dampingFactor={0.08}
       minDistance={3}
-      maxDistance={100}
-      minPolarAngle={Math.PI / 6}
-      maxPolarAngle={Math.PI / 2.5}
+      maxDistance={120}
+      minPolarAngle={Math.PI / 8}
+      maxPolarAngle={Math.PI / 3}
       touches={isTouchDevice
         ? { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }
         : { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }
