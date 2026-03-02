@@ -5,7 +5,6 @@
 }
 
 html, body {
-  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   background: #0a1628;

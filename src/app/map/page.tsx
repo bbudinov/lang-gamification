@@ -33,7 +33,7 @@ export default function MapPage() {
   const { targetLanguage } = useProgressStore();
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#0a1628] relative">
+    <div className="h-screen w-screen overflow-hidden bg-[#0a1628] relative" style={{ overscrollBehavior: "none" }}>
       <TopBar />
       <IslandMap
         onSelectTopic={setSelectedTopic}
