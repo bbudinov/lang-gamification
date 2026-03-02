@@ -61,21 +61,21 @@ export function SayIt({ topic }: SayItProps) {
 
   // Process speech result
   useEffect(() => {
-    if (!transcript || feedback === "listening") return;
+    if (!transcript || !word) return;
+    // Already got a final result — don't re-process
     if (feedback === "great" || feedback === "almost") return;
-    if (!word) return;
 
     const expected = word[targetLanguage];
-    const score = similarityScore(transcript, expected);
+    const sim = similarityScore(transcript, expected);
 
-    if (score >= 0.8) {
+    if (sim >= 0.8) {
       // Great pronunciation!
       setFeedback("great");
       playDingSound();
       setScore((s) => s + GOOD_POINTS);
       updateWordMastery(word.id, true);
       setPopup({ emoji: word.emoji, word: expected });
-    } else if (score >= 0.6) {
+    } else if (sim >= 0.6) {
       // Almost there!
       setFeedback("almost");
       playPopSound();
