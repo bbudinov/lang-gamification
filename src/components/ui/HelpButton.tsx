@@ -216,17 +216,21 @@ export function HelpButton() {
 
       {showRules && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-end sm:justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
           onClick={handleClose}
         >
+          {/* Globe floating ABOVE the modal */}
+          <div className="relative z-10 mb-[-40px] animate-in zoom-in-75 duration-500">
+            <ProfessorGlobe size={180} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+          </div>
+
           <div
-            className="bg-[#1a2744] rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 max-h-[80vh] overflow-y-auto"
+            className="bg-[#1a2744]/95 rounded-2xl p-5 pt-12 w-full max-w-sm shadow-2xl border border-white/10 max-h-[65vh] overflow-y-auto backdrop-blur-md"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Header — name + lang toggle (Globe is above) */}
             <div className="flex flex-col items-center mb-4">
-              <ProfessorGlobe size={120} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
-              <p className="text-white font-bold text-lg mt-1">Professor Globe</p>
+              <p className="text-white font-bold text-lg">Professor Globe</p>
               <p className="text-slate-400 text-xs">{r.subtitle}</p>
 
               <div className="flex bg-white/10 rounded-full p-0.5 mt-2">
