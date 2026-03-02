@@ -6,7 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { getTopicPhrases } from "@/data/phrases";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound } from "@/lib/speech";
+import { playPopSound, playDingSound, playPhraseAudioAndWait } from "@/lib/speech";
 import type { Topic, PhraseEntry } from "@/types";
 
 const COMPLETION_BONUS = 50;
@@ -59,15 +59,16 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
 
   const phrase = phrases[currentIndex];
 
-  // Globe "speaks" the phrase when round starts
+  // Globe speaks the phrase audio when round starts
   useEffect(() => {
     if (phrase && feedback === null) {
       setGlobeSpeaking(true);
       setShowSentence(true);
-      const timer = setTimeout(() => setGlobeSpeaking(false), 2500);
-      return () => clearTimeout(timer);
+      playPhraseAudioAndWait(`sentence-${phrase.id}-${targetLanguage}`, 15000)
+        .then(() => setGlobeSpeaking(false))
+        .catch(() => setGlobeSpeaking(false));
     }
-  }, [currentIndex, phrase, roundKey, feedback]);
+  }, [currentIndex, phrase, roundKey, feedback, targetLanguage]);
 
   // Process speech result
   useEffect(() => {
@@ -288,6 +289,18 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
             <p className="text-white text-lg text-center leading-relaxed">
               {fullSentence}
             </p>
+            <button
+              onClick={() => {
+                setGlobeSpeaking(true);
+                playPhraseAudioAndWait(`sentence-${phrase.id}-${targetLanguage}`, 15000)
+                  .then(() => setGlobeSpeaking(false))
+                  .catch(() => setGlobeSpeaking(false));
+              }}
+              className="mt-3 mx-auto flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
+            >
+              <span className="text-lg">🔊</span>
+              <span className="text-slate-300 text-xs">Listen again</span>
+            </button>
           </div>
         )}
 

@@ -6,7 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound, playBuzzSound, playWordAudio } from "@/lib/speech";
+import { playPopSound, playDingSound, playBuzzSound, playWordAudio, playPhraseAudio } from "@/lib/speech";
 import type { Topic, PhraseEntry, Language } from "@/types";
 
 const CORRECT_POINTS = 15;
@@ -80,6 +80,16 @@ export function FillScene({ topic }: FillSceneProps) {
   }, [topic.id, targetLanguage]);
 
   const round = rounds[currentRound];
+
+  // Play sentence audio when round starts
+  useEffect(() => {
+    if (round && selected === null) {
+      const timer = setTimeout(() => {
+        playPhraseAudio(`sentence-${round.phrase.id}-${targetLanguage}`);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentRound, roundKey, targetLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advance = useCallback(() => {
     if (currentRound + 1 >= rounds.length) {
