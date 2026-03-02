@@ -6,7 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
+import { playPopSound, playDingSound, playBuzzSound, playWordAudio } from "@/lib/speech";
 import type { Topic, PhraseEntry, Language } from "@/types";
 
 const CORRECT_POINTS = 15;
@@ -114,7 +114,13 @@ export function FillScene({ topic }: FillSceneProps) {
     if (correct) {
       playDingSound();
       setScore((s) => s + CORRECT_POINTS);
-      setPopup({ emoji: round.phrase.emoji, word: round.phrase.answer[targetLanguage] });
+      // Play the correct word audio
+      const answerText = round.phrase.answer[targetLanguage];
+      const matchedWord = topic.words.find((w) => w[targetLanguage] === answerText);
+      if (matchedWord) {
+        setTimeout(() => playWordAudio(matchedWord.id, targetLanguage), 400);
+      }
+      setPopup({ emoji: round.phrase.emoji, word: answerText });
     } else {
       playBuzzSound();
       setScore((s) => Math.max(0, s - WRONG_PENALTY));

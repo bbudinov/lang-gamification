@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { askAI } from "@/lib/ai";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { playPopSound, playDingSound, speak, speakAndWait, stopAudio } from "@/lib/speech";
@@ -82,6 +83,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const { getRecentFacts, addFact } = useNPCMemoryStore();
 
   const npc = getNPC(topic.id);
+  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage);
   const [messages, setMessages] = useState<Message[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -237,6 +239,24 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setLoading(false);
     }
   }, [loading, npc, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
+
+  // Process speech recognition result
+  const processedTranscriptRef = useRef("");
+  useEffect(() => {
+    if (!transcript || loading || gameCompleted) return;
+    if (transcript === processedTranscriptRef.current) return;
+    processedTranscriptRef.current = transcript;
+    handlePlayerChoice(transcript);
+  }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleMicToggle = () => {
+    if (isListening) {
+      stopMic();
+    } else {
+      processedTranscriptRef.current = "";
+      startMic();
+    }
+  };
 
   // No NPC for this topic
   if (!npc) {
@@ -402,7 +422,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         )}
       </div>
 
-      {/* Options */}
+      {/* Options + Mic */}
       {options.length > 0 && !loading && (
         <div className="px-4 pb-6 space-y-2">
           {options.map((option, i) => (
@@ -417,6 +437,24 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               {option}
             </button>
           ))}
+          {/* Mic button — say your own answer */}
+          {micSupported && (
+            <div className="flex flex-col items-center pt-2 gap-1">
+              <button
+                onClick={handleMicToggle}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                  isListening
+                    ? "bg-red-500 shadow-lg shadow-red-500/40 animate-pulse"
+                    : "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30"
+                }`}
+              >
+                <span className="text-xl">{isListening ? "⏹️" : "🎤"}</span>
+              </button>
+              <p className="text-slate-500 text-[10px]">
+                {isListening ? "Listening..." : "or say your own!"}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
