@@ -76,8 +76,8 @@ function createRibbons(count: number): EnergyRibbon[] {
     phase: (i / count) * Math.PI * 2,
     speed: 0.15 + Math.random() * 0.3,
     amplitude: 0.3 + Math.random() * 0.4,
-    width: 3 + Math.random() * 5,
-    tilt: -0.6 + (i / count) * 1.2,
+    width: 1 + Math.random() * 1.5,
+    tilt: -1.2 + (i / count) * 2.4,
     offset: Math.random() * Math.PI * 2,
   }));
 }
@@ -169,49 +169,32 @@ function drawEnergySphere(
       const frac = i / segments;
       const a = baseAngle + frac * Math.PI * 2.5;
 
-      // 3D-ish swirling path
-      const orbR = r * (0.5 + rib.amplitude * Math.sin(a * 0.7 + rib.offset));
-      const xTilt = Math.cos(rib.tilt);
-      const yTilt = 0.5 + 0.5 * Math.sin(rib.tilt);
+      // 3D-ish swirling path — full sphere coverage
+      const orbR = r * (0.55 + rib.amplitude * Math.sin(a * 0.7 + rib.offset));
+      const xTilt = Math.cos(rib.tilt) * 0.9;
+      const yTilt = 0.3 + 0.7 * Math.abs(Math.sin(rib.tilt));
 
       const px = cx + Math.cos(a) * orbR * xTilt;
-      const py = cy + Math.sin(a) * orbR * yTilt + Math.sin(a * 1.5 + t) * r * 0.15;
+      const py = cy + Math.sin(a) * orbR * yTilt + Math.sin(a * 1.5 + t) * r * 0.2;
 
       if (i === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);
     }
 
-    // Gradient along the ribbon
+    // Gradient along the ribbon — subtle
     const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
     grad.addColorStop(0, "transparent");
-    grad.addColorStop(0.15, colors.ribbon + "60");
-    grad.addColorStop(0.3, colors.bright + "bb");
-    grad.addColorStop(0.5, colors.accent + "ee");
-    grad.addColorStop(0.7, colors.bright + "bb");
-    grad.addColorStop(0.85, colors.ribbon + "60");
+    grad.addColorStop(0.15, colors.ribbon + "25");
+    grad.addColorStop(0.3, colors.bright + "45");
+    grad.addColorStop(0.5, colors.accent + "55");
+    grad.addColorStop(0.7, colors.bright + "45");
+    grad.addColorStop(0.85, colors.ribbon + "25");
     grad.addColorStop(1, "transparent");
 
     ctx.strokeStyle = grad;
-    ctx.lineWidth = rib.width * (1 + speakingAmp * 0.5);
+    ctx.lineWidth = rib.width * (1 + speakingAmp * 0.3);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.stroke();
-
-    // Bright core line on top
-    ctx.beginPath();
-    for (let i = 0; i <= segments; i++) {
-      const frac = i / segments;
-      const a = baseAngle + frac * Math.PI * 2.5;
-      const orbR = r * (0.5 + rib.amplitude * Math.sin(a * 0.7 + rib.offset));
-      const xTilt = Math.cos(rib.tilt);
-      const yTilt = 0.5 + 0.5 * Math.sin(rib.tilt);
-      const px = cx + Math.cos(a) * orbR * xTilt;
-      const py = cy + Math.sin(a) * orbR * yTilt + Math.sin(a * 1.5 + t) * r * 0.15;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
-    ctx.strokeStyle = colors.accent + "40";
-    ctx.lineWidth = Math.max(1, rib.width * 0.3);
     ctx.stroke();
   }
 
@@ -227,17 +210,17 @@ function drawEnergySphere(
     const depth = Math.sin(a + tilt);
     if (depth < -0.2) continue;
 
-    const alpha = p.opacity * (0.4 + depth * 0.6) * (0.6 + speakingAmp * 0.4);
-    const sz = p.size * (0.6 + depth * 0.4);
+    const alpha = p.opacity * (0.3 + depth * 0.5) * (0.5 + speakingAmp * 0.3);
+    const sz = p.size * (0.5 + depth * 0.3);
 
-    // Bright dot with soft glow
-    const pGrad = ctx.createRadialGradient(px, py, 0, px, py, sz * 3);
-    pGrad.addColorStop(0, colors.accent + Math.floor(alpha * 255).toString(16).padStart(2, "0"));
-    pGrad.addColorStop(0.3, colors.bright + Math.floor(alpha * 150).toString(16).padStart(2, "0"));
+    // Subtle dot with soft glow
+    const pGrad = ctx.createRadialGradient(px, py, 0, px, py, sz * 2.5);
+    pGrad.addColorStop(0, colors.accent + Math.floor(alpha * 180).toString(16).padStart(2, "0"));
+    pGrad.addColorStop(0.4, colors.bright + Math.floor(alpha * 80).toString(16).padStart(2, "0"));
     pGrad.addColorStop(1, "transparent");
 
     ctx.beginPath();
-    ctx.arc(px, py, sz * 3, 0, Math.PI * 2);
+    ctx.arc(px, py, sz * 2.5, 0, Math.PI * 2);
     ctx.fillStyle = pGrad;
     ctx.fill();
   }
@@ -290,7 +273,7 @@ export function ProfessorGlobe({
   useEffect(() => {
     const pCount = Math.max(15, Math.floor(size * 0.5));
     particlesRef.current = createParticles(pCount);
-    ribbonsRef.current = createRibbons(5);
+    ribbonsRef.current = createRibbons(7);
   }, [size]);
 
   // ── Canvas animation loop ──
@@ -442,7 +425,7 @@ export function ProfessorGlobe({
           width: 9 * scale, height: eyeH * scale,
           left: `calc(28% + ${eyeOffset.x}px)`, top: `calc(34% + ${eyeOffset.y}px)`,
           borderRadius: eyeRadius, background: "white",
-          boxShadow: `0 0 ${5 * scale}px rgba(255,255,255,0.6), 0 0 ${10 * scale}px ${colors.bright}30`,
+          boxShadow: `0 0 ${6 * scale}px rgba(255,255,255,0.9), 0 0 ${12 * scale}px ${colors.bright}50`,
         }}>
           <div className="absolute bg-[#050d1a] rounded-full" style={{
             width: 4.5 * scale, height: 4.5 * scale,
@@ -456,7 +439,7 @@ export function ProfessorGlobe({
           width: 9 * scale, height: eyeH * scale,
           right: `calc(28% - ${eyeOffset.x}px)`, top: `calc(34% + ${eyeOffset.y}px)`,
           borderRadius: eyeRadius, background: "white",
-          boxShadow: `0 0 ${5 * scale}px rgba(255,255,255,0.6), 0 0 ${10 * scale}px ${colors.bright}30`,
+          boxShadow: `0 0 ${6 * scale}px rgba(255,255,255,0.9), 0 0 ${12 * scale}px ${colors.bright}50`,
         }}>
           <div className="absolute bg-[#050d1a] rounded-full" style={{
             width: 4.5 * scale, height: 4.5 * scale,
