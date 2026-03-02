@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
-import { getTopicPhrases } from "@/data/phrases";
+import { getTopicPhrases, phrases as allPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { playPopSound, playDingSound, playBuzzSound, playWordAudio, playPhraseAudio } from "@/lib/speech";
@@ -35,12 +35,15 @@ function shuffle<T>(arr: T[]): T[] {
 
 function buildRounds(phrases: PhraseEntry[], lang: Language): Round[] {
   const shuffled = shuffle(phrases);
-  const allAnswers = phrases.map((p) => p.answer[lang]);
+  const topicId = phrases[0]?.topicId;
+  // Wrong answers from OTHER topics — avoids ambiguous options (e.g. "dog" for "sleeping on sofa")
+  const otherAnswers = allPhrases
+    .filter((p) => p.topicId !== topicId)
+    .map((p) => p.answer[lang]);
 
   return shuffled.map((phrase) => {
     const correct = phrase.answer[lang];
-    // Pick wrong answers from other phrases in same topic
-    const wrongs = shuffle(allAnswers.filter((a) => a !== correct)).slice(
+    const wrongs = shuffle(otherAnswers.filter((a) => a !== correct)).slice(
       0,
       OPTIONS_COUNT - 1
     );
