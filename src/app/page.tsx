@@ -6,12 +6,12 @@ import { initSpeech, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 
 const STORY_PARTS = [
-  "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд.",
-  "Всеки остров пазел тайните на различни думи и езици. Но с времето хората забравили тези тайни и островите потънали в мъгла.",
-  "Само един смел изследовател можел да ги събуди отново — и този изследовател си ТИ!",
-  "Професор Глоуб ще ти бъде водач. Открий всеки остров, научи думите му и събери най-голямата награда на света — ПОЗНАНИЕТО!",
+  "A long, long time ago, in the middle of an endless ocean, there was a magical world — LangWorld.",
+  "Every island held the secrets of different words and languages. But over time, people forgot these secrets and the islands sank into fog.",
+  "Only one brave explorer could wake them up again — and that explorer is YOU!",
+  "Professor Globe will be your guide. Discover every island, learn its words, and collect the greatest treasure in the world — KNOWLEDGE!",
   // Pause before the joke
-  "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди — точки, звезди и изненади по пътя!",
+  "Hahaha, just kidding! Of course knowledge is important, but there will be other rewards too — points, stars, and surprises along the way!",
 ];
 
 export default function Home() {
