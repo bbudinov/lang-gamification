@@ -32,13 +32,13 @@ interface EnergyRibbon {
 // ─── Color configs ──────────────────────────────────────────────
 const GLOW_CONFIGS = {
   blue: {
-    core: "#050d1a",
-    mid: "#0c2d5e",
-    bright: "#22d3ee",
-    accent: "#a5f3fc",
-    particle: "#38bdf8",
-    ribbon: "#06b6d4",
-    bg: "rgba(6,182,212,0.10)",
+    core: "#0a1e3d",
+    mid: "#1e4a8a",
+    bright: "#38bdf8",
+    accent: "#7dd3fc",
+    particle: "#60a5fa",
+    ribbon: "#2563eb",
+    bg: "rgba(37,99,235,0.15)",
   },
   gold: {
     core: "#1a0e02",
@@ -105,9 +105,10 @@ function drawEnergySphere(
 
   // ── Outer atmospheric glow ──
   ctx.save();
-  const outerGlow = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 2.0);
-  outerGlow.addColorStop(0, colors.bright + "15");
-  outerGlow.addColorStop(0.4, colors.ribbon + "0a");
+  const outerGlow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2.0);
+  outerGlow.addColorStop(0, colors.bright + "30");
+  outerGlow.addColorStop(0.3, colors.ribbon + "1a");
+  outerGlow.addColorStop(0.6, colors.mid + "0d");
   outerGlow.addColorStop(1, "transparent");
   ctx.fillStyle = outerGlow;
   ctx.fillRect(0, 0, w, h);
@@ -126,12 +127,13 @@ function drawEnergySphere(
   }
   ctx.restore();
 
-  // ── Dark core sphere ──
+  // ── Blue core sphere ──
   const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
   coreGrad.addColorStop(0, colors.core);
-  coreGrad.addColorStop(0.6, colors.core);
-  coreGrad.addColorStop(0.85, colors.mid + "cc");
-  coreGrad.addColorStop(1, colors.mid + "40");
+  coreGrad.addColorStop(0.35, colors.core);
+  coreGrad.addColorStop(0.65, colors.mid);
+  coreGrad.addColorStop(0.85, colors.mid + "ee");
+  coreGrad.addColorStop(1, colors.bright + "50");
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = coreGrad;
@@ -245,10 +247,10 @@ function drawEnergySphere(
   // ── Edge rim light ──
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  const rimGrad = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 1.05);
+  const rimGrad = ctx.createRadialGradient(cx, cy, r * 0.75, cx, cy, r * 1.08);
   rimGrad.addColorStop(0, "transparent");
-  rimGrad.addColorStop(0.6, colors.bright + "12");
-  rimGrad.addColorStop(0.85, colors.ribbon + "20");
+  rimGrad.addColorStop(0.5, colors.bright + "25");
+  rimGrad.addColorStop(0.8, colors.ribbon + "35");
   rimGrad.addColorStop(1, "transparent");
   ctx.beginPath();
   ctx.arc(cx, cy, r * 1.05, 0, Math.PI * 2);
@@ -435,19 +437,6 @@ export function ProfessorGlobe({
           transform: "translate(-50%, -50%)",
         }}
       >
-        {/* Antenna */}
-        <div className="absolute" style={{
-          width: 2.5 * scale, height: 14 * scale,
-          background: `linear-gradient(to top, ${colors.accent}80, ${colors.bright})`,
-          top: -12 * scale, left: "50%", transform: "translateX(-50%)", borderRadius: 2,
-        }} />
-        <div className="absolute rounded-full" style={{
-          width: 7 * scale, height: 7 * scale, background: colors.bright,
-          top: -18 * scale, left: "50%", transform: "translateX(-50%)",
-          boxShadow: `0 0 ${8 * scale}px ${colors.bright}, 0 0 ${16 * scale}px ${colors.bright}40`,
-          animation: "globe-antenna-blink 2s ease-in-out infinite",
-        }} />
-
         {/* Left eye */}
         <div className="absolute transition-all duration-100" style={{
           width: 9 * scale, height: eyeH * scale,
@@ -482,21 +471,15 @@ export function ProfessorGlobe({
           height: (speaking ? 3 + mouthOpen * 9 : emotion === "happy" ? 5 : 3) * scale,
           bottom: `${20 * scale}px`, left: "50%", transform: "translateX(-50%)",
           background: speaking
-            ? `radial-gradient(ellipse, ${colors.accent}, ${colors.bright})`
-            : emotion === "happy" ? colors.accent : colors.accent + "cc",
+            ? `radial-gradient(ellipse, #ffffff, ${colors.accent})`
+            : emotion === "happy" ? "#e0f2fe" : "#bae6fd",
           borderRadius: emotion === "happy" && !speaking ? "0 0 50% 50%" : "50%",
           boxShadow: speaking
-            ? `0 0 ${8 * scale}px ${colors.bright}80, 0 0 ${16 * scale}px ${colors.bright}30`
-            : `0 0 ${3 * scale}px ${colors.bright}40`,
+            ? `0 0 ${10 * scale}px ${colors.bright}, 0 0 ${20 * scale}px ${colors.bright}60`
+            : `0 0 ${5 * scale}px ${colors.bright}80`,
         }} />
       </div>
 
-      <style jsx>{`
-        @keyframes globe-antenna-blink {
-          0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(0.9); }
-          50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
-        }
-      `}</style>
     </div>
   );
 }

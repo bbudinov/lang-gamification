@@ -208,8 +208,8 @@ export function HelpButton() {
     <>
       <button
         onClick={handleOpen}
-        className="absolute bottom-20 right-4 w-14 h-14 rounded-full bg-[#0a1628] shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-400/50"
-        style={{ zIndex: 9999 }}
+        className="absolute bottom-20 right-4 w-14 h-14 rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-400/60"
+        style={{ zIndex: 9999, background: "linear-gradient(135deg, #1e40af, #2563eb, #3b82f6)" }}
       >
         <ProfessorGlobe size={38} />
       </button>
@@ -220,7 +220,7 @@ export function HelpButton() {
           onClick={handleClose}
         >
           {/* Globe floating ABOVE the modal */}
-          <div className="relative z-10 mb-[-40px] animate-in zoom-in-75 duration-500">
+          <div className="relative z-10 mb-[-28px] animate-in zoom-in-75 duration-500">
             <ProfessorGlobe size={180} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
           </div>
 
