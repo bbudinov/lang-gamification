@@ -179,7 +179,7 @@ function CameraAnimator({
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
       touches={isTouchDevice
-        ? { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }
+        ? { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }
         : { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }
       }
       onStart={handleInteractionStart}
