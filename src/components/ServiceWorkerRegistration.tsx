@@ -7,10 +7,13 @@ export function ServiceWorkerRegistration() {
     if (!("serviceWorker" in navigator)) return;
 
     navigator.serviceWorker
-      .register("/sw.js")
+      .register("/sw.js", { updateViaCache: "none" })
       .then((registration) => {
-        // Check for updates on page load
+        // Check for updates immediately
         registration.update();
+
+        // Also check for updates every 60 seconds
+        const interval = setInterval(() => registration.update(), 60000);
 
         // When a new SW is found, activate it immediately
         registration.onupdatefound = () => {
@@ -32,6 +35,8 @@ export function ServiceWorkerRegistration() {
           refreshing = true;
           window.location.reload();
         });
+
+        return () => clearInterval(interval);
       })
       .catch((err) => console.log("SW registration failed:", err));
 
