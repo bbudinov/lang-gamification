@@ -10,6 +10,7 @@ type RulesLang = "en" | "bg";
 const SECTION_AUDIO: Record<RulesLang, string[]> = {
   en: [
     "rules-islands-en",
+    "rules-stats-en",
     "rules-levels-en",
     "rules-memory-en",
     "rules-quiz-en",
@@ -24,6 +25,7 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
   ],
   bg: [
     "rules-islands-bg",
+    "rules-stats-bg",
     "rules-levels-bg",
     "rules-memory-bg",
     "rules-quiz-bg",
@@ -46,6 +48,17 @@ const RULES = {
       {
         title: "🗺️ Islands",
         text: "Tap an island to choose a game. Each island is a topic. Earn points to unlock new ones!",
+      },
+      {
+        title: "📈 Your Stats",
+        text: "The top bar shows your progress at a glance!",
+        details: [
+          "⭐ Points — earn them by playing games",
+          "⚡ Energy — refills over time, spend it to play",
+          "🔥 Streak — days in a row you played",
+          "✅ Daily goals — complete 3 games each day",
+          "🌐 Language — switch between BG and EN",
+        ],
       },
       {
         title: "📊 Levels",
@@ -109,6 +122,17 @@ const RULES = {
       {
         title: "🗺️ Острови",
         text: "Натисни остров, за да избереш игра. Всеки остров е тема. Печели точки, за да отключиш нови!",
+      },
+      {
+        title: "📈 Твоят прогрес",
+        text: "Горната лента показва напредъка ти с един поглед!",
+        details: [
+          "⭐ Точки — печелиш ги от игрите",
+          "⚡ Енергия — зарежда се с времето, харчиш я за игра",
+          "🔥 Поредица — колко дни поред си играл",
+          "✅ Дневни цели — завърши 3 игри на ден",
+          "🌐 Език — превключвай между BG и EN",
+        ],
       },
       {
         title: "📊 Нива",

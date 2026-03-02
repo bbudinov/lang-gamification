@@ -182,6 +182,7 @@ const MOTIVATIONAL = [
 const RULES_BG = [
   { id: "rules-greeting-bg", text: "Здравей! Нека ти обясня как работи играта.", lang: "bg" },
   { id: "rules-islands-bg", text: "Натисни остров, за да избереш игра. Всеки остров е тема. Печели точки, за да отключиш нови!", lang: "bg" },
+  { id: "rules-stats-bg", text: "Горната лента показва напредъка ти. Звездата е за точките. Мълнията е енергия, която се зарежда с времето. Огънчето показва колко дни поред си играл. Отметките са дневните ти цели, а бутонът за език превключва между български и английски.", lang: "bg" },
   { id: "rules-memory-bg", text: "Мемори Мач. Обръщай карти и намери съвпадащи двойки думи. Получаваш 10 точки за вярна двойка, губиш 2 за грешна, и печелиш 50 бонус точки ако завършиш всички!", lang: "bg" },
   { id: "rules-quiz-bg", text: "Уърд Куиз. Чуй дума и избери правилния превод от четири варианта. Получаваш 15 точки за верен отговор, губиш 5 за грешен, и печелиш 60 бонус точки ако завършиш!", lang: "bg" },
   { id: "rules-truefalse-bg", text: "Вярно или Грешно. Виждаш дума и превод. Реши дали преводът е верен или не! Получаваш 10 точки за правилен отговор и губиш 5 за грешен.", lang: "bg" },
@@ -199,6 +200,7 @@ const RULES_BG = [
 const RULES_EN = [
   { id: "rules-greeting-en", text: "Hi there! Let me explain how the game works.", lang: "en" },
   { id: "rules-islands-en", text: "Tap an island to choose a game. Each island is a topic. Earn points to unlock new ones!", lang: "en" },
+  { id: "rules-stats-en", text: "The top bar shows your progress. The star is your points. The lightning bolt is energy that refills over time. The fire shows your daily streak. The checkmarks are your daily goals, and the language button switches between Bulgarian and English.", lang: "en" },
   { id: "rules-memory-en", text: "Memory Match. Flip cards to find matching word pairs. You get 10 points for a correct match, lose 2 for a wrong one, and earn 50 bonus points for completing all pairs!", lang: "en" },
   { id: "rules-quiz-en", text: "Word Quiz. Listen to a word and pick the right translation. You earn 15 points for a correct answer, lose 5 for a wrong one, and get 60 bonus points for finishing!", lang: "en" },
   { id: "rules-truefalse-en", text: "True or False. You see a word and a translation. Decide if the translation is correct or not! You earn 10 points for a right answer and lose 5 for a wrong one.", lang: "en" },
