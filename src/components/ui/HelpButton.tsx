@@ -11,6 +11,7 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
   en: [
     "rules-islands-en",
     "rules-memory-en",
+    "rules-memorymix-en",
     "rules-quiz-en",
     "rules-truefalse-en",
     "rules-scramble-en",
@@ -23,6 +24,7 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
   bg: [
     "rules-islands-bg",
     "rules-memory-bg",
+    "rules-memorymix-bg",
     "rules-quiz-bg",
     "rules-truefalse-bg",
     "rules-scramble-bg",
@@ -47,6 +49,11 @@ const RULES = {
         title: "🃏 Memory Match",
         text: "Flip cards to find matching word pairs.",
         details: ["✅ Correct match: +10 pts", "❌ Wrong match: -2 pts", "🏆 Complete all: +50 bonus"],
+      },
+      {
+        title: "🌀 Memory Mix",
+        text: "A special challenge! Words from different islands are mixed together. Unlocks after completing Memory Match on 2 islands.",
+        details: ["🔓 Play Memory on 2+ islands to unlock", "📈 More cards as you play more", "🌀 Find the button on the map"],
       },
       {
         title: "🎯 Word Quiz",
@@ -101,6 +108,11 @@ const RULES = {
         title: "🃏 Memory Match",
         text: "Обръщай карти и намери съвпадащи двойки думи.",
         details: ["✅ Вярна двойка: +10 точки", "❌ Грешна двойка: -2 точки", "🏆 Завърши всички: +50 бонус"],
+      },
+      {
+        title: "🌀 Memory Mix",
+        text: "Специално предизвикателство! Думи от различни острови са смесени заедно. Отключва се след Memory Match на 2 острова.",
+        details: ["🔓 Играй Memory на 2+ острова", "📈 Повече карти с всяка игра", "🌀 Намери бутона на картата"],
       },
       {
         title: "🎯 Word Quiz",
