@@ -22,9 +22,8 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateCards(topic: Topic, nativeLang: string, targetLang: string, mastery: Record<string, WordMastery>): MemoryCardType[] {
-  const cfg = GAME_CONFIG.MEMORY_MATCH;
-  const selected = selectAdaptiveWords(topic.words, mastery, cfg.PAIRS_COUNT);
+function generateCards(topic: Topic, nativeLang: string, targetLang: string, mastery: Record<string, WordMastery>, pairsCount: number): MemoryCardType[] {
+  const selected = selectAdaptiveWords(topic.words, mastery, pairsCount);
 
   const cards: MemoryCardType[] = [];
   for (const word of selected) {
@@ -58,11 +57,24 @@ interface MemoryMatchProps {
   topic: Topic;
 }
 
+// Determine pairs count based on how many times Memory was played for this topic
+function getPairsCount(topicId: string): { pairs: number; cols: number } {
+  const results = useProgressStore.getState().gameResults;
+  const memoryPlays = results.filter(
+    (r) => r.topicId === topicId && r.gameType === "memory-match"
+  ).length;
+
+  if (memoryPlays >= 4) return { pairs: 8, cols: 4 }; // 16 cards, 4×4
+  if (memoryPlays >= 2) return { pairs: 6, cols: 3 }; // 12 cards, 3×4
+  return { pairs: 4, cols: 4 };                        //  8 cards, 4×2
+}
+
 export function MemoryMatch({ topic }: MemoryMatchProps) {
   const router = useRouter();
   const cfg = GAME_CONFIG.MEMORY_MATCH;
   const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
+  const [difficulty, setDifficulty] = useState(() => getPairsCount(topic.id));
   const {
     cards,
     flippedCards,
@@ -93,9 +105,9 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
 
   // Initialize game
   useEffect(() => {
-    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery);
-    initMemoryGame(generated, cfg.PAIRS_COUNT);
-  }, [topic, nativeLanguage, targetLanguage, initMemoryGame, cfg.PAIRS_COUNT]);
+    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery, difficulty.pairs);
+    initMemoryGame(generated, difficulty.pairs);
+  }, [topic, nativeLanguage, targetLanguage, initMemoryGame, difficulty.pairs]);
 
   // Handle card flip sound
   const handleFlip = (cardId: string) => {
@@ -160,7 +172,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
         topicId: topic.id,
         gameType: "memory-match",
         score: finalScore,
-        maxScore: cfg.PAIRS_COUNT * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS,
+        maxScore: difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS,
         mistakes: moves - matchedPairs,
         completedAt: new Date().toISOString(),
       });
@@ -169,8 +181,11 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
   }, [matchedPairs, totalPairs, gameCompleted]);
 
   const handleReplay = () => {
-    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery);
-    initMemoryGame(generated, cfg.PAIRS_COUNT);
+    // Recalculate difficulty (play count increased after last game)
+    const newDifficulty = getPairsCount(topic.id);
+    setDifficulty(newDifficulty);
+    const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery, newDifficulty.pairs);
+    initMemoryGame(generated, newDifficulty.pairs);
     setShakingPair(null);
     setMatchPopup(null);
   };
@@ -227,7 +242,10 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2.5 w-full max-w-sm">
+          <div
+            className="grid gap-2.5 w-full max-w-sm"
+            style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(0, 1fr))` }}
+          >
             {cards.map((card) => (
               <MemoryCard
                 key={card.id}
