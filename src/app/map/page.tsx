@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
 import { MissionBoard } from "@/components/missions/MissionBoard";
 import { useProgressStore } from "@/stores/progressStore";
+import { topics } from "@/data/words";
 import type { Topic } from "@/types";
 
 const IslandMap = dynamic(
@@ -27,18 +28,98 @@ const IslandMap = dynamic(
   }
 );
 
+function checkWebGL(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    );
+  } catch {
+    return false;
+  }
+}
+
+// 2D fallback map for devices without WebGL
+function FallbackMap({ onSelectTopic }: { onSelectTopic: (t: Topic) => void }) {
+  const { totalPoints, unlockedTopics } = useProgressStore();
+
+  return (
+    <div className="flex-1 overflow-y-auto px-4 pt-16 pb-24">
+      <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+        {topics.map((topic) => {
+          const isUnlocked =
+            unlockedTopics.includes(topic.id) || topic.unlockCost === 0;
+          const canUnlock = totalPoints >= topic.unlockCost;
+
+          return (
+            <button
+              key={topic.id}
+              onClick={() => isUnlocked && onSelectTopic(topic)}
+              disabled={!isUnlocked}
+              className={`relative rounded-2xl p-3 flex flex-col items-center gap-1.5 transition-all active:scale-95 ${
+                isUnlocked
+                  ? "bg-white/10 border border-white/15 shadow-lg"
+                  : canUnlock
+                  ? "bg-white/5 border border-amber-500/30"
+                  : "bg-white/[0.03] border border-white/5 opacity-50"
+              }`}
+            >
+              <span className="text-3xl">{topic.emoji}</span>
+              <span
+                className={`text-xs font-medium ${
+                  isUnlocked ? "text-white" : "text-slate-500"
+                }`}
+              >
+                {topic.name.en}
+              </span>
+              {!isUnlocked && (
+                <span className="text-[10px] text-amber-400/70">
+                  🔒 {topic.unlockCost}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function MapPage() {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showMissions, setShowMissions] = useState(false);
+  const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const { targetLanguage } = useProgressStore();
 
+  useEffect(() => {
+    setHasWebGL(checkWebGL());
+  }, []);
+
+  // Still checking
+  if (hasWebGL === null) {
+    return (
+      <div className="h-screen w-screen bg-[#0a1628] flex items-center justify-center">
+        <div className="text-4xl animate-bounce">🌍</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#0a1628] relative" style={{ overscrollBehavior: "none" }}>
+    <div
+      className="h-screen w-screen overflow-hidden bg-[#0a1628] relative"
+      style={{ overscrollBehavior: "none" }}
+    >
       <TopBar />
-      <IslandMap
-        onSelectTopic={setSelectedTopic}
-        focusPosition={selectedTopic?.position ?? null}
-      />
+
+      {hasWebGL ? (
+        <IslandMap
+          onSelectTopic={setSelectedTopic}
+          focusPosition={selectedTopic?.position ?? null}
+        />
+      ) : (
+        <FallbackMap onSelectTopic={setSelectedTopic} />
+      )}
+
       <HelpButton />
 
       {/* Mission button */}
