@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
@@ -86,10 +87,21 @@ function FallbackMap({ onSelectTopic }: { onSelectTopic: (t: Topic) => void }) {
 }
 
 export default function MapPage() {
+  const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showMissions, setShowMissions] = useState(false);
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
-  const { targetLanguage } = useProgressStore();
+  const { targetLanguage, gameResults } = useProgressStore();
+
+  // Check if Memory Mix is unlocked (2+ topics with Memory Match played)
+  const memoryTopicsPlayed = Array.from(
+    new Set(
+      gameResults
+        .filter((r) => r.gameType === "memory-match")
+        .map((r) => r.topicId)
+    )
+  ).length;
+  const mixUnlocked = memoryTopicsPlayed >= 2;
 
   useEffect(() => {
     setHasWebGL(checkWebGL());
@@ -130,6 +142,17 @@ export default function MapPage() {
       >
         <span className="text-2xl">📋</span>
       </button>
+
+      {/* Memory Mix button — visible when 2+ topics completed */}
+      {mixUnlocked && (
+        <button
+          onClick={() => router.push("/game/memory-mix")}
+          className="absolute bottom-20 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+          style={{ zIndex: 9999 }}
+        >
+          <span className="text-2xl">🌀</span>
+        </button>
+      )}
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />

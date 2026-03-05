@@ -34,12 +34,12 @@ export interface PhraseEntry {
   difficulty: 1 | 2 | 3;
 }
 
-export type GameType = "memory-match" | "word-quiz" | "true-false" | "word-scramble" | "fill-scene" | "say-it" | "listen-repeat" | "npc-talk";
+export type GameType = "memory-match" | "memory-mix" | "word-quiz" | "true-false" | "word-scramble" | "fill-scene" | "say-it" | "listen-repeat" | "npc-talk";
 
 export type LevelNumber = 1 | 2 | 3;
 
 export interface GameResult {
-  topicId: TopicId;
+  topicId: string;
   gameType: GameType;
   score: number;
   maxScore: number;

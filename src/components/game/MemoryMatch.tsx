@@ -55,6 +55,17 @@ function generateCards(topic: Topic, nativeLang: string, targetLang: string, mas
 
 interface MemoryMatchProps {
   topic: Topic;
+  isMix?: boolean;
+}
+
+// Determine pairs count for Memory Mix based on play count
+function getMixPairsCount(): { pairs: number; cols: number } {
+  const results = useProgressStore.getState().gameResults;
+  const mixPlays = results.filter((r) => r.gameType === "memory-mix").length;
+
+  if (mixPlays >= 4) return { pairs: 8, cols: 4 }; // 16 cards, 4×4
+  if (mixPlays >= 2) return { pairs: 7, cols: 4 }; // 14 cards, ~4×4
+  return { pairs: 6, cols: 3 };                      // 12 cards, 3×4
 }
 
 // Determine pairs count based on how many times Memory was played for this topic
@@ -69,12 +80,14 @@ function getPairsCount(topicId: string): { pairs: number; cols: number } {
   return { pairs: 4, cols: 4 };                        //  8 cards, 4×2
 }
 
-export function MemoryMatch({ topic }: MemoryMatchProps) {
+export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
   const router = useRouter();
   const cfg = GAME_CONFIG.MEMORY_MATCH;
   const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
-  const [difficulty, setDifficulty] = useState(() => getPairsCount(topic.id));
+  const [difficulty, setDifficulty] = useState(() =>
+    isMix ? getMixPairsCount() : getPairsCount(topic.id)
+  );
   const {
     cards,
     flippedCards,
@@ -169,8 +182,8 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
       addScore(cfg.COMPLETION_BONUS);
       addPoints(finalScore);
       addGameResult({
-        topicId: topic.id,
-        gameType: "memory-match",
+        topicId: isMix ? "memory-mix" : topic.id,
+        gameType: isMix ? "memory-mix" : "memory-match",
         score: finalScore,
         maxScore: difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS,
         mistakes: moves - matchedPairs,
@@ -182,7 +195,7 @@ export function MemoryMatch({ topic }: MemoryMatchProps) {
 
   const handleReplay = () => {
     // Recalculate difficulty (play count increased after last game)
-    const newDifficulty = getPairsCount(topic.id);
+    const newDifficulty = isMix ? getMixPairsCount() : getPairsCount(topic.id);
     setDifficulty(newDifficulty);
     const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery, newDifficulty.pairs);
     initMemoryGame(generated, newDifficulty.pairs);
