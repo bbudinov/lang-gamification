@@ -1,5 +1,5 @@
-const CACHE_NAME = "langworld-v4";
-const STATIC_ASSETS = ["/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE_NAME = "langworld-v5";
+const STATIC_ASSETS = ["/", "/map", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -25,12 +25,18 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  // Navigate requests — network first, fallback to cache
+  // Navigate requests — network first, cache visited pages for offline fallback
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(
-        () => caches.match("/") || new Response("Offline", { status: 503 })
-      )
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/")))
     );
     return;
   }
