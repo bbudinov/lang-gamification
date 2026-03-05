@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 interface ProfessorGlobeProps {
   size?: number;
@@ -34,27 +34,10 @@ export function ProfessorGlobe({
   emotion = "idle",
   glowColor = "blue",
 }: ProfessorGlobeProps) {
-  const [mouthFrame, setMouthFrame] = useState(false);
-
   useEffect(preloadImages, []);
 
-  // Alternate between talking and current emotion image for mouth-sync effect
-  useEffect(() => {
-    if (!speaking) {
-      setMouthFrame(false);
-      return;
-    }
-    const interval = setInterval(() => {
-      setMouthFrame((f) => !f);
-    }, 150 + Math.random() * 100);
-    return () => clearInterval(interval);
-  }, [speaking]);
-
-  const currentImage = speaking
-    ? mouthFrame
-      ? IMAGES[emotion]
-      : IMAGES.talking
-    : IMAGES[emotion];
+  // When speaking, show the talking image. Otherwise show the emotion image.
+  const currentImage = speaking ? IMAGES.talking : IMAGES[emotion];
 
   const glow = glowColor === "gold" ? "#fbbf24" : "#38bdf8";
   const glowSize = size * 0.2;
@@ -80,6 +63,7 @@ export function ProfessorGlobe({
         className="relative w-full h-full rounded-full overflow-hidden"
         style={{
           boxShadow: `0 0 ${glowSize}px ${glow}50, 0 0 ${glowSizeLg}px ${glow}25`,
+          animation: speaking ? "globe-talk-scale 0.6s ease-in-out infinite" : undefined,
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,7 +72,7 @@ export function ProfessorGlobe({
           alt="Professor Globe"
           width={size}
           height={size}
-          className="w-full h-full object-cover transition-opacity duration-200"
+          className="w-full h-full object-cover"
           draggable={false}
         />
 
@@ -109,6 +93,10 @@ export function ProfessorGlobe({
         @keyframes globe-pulse {
           0%, 100% { opacity: 0.7; transform: scale(1.25); }
           50% { opacity: 1; transform: scale(1.45); }
+        }
+        @keyframes globe-talk-scale {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
         }
       `}</style>
     </div>
