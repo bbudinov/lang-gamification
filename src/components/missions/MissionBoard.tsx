@@ -169,7 +169,7 @@ Only valid JSON, no markdown.`,
       >
         <div className="text-center mb-4">
           <div className="flex flex-col items-center mb-1">
-            <ProfessorGlobe size={140} emotion={globeSpeaking ? "happy" : "idle"} speaking={globeSpeaking} />
+            <ProfessorGlobe size={72} expandOnSpeak emotion={globeSpeaking ? "happy" : "idle"} speaking={globeSpeaking} />
           </div>
           <h2 className="text-xl font-bold text-white mt-1">Missions</h2>
           <p className="text-slate-400 text-xs mt-1">

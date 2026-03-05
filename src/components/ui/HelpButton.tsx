@@ -211,7 +211,7 @@ export function HelpButton() {
         >
           {/* Globe floating ABOVE the modal */}
           <div className="relative z-10 mb-[-28px] animate-in zoom-in-75 duration-500">
-            <ProfessorGlobe size={180} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+            <ProfessorGlobe size={80} expandOnSpeak speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
           </div>
 
           <div

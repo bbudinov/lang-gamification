@@ -76,7 +76,7 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
       >
         <div className="text-center mb-4">
           <div className="flex flex-col items-center mb-1">
-            <ProfessorGlobe size={100} speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />
+            <ProfessorGlobe size={72} expandOnSpeak speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />
             <span className="text-3xl mt-1">{topicEmoji}</span>
           </div>
           <h2 className="text-xl font-bold text-white">{topicName}</h2>
