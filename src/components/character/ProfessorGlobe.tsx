@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ProfessorGlobeProps {
   size?: number;
@@ -30,22 +30,29 @@ export function ProfessorGlobe({
 }: ProfessorGlobeProps) {
   useEffect(preloadImage, []);
 
-  // Track the overlay visibility with delay for exit animation
+  const circleRef = useRef<HTMLDivElement>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [animatingOut, setAnimatingOut] = useState(false);
+  const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
 
   useEffect(() => {
     if (!expandOnSpeak) return;
     if (speaking) {
+      // Calculate circle position for transform-origin
+      if (circleRef.current) {
+        const rect = circleRef.current.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        setOrigin({ x: `${cx}px`, y: `${cy}px` });
+      }
       setAnimatingOut(false);
       setShowOverlay(true);
     } else if (showOverlay) {
-      // Animate out then hide
       setAnimatingOut(true);
       const timer = setTimeout(() => {
         setShowOverlay(false);
         setAnimatingOut(false);
-      }, 500);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [speaking, expandOnSpeak]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -56,8 +63,9 @@ export function ProfessorGlobe({
 
   return (
     <>
-      {/* Small circle avatar — always visible */}
+      {/* Small circle avatar */}
       <div
+        ref={circleRef}
         className="relative inline-flex items-center justify-center shrink-0"
         style={{ width: size, height: size }}
       >
@@ -71,7 +79,7 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle image — cropped to show face */}
+        {/* Circle image — cropped to face */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
@@ -93,53 +101,54 @@ export function ProfessorGlobe({
         </div>
       </div>
 
-      {/* Full-body overlay — appears when speaking */}
+      {/* Full-body overlay — splash from circle */}
       {expandOnSpeak && showOverlay && (
         <div
-          className="fixed inset-0 z-[200] pointer-events-none flex items-end justify-center"
+          className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center"
           style={{
+            transformOrigin: `${origin.x} ${origin.y}`,
             animation: animatingOut
-              ? "prof-overlay-out 0.5s ease-in forwards"
-              : "prof-overlay-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+              ? "prof-splash-out 0.4s ease-in forwards"
+              : "prof-splash-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
           }}
         >
-          {/* Dark vignette behind professor */}
+          {/* Dark backdrop */}
           <div
             className="absolute inset-0"
             style={{
-              background: "radial-gradient(ellipse at center bottom, rgba(10,22,40,0.85) 0%, rgba(10,22,40,0.4) 50%, transparent 80%)",
+              background: "radial-gradient(ellipse at center, rgba(10,22,40,0.9) 0%, rgba(10,22,40,0.5) 60%, transparent 100%)",
             }}
           />
 
-          {/* Full body professor figure */}
-          <div className="relative flex flex-col items-center mb-0" style={{ maxHeight: "85vh" }}>
-            {/* Glow behind figure */}
+          {/* Professor figure */}
+          <div className="relative flex flex-col items-center" style={{ maxHeight: "85vh" }}>
+            {/* Glow behind */}
             <div
-              className="absolute inset-0 -inset-x-12"
+              className="absolute inset-0 -inset-x-16"
               style={{
                 background: `radial-gradient(ellipse at center 40%, ${glow}25 0%, ${glow}10 40%, transparent 70%)`,
                 animation: "prof-glow-pulse 2s ease-in-out infinite",
               }}
             />
 
-            {/* The image — no circle, full figure with transparent fade at bottom */}
-            <div className="relative" style={{ maxHeight: "80vh", width: "auto" }}>
+            {/* The image — full figure, fade at bottom */}
+            <div className="relative" style={{ maxHeight: "80vh" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={IMAGE_SRC}
                 alt="Professor Globe speaking"
-                className="h-full w-auto object-contain max-h-[80vh]"
+                className="h-full w-auto object-contain max-h-[75vh]"
                 style={{
-                  filter: `drop-shadow(0 0 20px ${glow}40) drop-shadow(0 0 60px ${glow}20)`,
-                  maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                  filter: `drop-shadow(0 0 24px ${glow}50) drop-shadow(0 0 80px ${glow}20)`,
+                  maskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
                 }}
                 draggable={false}
               />
 
-              {/* Sound waves at bottom */}
+              {/* Sound waves */}
               {speaking && !animatingOut && (
-                <div className="absolute bottom-[15%] left-1/2 -translate-x-1/2 flex gap-1.5 items-end">
+                <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 flex gap-1.5 items-end">
                   {[10, 18, 24, 18, 10].map((h, i) => (
                     <div
                       key={i}
@@ -169,13 +178,13 @@ export function ProfessorGlobe({
           0%, 100% { opacity: 0.7; transform: scale(1.25); }
           50% { opacity: 1; transform: scale(1.45); }
         }
-        @keyframes prof-overlay-in {
-          from { opacity: 0; transform: translateY(40%) scale(0.8); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes prof-splash-in {
+          0% { opacity: 0; transform: scale(0.1); }
+          100% { opacity: 1; transform: scale(1); }
         }
-        @keyframes prof-overlay-out {
-          from { opacity: 1; transform: translateY(0) scale(1); }
-          to { opacity: 0; transform: translateY(20%) scale(0.9); }
+        @keyframes prof-splash-out {
+          0% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.1); }
         }
         @keyframes prof-glow-pulse {
           0%, 100% { opacity: 0.6; }

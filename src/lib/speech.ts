@@ -275,6 +275,17 @@ function getPreferredVoiceName(language: Language): string | null {
   return prefs[language] || null;
 }
 
+// Male voice name hints — Professor Globe should always sound male
+const MALE_HINTS = ["daniel", "aaron", "guy", "james", "thomas", "male", "puck", "ivan", "jorge", "andrés"];
+const FEMALE_HINTS = ["samantha", "karen", "fiona", "moira", "female", "woman", "girl", "alice", "victoria", "kate", "tessa"];
+
+function isMaleVoice(v: SpeechSynthesisVoice): boolean {
+  const n = v.name.toLowerCase();
+  if (MALE_HINTS.some((h) => n.includes(h))) return true;
+  if (FEMALE_HINTS.some((h) => n.includes(h))) return false;
+  return false; // unknown
+}
+
 function findBestVoice(
   voices: SpeechSynthesisVoice[],
   language: Language
@@ -290,9 +301,22 @@ function findBestVoice(
     if (preferred) return preferred;
   }
 
-  const google = matching.find((v) =>
-    v.name.toLowerCase().includes("google")
-  );
+  // Prefer male voices for Professor Globe
+  const males = matching.filter(isMaleVoice);
+
+  // Try male Google voice first
+  const maleGoogle = males.find((v) => v.name.toLowerCase().includes("google"));
+  if (maleGoogle) return maleGoogle;
+
+  // Any male premium voice
+  const malePremium = males.find((v) => !v.localService);
+  if (malePremium) return malePremium;
+
+  // Any male voice
+  if (males.length > 0) return males[0];
+
+  // Fallback: any Google voice
+  const google = matching.find((v) => v.name.toLowerCase().includes("google"));
   if (google) return google;
 
   const premium = matching.find((v) => !v.localService);
@@ -325,7 +349,7 @@ export async function speak(text: string, language: Language): Promise<void> {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = LANG_MAP[language];
   utterance.rate = RATE_MAP[language];
-  utterance.pitch = 1.05;
+  utterance.pitch = 0.9;
   utterance.volume = 1;
 
   const voice = findBestVoice(voices, language);
@@ -352,7 +376,7 @@ export async function speakWithVoice(
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = LANG_MAP[language];
   utterance.rate = RATE_MAP[language];
-  utterance.pitch = 1.05;
+  utterance.pitch = 0.9;
   utterance.volume = 1;
   if (voice) utterance.voice = voice;
 
@@ -375,7 +399,7 @@ export function speakAndWait(
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = LANG_MAP[language];
     utterance.rate = RATE_MAP[language];
-    utterance.pitch = 1.05;
+    utterance.pitch = 0.9;
     utterance.volume = 1;
 
     const voice = findBestVoice(voices, language);
