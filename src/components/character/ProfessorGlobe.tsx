@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface ProfessorGlobeProps {
   size?: number;
   speaking?: boolean;
   emotion?: "idle" | "happy" | "thinking" | "surprised" | "talking";
   glowColor?: "blue" | "gold";
-  /** When true, full-body Professor appears as overlay when speaking */
   expandOnSpeak?: boolean;
 }
 
 const EMOTION_IMAGES: Record<string, string> = {
-  idle: "/images/globe/idle.png",
-  happy: "/images/globe/happy.png",
-  thinking: "/images/globe/thinking.png",
-  surprised: "/images/globe/surprised.png",
-  talking: "/images/globe/talking.png",
+  idle: "/images/globe/idle-nobg.png",
+  happy: "/images/globe/happy-nobg.png",
+  thinking: "/images/globe/thinking-nobg.png",
+  surprised: "/images/globe/surprised-nobg.png",
+  talking: "/images/globe/talking-nobg.png",
 };
 
 let preloaded = false;
@@ -29,6 +28,85 @@ function preloadImages() {
   });
 }
 
+// Mouth animation: alternate between emotion and talking image
+function useMouthAnimation(speaking: boolean, emotionSrc: string) {
+  const [currentSrc, setCurrentSrc] = useState(emotionSrc);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    if (!speaking) {
+      setCurrentSrc(emotionSrc);
+      return;
+    }
+    // Alternate between emotion image and talking image at ~6fps
+    const talkingSrc = EMOTION_IMAGES.talking;
+    let open = false;
+    const interval = setInterval(() => {
+      open = !open;
+      setCurrentSrc(open ? talkingSrc : emotionSrc);
+      frameRef.current++;
+    }, 160);
+    return () => clearInterval(interval);
+  }, [speaking, emotionSrc]);
+
+  return currentSrc;
+}
+
+// Eye blink: returns true briefly every 3-6 seconds
+function useEyeBlink() {
+  const [blinking, setBlinking] = useState(false);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const scheduleBlink = () => {
+      const delay = 2500 + Math.random() * 3500; // 2.5-6s
+      timeout = setTimeout(() => {
+        setBlinking(true);
+        setTimeout(() => setBlinking(false), 120); // blink duration
+        scheduleBlink();
+      }, delay);
+    };
+    scheduleBlink();
+    return () => clearTimeout(timeout);
+  }, []);
+
+  return blinking;
+}
+
+// Floating particles around the professor
+function HologramParticles({ count = 20 }: { count?: number }) {
+  const particles = useRef(
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 5,
+      duration: 3 + Math.random() * 4,
+      size: 1 + Math.random() * 3,
+      opacity: 0.2 + Math.random() * 0.5,
+    }))
+  ).current;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.left}%`,
+            bottom: "-5%",
+            width: p.size,
+            height: p.size,
+            backgroundColor: "#38bdf8",
+            opacity: p.opacity,
+            animation: `particle-float ${p.duration}s ease-in-out ${p.delay}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ProfessorGlobe({
   size = 80,
   speaking = false,
@@ -38,17 +116,18 @@ export function ProfessorGlobe({
 }: ProfessorGlobeProps) {
   useEffect(preloadImages, []);
 
-  const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
-
   const circleRef = useRef<HTMLDivElement>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [animatingOut, setAnimatingOut] = useState(false);
   const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
 
+  const emotionSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
+  const displaySrc = useMouthAnimation(speaking, emotionSrc);
+  const blinking = useEyeBlink();
+
   useEffect(() => {
     if (!expandOnSpeak) return;
     if (speaking) {
-      // Calculate circle position for transform-origin
       if (circleRef.current) {
         const rect = circleRef.current.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
@@ -89,7 +168,7 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle image — cropped to face */}
+        {/* Circle image */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
@@ -98,12 +177,24 @@ export function ProfessorGlobe({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageSrc}
+            src={displaySrc}
             alt="Professor Globe"
             className="w-full h-auto object-cover"
             style={{ objectPosition: "top center", transform: "scale(1.1)" }}
             draggable={false}
           />
+          {/* Blink overlay on circle */}
+          {blinking && (
+            <div
+              className="absolute left-0 right-0"
+              style={{
+                top: "28%",
+                height: "8%",
+                background: "linear-gradient(to bottom, transparent, rgba(60,40,30,0.8) 40%, rgba(60,40,30,0.8) 60%, transparent)",
+                filter: "blur(1px)",
+              }}
+            />
+          )}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 0 12px 6px #0a1628" }}
@@ -111,7 +202,7 @@ export function ProfessorGlobe({
         </div>
       </div>
 
-      {/* Full-body overlay — splash from circle */}
+      {/* Full-body overlay */}
       {expandOnSpeak && showOverlay && (
         <div
           className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center"
@@ -126,12 +217,18 @@ export function ProfessorGlobe({
           <div
             className="absolute inset-0"
             style={{
-              background: "radial-gradient(ellipse at center, rgba(10,22,40,0.9) 0%, rgba(10,22,40,0.5) 60%, transparent 100%)",
+              background: "radial-gradient(ellipse at center, rgba(10,22,40,0.92) 0%, rgba(10,22,40,0.6) 50%, rgba(10,22,40,0.3) 100%)",
             }}
           />
 
           {/* Professor figure */}
-          <div className="relative flex flex-col items-center" style={{ maxHeight: "85vh" }}>
+          <div
+            className="relative flex flex-col items-center"
+            style={{
+              maxHeight: "85vh",
+              animation: "prof-hover 3s ease-in-out infinite",
+            }}
+          >
             {/* Glow behind */}
             <div
               className="absolute inset-0 -inset-x-16"
@@ -141,24 +238,52 @@ export function ProfessorGlobe({
               }}
             />
 
-            {/* The image — full figure, fade at bottom */}
+            {/* Hologram particles */}
+            <HologramParticles count={25} />
+
+            {/* The image with animations */}
             <div className="relative" style={{ maxHeight: "80vh" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageSrc}
+                src={displaySrc}
                 alt="Professor Globe speaking"
                 className="h-full w-auto object-contain max-h-[75vh]"
                 style={{
                   filter: `drop-shadow(0 0 24px ${glow}50) drop-shadow(0 0 80px ${glow}20)`,
-                  maskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 65%, transparent 100%)",
+                  maskImage: "linear-gradient(to bottom, black 70%, transparent 98%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 98%)",
+                  animation: "prof-breathe 4s ease-in-out infinite",
                 }}
                 draggable={false}
               />
 
-              {/* Sound waves */}
+              {/* Blink overlay on full body */}
+              {blinking && (
+                <div
+                  className="absolute left-[20%] right-[20%]"
+                  style={{
+                    top: "13%",
+                    height: "2.5%",
+                    background: "linear-gradient(to bottom, transparent, rgba(60,40,30,0.7) 30%, rgba(60,40,30,0.7) 70%, transparent)",
+                    filter: "blur(1.5px)",
+                    borderRadius: "50%",
+                  }}
+                />
+              )}
+
+              {/* Hologram scan line */}
+              <div
+                className="absolute left-0 right-0 pointer-events-none"
+                style={{
+                  height: "2px",
+                  background: `linear-gradient(to right, transparent, ${glow}40, transparent)`,
+                  animation: "scan-line 4s linear infinite",
+                }}
+              />
+
+              {/* Sound waves when speaking */}
               {speaking && !animatingOut && (
-                <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 flex gap-1.5 items-end">
+                <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 flex gap-1.5 items-end">
                   {[10, 18, 24, 18, 10].map((h, i) => (
                     <div
                       key={i}
@@ -203,6 +328,26 @@ export function ProfessorGlobe({
         @keyframes prof-sound-wave {
           from { transform: scaleY(0.4); opacity: 0.3; }
           to { transform: scaleY(1.3); opacity: 0.9; }
+        }
+        @keyframes prof-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.012); }
+        }
+        @keyframes prof-hover {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes scan-line {
+          0% { top: -5%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 105%; opacity: 0; }
+        }
+        @keyframes particle-float {
+          0% { transform: translateY(0) translateX(0); opacity: 0; }
+          15% { opacity: var(--particle-opacity, 0.4); }
+          85% { opacity: var(--particle-opacity, 0.4); }
+          100% { transform: translateY(-400px) translateX(${Math.random() > 0.5 ? "" : "-"}20px); opacity: 0; }
         }
       `}</style>
     </>
