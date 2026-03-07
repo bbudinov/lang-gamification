@@ -77,15 +77,25 @@ export function ProfessorGlobe({
 
   const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
 
+  // Keep origin always fresh so splash starts/ends at circle position
+  useEffect(() => {
+    if (!circleRef.current) return;
+    const update = () => {
+      const rect = circleRef.current!.getBoundingClientRect();
+      setOrigin({ x: `${rect.left + rect.width / 2}px`, y: `${rect.top + rect.height / 2}px` });
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   useEffect(() => {
     if (!expandOnSpeak) return;
     if (speaking) {
-      if (circleRef.current) {
-        const rect = circleRef.current.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        setOrigin({ x: `${cx}px`, y: `${cy}px` });
-      }
       setAnimatingOut(false);
       setShowOverlay(true);
     } else if (showOverlay) {
