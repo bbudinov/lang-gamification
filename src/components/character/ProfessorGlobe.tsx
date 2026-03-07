@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ProfessorGlobeProps {
   size?: number;
@@ -28,52 +28,6 @@ function preloadImages() {
   });
 }
 
-// Mouth animation: alternate between emotion and talking image
-function useMouthAnimation(speaking: boolean, emotionSrc: string) {
-  const [currentSrc, setCurrentSrc] = useState(emotionSrc);
-  const frameRef = useRef(0);
-
-  useEffect(() => {
-    if (!speaking) {
-      setCurrentSrc(emotionSrc);
-      return;
-    }
-    // Alternate between emotion image and talking image at ~6fps
-    const talkingSrc = EMOTION_IMAGES.talking;
-    let open = false;
-    const interval = setInterval(() => {
-      open = !open;
-      setCurrentSrc(open ? talkingSrc : emotionSrc);
-      frameRef.current++;
-    }, 160);
-    return () => clearInterval(interval);
-  }, [speaking, emotionSrc]);
-
-  return currentSrc;
-}
-
-// Eye blink: returns true briefly every 3-6 seconds
-function useEyeBlink() {
-  const [blinking, setBlinking] = useState(false);
-
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    const scheduleBlink = () => {
-      const delay = 2500 + Math.random() * 3500; // 2.5-6s
-      timeout = setTimeout(() => {
-        setBlinking(true);
-        setTimeout(() => setBlinking(false), 120); // blink duration
-        scheduleBlink();
-      }, delay);
-    };
-    scheduleBlink();
-    return () => clearTimeout(timeout);
-  }, []);
-
-  return blinking;
-}
-
-// Floating particles around the professor
 function HologramParticles({ count = 20 }: { count?: number }) {
   const particles = useRef(
     Array.from({ length: count }, (_, i) => ({
@@ -121,9 +75,7 @@ export function ProfessorGlobe({
   const [animatingOut, setAnimatingOut] = useState(false);
   const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
 
-  const emotionSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
-  const displaySrc = useMouthAnimation(speaking, emotionSrc);
-  const blinking = useEyeBlink();
+  const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
 
   useEffect(() => {
     if (!expandOnSpeak) return;
@@ -168,7 +120,7 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle image */}
+        {/* Circle image — stable, no swapping */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
@@ -177,24 +129,12 @@ export function ProfessorGlobe({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={displaySrc}
+            src={imageSrc}
             alt="Professor Globe"
             className="w-full h-auto object-cover"
             style={{ objectPosition: "top center", transform: "scale(1.1)" }}
             draggable={false}
           />
-          {/* Blink overlay on circle */}
-          {blinking && (
-            <div
-              className="absolute left-0 right-0"
-              style={{
-                top: "28%",
-                height: "8%",
-                background: "linear-gradient(to bottom, transparent, rgba(60,40,30,0.8) 40%, rgba(60,40,30,0.8) 60%, transparent)",
-                filter: "blur(1px)",
-              }}
-            />
-          )}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 0 12px 6px #0a1628" }}
@@ -238,14 +178,13 @@ export function ProfessorGlobe({
               }}
             />
 
-            {/* Hologram particles */}
             <HologramParticles count={25} />
 
-            {/* The image with animations */}
+            {/* The image — stable, one emotion at a time */}
             <div className="relative" style={{ maxHeight: "80vh" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={displaySrc}
+                src={imageSrc}
                 alt="Professor Globe speaking"
                 className="h-full w-auto object-contain max-h-[75vh]"
                 style={{
@@ -256,20 +195,6 @@ export function ProfessorGlobe({
                 }}
                 draggable={false}
               />
-
-              {/* Blink overlay on full body */}
-              {blinking && (
-                <div
-                  className="absolute left-[20%] right-[20%]"
-                  style={{
-                    top: "13%",
-                    height: "2.5%",
-                    background: "linear-gradient(to bottom, transparent, rgba(60,40,30,0.7) 30%, rgba(60,40,30,0.7) 70%, transparent)",
-                    filter: "blur(1.5px)",
-                    borderRadius: "50%",
-                  }}
-                />
-              )}
 
               {/* Hologram scan line */}
               <div
@@ -345,9 +270,9 @@ export function ProfessorGlobe({
         }
         @keyframes particle-float {
           0% { transform: translateY(0) translateX(0); opacity: 0; }
-          15% { opacity: var(--particle-opacity, 0.4); }
-          85% { opacity: var(--particle-opacity, 0.4); }
-          100% { transform: translateY(-400px) translateX(${Math.random() > 0.5 ? "" : "-"}20px); opacity: 0; }
+          15% { opacity: 0.4; }
+          85% { opacity: 0.4; }
+          100% { transform: translateY(-400px) translateX(20px); opacity: 0; }
         }
       `}</style>
     </>
