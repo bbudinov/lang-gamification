@@ -5,20 +5,28 @@ import { useEffect, useRef, useState } from "react";
 interface ProfessorGlobeProps {
   size?: number;
   speaking?: boolean;
-  emotion?: "idle" | "happy" | "thinking" | "surprised";
+  emotion?: "idle" | "happy" | "thinking" | "surprised" | "talking";
   glowColor?: "blue" | "gold";
   /** When true, full-body Professor appears as overlay when speaking */
   expandOnSpeak?: boolean;
 }
 
-const IMAGE_SRC = "/images/globe/idle.png";
+const EMOTION_IMAGES: Record<string, string> = {
+  idle: "/images/globe/idle.png",
+  happy: "/images/globe/happy.png",
+  thinking: "/images/globe/thinking.png",
+  surprised: "/images/globe/surprised.png",
+  talking: "/images/globe/talking.png",
+};
 
 let preloaded = false;
-function preloadImage() {
+function preloadImages() {
   if (preloaded || typeof window === "undefined") return;
   preloaded = true;
-  const img = new Image();
-  img.src = IMAGE_SRC;
+  Object.values(EMOTION_IMAGES).forEach((src) => {
+    const img = new Image();
+    img.src = src;
+  });
 }
 
 export function ProfessorGlobe({
@@ -28,7 +36,9 @@ export function ProfessorGlobe({
   glowColor = "blue",
   expandOnSpeak = false,
 }: ProfessorGlobeProps) {
-  useEffect(preloadImage, []);
+  useEffect(preloadImages, []);
+
+  const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
 
   const circleRef = useRef<HTMLDivElement>(null);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -88,7 +98,7 @@ export function ProfessorGlobe({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={IMAGE_SRC}
+            src={imageSrc}
             alt="Professor Globe"
             className="w-full h-auto object-cover"
             style={{ objectPosition: "top center", transform: "scale(1.1)" }}
@@ -135,7 +145,7 @@ export function ProfessorGlobe({
             <div className="relative" style={{ maxHeight: "80vh" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={IMAGE_SRC}
+                src={imageSrc}
                 alt="Professor Globe speaking"
                 className="h-full w-auto object-contain max-h-[75vh]"
                 style={{
