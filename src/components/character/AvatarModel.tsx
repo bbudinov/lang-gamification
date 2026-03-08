@@ -25,26 +25,17 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   const [blink, setBlink] = useState(false);
 
   // Cache bone references
-  const bonesRef = useRef<{
-    rightArm?: THREE.Bone;
-    rightForeArm?: THREE.Bone;
-    leftArm?: THREE.Bone;
-    leftForeArm?: THREE.Bone;
-    head?: THREE.Bone;
-  }>({});
+  const bonesRef = useRef<Record<string, THREE.Bone>>({});
 
-  // Find bones once on mount
+  // Find bones once
   useEffect(() => {
+    const bones: Record<string, THREE.Bone> = {};
     scene.traverse((child) => {
       if ((child as THREE.Bone).isBone) {
-        const bone = child as THREE.Bone;
-        if (bone.name === "RightArm") bonesRef.current.rightArm = bone;
-        if (bone.name === "RightForeArm") bonesRef.current.rightForeArm = bone;
-        if (bone.name === "LeftArm") bonesRef.current.leftArm = bone;
-        if (bone.name === "LeftForeArm") bonesRef.current.leftForeArm = bone;
-        if (bone.name === "Head") bonesRef.current.head = bone;
+        bones[(child as THREE.Bone).name] = child as THREE.Bone;
       }
     });
+    bonesRef.current = bones;
   }, [scene]);
 
   // Play idle animation
@@ -91,13 +82,29 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
     });
   };
 
-  // Main animation loop
+  // Store original bone quaternions to blend back smoothly
+  const origQuats = useRef<Record<string, THREE.Quaternion>>({});
+  const gestureBlend = useRef(0); // 0 = idle, 1 = talking gesture
+
+  // Run AFTER animation mixer (priority 1) so bone overrides stick
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
 
     // Eye blink
     lerpMorphTarget("eyeBlinkLeft", blink ? 1 : 0, 0.5);
     lerpMorphTarget("eyeBlinkRight", blink ? 1 : 0, 0.5);
+
+    // Subtle eye movement — makes eyes feel alive
+    const eyeX = Math.sin(t * 0.7) * 0.08;
+    const eyeY = Math.sin(t * 0.5 + 1) * 0.05;
+    lerpMorphTarget("eyeLookOutLeft", Math.max(0, eyeX), 0.1);
+    lerpMorphTarget("eyeLookInLeft", Math.max(0, -eyeX), 0.1);
+    lerpMorphTarget("eyeLookOutRight", Math.max(0, -eyeX), 0.1);
+    lerpMorphTarget("eyeLookInRight", Math.max(0, eyeX), 0.1);
+    lerpMorphTarget("eyeLookUpLeft", Math.max(0, eyeY), 0.1);
+    lerpMorphTarget("eyeLookUpRight", Math.max(0, eyeY), 0.1);
+    lerpMorphTarget("eyeLookDownLeft", Math.max(0, -eyeY), 0.1);
+    lerpMorphTarget("eyeLookDownRight", Math.max(0, -eyeY), 0.1);
 
     // Emotion expressions
     const smileValue = emotion === "happy" ? 0.7 : 0;
@@ -109,30 +116,55 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
     lerpMorphTarget("eyeWideLeft", surpriseValue * 0.5, 0.1);
     lerpMorphTarget("eyeWideRight", surpriseValue * 0.5, 0.1);
 
-    // Speaking gesture — subtle arm/hand movement
+    // Smoothly blend gesture weight
+    const targetBlend = speaking ? 1 : 0;
+    gestureBlend.current = THREE.MathUtils.lerp(gestureBlend.current, targetBlend, 0.03);
+    const blend = gestureBlend.current;
+
+    // Talking gesture — applied on top of idle animation with blend
     const bones = bonesRef.current;
-    if (speaking && bones.rightArm) {
-      // Right arm gestures while talking
-      const gesture = Math.sin(t * 2.5) * 0.15;
-      const gesture2 = Math.sin(t * 1.8 + 1) * 0.1;
-      bones.rightArm.rotation.x = THREE.MathUtils.lerp(bones.rightArm.rotation.x, -0.4 + gesture, 0.05);
-      bones.rightArm.rotation.z = THREE.MathUtils.lerp(bones.rightArm.rotation.z, -0.3 + gesture2, 0.05);
-      if (bones.rightForeArm) {
-        bones.rightForeArm.rotation.x = THREE.MathUtils.lerp(bones.rightForeArm.rotation.x, -0.5 + gesture * 0.5, 0.05);
+    if (blend > 0.01) {
+      const rightArm = bones["RightArm"];
+      const rightForeArm = bones["RightForeArm"];
+      const leftArm = bones["LeftArm"];
+      const spine = bones["Spine1"];
+
+      if (rightArm) {
+        // Save the post-animation quaternion, then blend toward gesture
+        const gestureQ = new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(
+            -0.4 + Math.sin(t * 2.0) * 0.12,
+            0,
+            -0.3 + Math.sin(t * 1.5 + 1) * 0.08,
+          )
+        );
+        rightArm.quaternion.slerp(gestureQ, blend * 0.6);
       }
-      // Left arm — smaller complementary movement
-      if (bones.leftArm) {
-        bones.leftArm.rotation.x = THREE.MathUtils.lerp(bones.leftArm.rotation.x, -0.2 + gesture2 * 0.5, 0.05);
+
+      if (rightForeArm) {
+        const gestureQ = new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(-0.6 + Math.sin(t * 2.0) * 0.08, 0, 0)
+        );
+        rightForeArm.quaternion.slerp(gestureQ, blend * 0.5);
       }
-    } else if (bones.rightArm) {
-      // Return to rest pose smoothly
-      bones.rightArm.rotation.x = THREE.MathUtils.lerp(bones.rightArm.rotation.x, 0, 0.03);
-      bones.rightArm.rotation.z = THREE.MathUtils.lerp(bones.rightArm.rotation.z, 0, 0.03);
-      if (bones.rightForeArm) {
-        bones.rightForeArm.rotation.x = THREE.MathUtils.lerp(bones.rightForeArm.rotation.x, 0, 0.03);
+
+      if (leftArm) {
+        const gestureQ = new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(
+            -0.15 + Math.sin(t * 1.3 + 2) * 0.06,
+            0,
+            0.1
+          )
+        );
+        leftArm.quaternion.slerp(gestureQ, blend * 0.3);
       }
-      if (bones.leftArm) {
-        bones.leftArm.rotation.x = THREE.MathUtils.lerp(bones.leftArm.rotation.x, 0, 0.03);
+
+      // Subtle spine lean when talking
+      if (spine) {
+        const leanQ = new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(Math.sin(t * 0.8) * 0.02, Math.sin(t * 0.6) * 0.015, 0)
+        );
+        spine.quaternion.slerp(leanQ, blend * 0.3);
       }
     }
 
@@ -157,7 +189,7 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
         lerpMorphTarget(v, 0, 0.15);
       });
     }
-  });
+  }, 1); // Priority 1 = runs AFTER animation mixer (priority 0)
 
   return (
     <group ref={group} position={[0, -1, 0]} scale={0.85}>
