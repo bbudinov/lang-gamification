@@ -31,7 +31,7 @@ function createEye() {
   // Iris (brown/hazel)
   const iris = new THREE.Mesh(
     new THREE.CircleGeometry(0.008, 16),
-    new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.5, metalness: 0.0 })
+    new THREE.MeshStandardMaterial({ color: 0x2a1a0a, roughness: 0.5, metalness: 0.0 })
   );
   iris.position.z = 0.013;
   eyeGroup.add(iris);
@@ -197,7 +197,7 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   });
 
   return (
-    <group ref={group} position={[0, -0.95, 0]} scale={0.85}>
+    <group ref={group} position={[0, -0.88, 0]} scale={0.85}>
       <primitive object={scene} />
     </group>
   );
