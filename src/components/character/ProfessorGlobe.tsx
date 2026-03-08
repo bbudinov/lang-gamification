@@ -3,10 +3,31 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
+// Eagerly start loading the 3D component + Three.js bundle on page load
+const loader3D = () => import("./ProfessorGlobe3D");
+if (typeof window !== "undefined") {
+  loader3D(); // prefetch immediately
+}
 const ProfessorGlobe3D = dynamic(
-  () => import("./ProfessorGlobe3D").then((m) => ({ default: m.ProfessorGlobe3D })),
+  () => loader3D().then((m) => ({ default: m.ProfessorGlobe3D })),
   { ssr: false }
 );
+const ProfessorGlobeHeadshot = dynamic(
+  () => loader3D().then((m) => ({ default: m.ProfessorGlobeHeadshot })),
+  { ssr: false }
+);
+
+// Preload GLB models on page load
+if (typeof window !== "undefined") {
+  ["/models/professor-globe.glb", "/models/animations.glb"].forEach((url) => {
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "fetch";
+    link.href = url;
+    link.crossOrigin = "anonymous";
+    document.head.appendChild(link);
+  });
+}
 
 interface ProfessorGlobeProps {
   size?: number;
@@ -102,21 +123,15 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle image — stable, no swapping */}
+        {/* Circle avatar — 3D headshot */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
             boxShadow: `0 0 ${glowSize}px ${glow}50, 0 0 ${glowSizeLg}px ${glow}25`,
+            background: "radial-gradient(ellipse at center, #1a2744 0%, #0a1628 100%)",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
-            alt="Professor Globe"
-            className="w-full h-auto object-cover"
-            style={{ objectPosition: "top center", transform: "scale(1.1)" }}
-            draggable={false}
-          />
+          <ProfessorGlobeHeadshot size={size} />
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 0 12px 6px #0a1628" }}

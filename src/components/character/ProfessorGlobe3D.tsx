@@ -10,6 +10,31 @@ interface ProfessorGlobe3DProps {
   emotion?: "idle" | "happy" | "thinking" | "surprised" | "talking";
 }
 
+// Small headshot version for circle avatar
+export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
+  return (
+    <Canvas
+      camera={{ position: [0, 0.6, 0.55], fov: 30 }}
+      gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
+      style={{
+        width: size,
+        height: size,
+        background: "transparent",
+        borderRadius: "50%",
+        pointerEvents: "none",
+      }}
+    >
+      <Suspense fallback={null}>
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[0, 0, 3]} intensity={1.5} />
+        <directionalLight position={[1, 1, 2]} intensity={1.0} color="#38bdf8" />
+        <Environment preset="studio" />
+        <AvatarModel speaking={false} emotion="idle" />
+      </Suspense>
+    </Canvas>
+  );
+}
+
 export function ProfessorGlobe3D({
   speaking = false,
   emotion = "idle",
