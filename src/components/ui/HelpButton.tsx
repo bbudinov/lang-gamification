@@ -201,7 +201,8 @@ export function HelpButton() {
         className="absolute bottom-20 right-4 w-14 h-14 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-500/30"
         style={{ zIndex: 9999, background: "linear-gradient(135deg, #0a1628, #0f2347, #162d50)" }}
       >
-        <ProfessorGlobe size={38} />
+        {/* expandOnSpeak pre-mounts the full-body 3D Canvas (hidden) so it's instant when modal opens */}
+        <ProfessorGlobe size={38} expandOnSpeak speaking={showRules && globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
       </button>
 
       {showRules && (
@@ -211,7 +212,7 @@ export function HelpButton() {
         >
           {/* Globe floating ABOVE the modal */}
           <div className="relative z-10 mb-[-28px] animate-in zoom-in-75 duration-500">
-            <ProfessorGlobe size={80} expandOnSpeak speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+            <ProfessorGlobe size={80} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
           </div>
 
           <div
