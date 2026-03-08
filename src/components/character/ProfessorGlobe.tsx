@@ -137,7 +137,9 @@ export function ProfessorGlobe({
           className="fixed inset-0 z-[200] pointer-events-none"
           style={{
             opacity: overlayVisible ? 1 : 0,
-            transition: "opacity 0.4s ease",
+            transition: overlayVisible
+              ? "opacity 0.4s ease, visibility 0s 0s"
+              : "opacity 0.4s ease, visibility 0s 0.4s",
             visibility: overlayVisible ? "visible" : "hidden",
           }}
         >

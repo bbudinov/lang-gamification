@@ -169,7 +169,7 @@ export function HelpButton() {
     setShowRules(true);
     setActiveSection(null);
     setGlobeSpeaking(true);
-    await playPhraseAudioAndWait(`rules-greeting-${lang}`, 5000);
+    await playPhraseAudioAndWait(`rules-greeting-${lang}`, 15000);
     setGlobeSpeaking(false);
   };
 
@@ -190,7 +190,7 @@ export function HelpButton() {
   const handleSectionTap = async (index: number) => {
     setActiveSection(index);
     setGlobeSpeaking(true);
-    await playPhraseAudioAndWait(SECTION_AUDIO[lang][index], 10000);
+    await playPhraseAudioAndWait(SECTION_AUDIO[lang][index], 30000);
     setGlobeSpeaking(false);
   };
 

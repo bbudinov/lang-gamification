@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { VISEMES } from "wawa-lipsync";
 import { getLipsyncManager } from "@/lib/lipsync";
-import { getCurrentAudio, stopAudio } from "@/lib/speech";
+import { getCurrentAudio } from "@/lib/speech";
 import { connectAudioToLipsync } from "@/lib/lipsync";
 
 const MODEL_PATH = "/models/professor-globe.glb";
@@ -21,8 +21,31 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   const { scene } = useGLTF(MODEL_PATH);
   const { animations } = useGLTF(ANIM_PATH);
   const group = useRef<THREE.Group>(null);
-  const { actions, mixer } = useAnimations(animations, group);
+  const { actions } = useAnimations(animations, group);
   const [blink, setBlink] = useState(false);
+
+  // Cache bone references
+  const bonesRef = useRef<{
+    rightArm?: THREE.Bone;
+    rightForeArm?: THREE.Bone;
+    leftArm?: THREE.Bone;
+    leftForeArm?: THREE.Bone;
+    head?: THREE.Bone;
+  }>({});
+
+  // Find bones once on mount
+  useEffect(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Bone).isBone) {
+        const bone = child as THREE.Bone;
+        if (bone.name === "RightArm") bonesRef.current.rightArm = bone;
+        if (bone.name === "RightForeArm") bonesRef.current.rightForeArm = bone;
+        if (bone.name === "LeftArm") bonesRef.current.leftArm = bone;
+        if (bone.name === "LeftForeArm") bonesRef.current.leftForeArm = bone;
+        if (bone.name === "Head") bonesRef.current.head = bone;
+      }
+    });
+  }, [scene]);
 
   // Play idle animation
   useEffect(() => {
@@ -69,7 +92,9 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   };
 
   // Main animation loop
-  useFrame(() => {
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
     // Eye blink
     lerpMorphTarget("eyeBlinkLeft", blink ? 1 : 0, 0.5);
     lerpMorphTarget("eyeBlinkRight", blink ? 1 : 0, 0.5);
@@ -84,6 +109,33 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
     lerpMorphTarget("eyeWideLeft", surpriseValue * 0.5, 0.1);
     lerpMorphTarget("eyeWideRight", surpriseValue * 0.5, 0.1);
 
+    // Speaking gesture — subtle arm/hand movement
+    const bones = bonesRef.current;
+    if (speaking && bones.rightArm) {
+      // Right arm gestures while talking
+      const gesture = Math.sin(t * 2.5) * 0.15;
+      const gesture2 = Math.sin(t * 1.8 + 1) * 0.1;
+      bones.rightArm.rotation.x = THREE.MathUtils.lerp(bones.rightArm.rotation.x, -0.4 + gesture, 0.05);
+      bones.rightArm.rotation.z = THREE.MathUtils.lerp(bones.rightArm.rotation.z, -0.3 + gesture2, 0.05);
+      if (bones.rightForeArm) {
+        bones.rightForeArm.rotation.x = THREE.MathUtils.lerp(bones.rightForeArm.rotation.x, -0.5 + gesture * 0.5, 0.05);
+      }
+      // Left arm — smaller complementary movement
+      if (bones.leftArm) {
+        bones.leftArm.rotation.x = THREE.MathUtils.lerp(bones.leftArm.rotation.x, -0.2 + gesture2 * 0.5, 0.05);
+      }
+    } else if (bones.rightArm) {
+      // Return to rest pose smoothly
+      bones.rightArm.rotation.x = THREE.MathUtils.lerp(bones.rightArm.rotation.x, 0, 0.03);
+      bones.rightArm.rotation.z = THREE.MathUtils.lerp(bones.rightArm.rotation.z, 0, 0.03);
+      if (bones.rightForeArm) {
+        bones.rightForeArm.rotation.x = THREE.MathUtils.lerp(bones.rightForeArm.rotation.x, 0, 0.03);
+      }
+      if (bones.leftArm) {
+        bones.leftArm.rotation.x = THREE.MathUtils.lerp(bones.leftArm.rotation.x, 0, 0.03);
+      }
+    }
+
     // Lip sync
     if (speaking) {
       const audio = getCurrentAudio();
@@ -95,13 +147,11 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
       mgr.processAudio();
       const viseme = mgr.viseme;
 
-      // Set active viseme to 1, all others to 0 with smooth lerp
       const visemeValues = Object.values(VISEMES) as string[];
       visemeValues.forEach((v) => {
         lerpMorphTarget(v, v === viseme ? 1 : 0, v === viseme ? 0.3 : 0.2);
       });
     } else {
-      // Reset all visemes when not speaking
       const visemeValues = Object.values(VISEMES) as string[];
       visemeValues.forEach((v) => {
         lerpMorphTarget(v, 0, 0.15);
