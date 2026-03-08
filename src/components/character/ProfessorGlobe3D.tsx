@@ -14,7 +14,7 @@ interface ProfessorGlobe3DProps {
 export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
   return (
     <Canvas
-      camera={{ position: [0, 0.72, 0.35], fov: 28 }}
+      camera={{ position: [0, 0.77, 0.3], fov: 22 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         width: size,
