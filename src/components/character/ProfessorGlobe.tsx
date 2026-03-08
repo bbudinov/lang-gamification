@@ -76,17 +76,10 @@ export function ProfessorGlobe({
 }: ProfessorGlobeProps) {
   useEffect(preloadImages, []);
 
-  // Track if 3D was ever needed so we mount Canvas once and keep it
-  const [mounted3D, setMounted3D] = useState(false);
+  // Mount Canvas immediately when expandOnSpeak is enabled (pre-load)
   const overlayVisible = expandOnSpeak && speaking;
 
   const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
-
-  useEffect(() => {
-    if (expandOnSpeak && speaking && !mounted3D) {
-      setMounted3D(true);
-    }
-  }, [expandOnSpeak, speaking, mounted3D]);
 
   const glow = glowColor === "gold" ? "#fbbf24" : "#38bdf8";
   const glowSize = size * 0.15;
@@ -132,7 +125,7 @@ export function ProfessorGlobe({
       </div>
 
       {/* Full-body overlay — always mounted once triggered, toggled via CSS */}
-      {expandOnSpeak && mounted3D && (
+      {expandOnSpeak && (
         <div
           className="fixed inset-0 z-[200] pointer-events-none"
           style={{
