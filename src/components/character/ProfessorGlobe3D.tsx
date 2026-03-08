@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
 import { Suspense } from "react";
 import { AvatarModel } from "./AvatarModel";
 
@@ -32,6 +33,7 @@ export function ProfessorGlobe3D({
         <directionalLight position={[1, 2, 2]} intensity={1.5} color="#38bdf8" />
         <directionalLight position={[-1, 1, -1]} intensity={0.8} color="#7dd3fc" />
         <directionalLight position={[0, -1, 2]} intensity={0.3} />
+        <Environment preset="studio" />
         <AvatarModel speaking={speaking} emotion={emotion} />
       </Suspense>
     </Canvas>

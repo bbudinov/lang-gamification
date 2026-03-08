@@ -24,6 +24,24 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   const { actions } = useAnimations(animations, group);
   const [blink, setBlink] = useState(false);
 
+  // Fix eye materials — RPM eyes are too metallic without env map
+  useEffect(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        const name = mesh.name.toLowerCase();
+        if (name.includes("eye") && !name.includes("brow")) {
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+          if (mat.isMeshStandardMaterial) {
+            mat.metalness = 0.1;
+            mat.roughness = 0.3;
+            mat.needsUpdate = true;
+          }
+        }
+      }
+    });
+  }, [scene]);
+
   // Play idle animation
   useEffect(() => {
     const idleAnim = animations.find((a) => a.name === "Idle");
@@ -122,7 +140,7 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   });
 
   return (
-    <group ref={group} position={[0, -0.5, 0]} scale={0.7}>
+    <group ref={group} position={[0, -0.35, 0]} scale={0.7}>
       <primitive object={scene} />
     </group>
   );
