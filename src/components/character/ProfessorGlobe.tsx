@@ -12,10 +12,6 @@ const ProfessorGlobe3D = dynamic(
   () => loader3D().then((m) => ({ default: m.ProfessorGlobe3D })),
   { ssr: false }
 );
-const ProfessorGlobeHeadshot = dynamic(
-  () => loader3D().then((m) => ({ default: m.ProfessorGlobeHeadshot })),
-  { ssr: false }
-);
 
 // Preload GLB models on page load
 if (typeof window !== "undefined") {
@@ -123,15 +119,20 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle avatar — 3D headshot */}
+        {/* Circle avatar — static headshot */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
             boxShadow: `0 0 ${glowSize}px ${glow}50, 0 0 ${glowSizeLg}px ${glow}25`,
-            background: "radial-gradient(ellipse at center, #1a2744 0%, #0a1628 100%)",
           }}
         >
-          <ProfessorGlobeHeadshot size={size} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/globe/professor-head.png"
+            alt="Professor Globe"
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 0 12px 6px #0a1628" }}
