@@ -7,25 +7,21 @@ import { AvatarModel } from "./AvatarModel";
 interface ProfessorGlobe3DProps {
   speaking?: boolean;
   emotion?: "idle" | "happy" | "thinking" | "surprised" | "talking";
-  className?: string;
-  style?: React.CSSProperties;
 }
 
 export function ProfessorGlobe3D({
   speaking = false,
   emotion = "idle",
-  className,
-  style,
 }: ProfessorGlobe3DProps) {
   return (
-    <div className={className} style={style}>
+    <div style={{ position: "absolute", inset: 0 }}>
       <Canvas
-        camera={{ position: [0, 1.65, 0.8], fov: 35 }}
+        camera={{ position: [0, 1.2, 2.5], fov: 30 }}
         gl={{ alpha: true, antialias: true }}
-        style={{ background: "transparent" }}
+        style={{ background: "transparent", width: "100%", height: "100%" }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
+          <ambientLight intensity={0.6} />
           <directionalLight position={[1, 2, 2]} intensity={1.5} color="#38bdf8" />
           <directionalLight position={[-1, 1, -1]} intensity={0.8} color="#7dd3fc" />
           <directionalLight position={[0, -1, 2]} intensity={0.3} />
