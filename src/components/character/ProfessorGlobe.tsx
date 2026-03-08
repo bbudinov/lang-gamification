@@ -177,24 +177,9 @@ export function ProfessorGlobe({
             }}
           />
 
-          {/* 3D Professor figure — fills entire overlay */}
-          <div className="absolute inset-0">
-            {/* Glow behind */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `radial-gradient(ellipse at center 40%, ${glow}20 0%, ${glow}08 40%, transparent 70%)`,
-                animation: "prof-glow-pulse 2s ease-in-out infinite",
-              }}
-            />
-
-            <HologramParticles count={25} />
-
-            <ProfessorGlobe3D
-              speaking={speaking}
-              emotion={emotion}
-            />
-          </div>
+          {/* 3D Professor figure */}
+          <HologramParticles count={25} />
+          <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
         </div>
       )}
 

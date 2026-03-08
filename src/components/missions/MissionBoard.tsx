@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound, speak } from "@/lib/speech";
+import { playPopSound, playDingSound, speakAndWait } from "@/lib/speech";
 import { askAI } from "@/lib/ai";
 import { topics } from "@/data/words";
 import type { TopicId } from "@/types";
@@ -138,21 +138,19 @@ Only valid JSON, no markdown.`,
     setLoading(false);
   };
 
-  // Speak when missions are ready — with timed speaking animation
+  // Speak when missions are ready
   useEffect(() => {
     if (!loading && missions.length > 0) {
       setGlobeSpeaking(true);
-      speak("Here are your missions! Pick one!", targetLanguage);
-      // Stop speaking animation after 3 seconds
-      const timer = setTimeout(() => setGlobeSpeaking(false), 3000);
-      return () => clearTimeout(timer);
+      speakAndWait("Here are your missions! Pick one!", targetLanguage).then(() => {
+        setGlobeSpeaking(false);
+      });
     }
   }, [loading, missions.length, targetLanguage]);
 
   const handleMissionStart = (mission: Mission) => {
     playPopSound();
-    setGlobeSpeaking(true);
-    speak(`Let's go! ${mission.title}!`, targetLanguage);
+    setGlobeSpeaking(false);
     addPoints(mission.reward);
     router.push(`/game/${mission.topicId}/${mission.gameType}`);
     onClose();
