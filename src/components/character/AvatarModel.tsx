@@ -140,7 +140,7 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   });
 
   return (
-    <group ref={group} position={[0, -0.35, 0]} scale={0.7}>
+    <group ref={group} position={[0, -0.9, 0]} scale={0.7}>
       <primitive object={scene} />
     </group>
   );
