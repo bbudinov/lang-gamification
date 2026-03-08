@@ -137,7 +137,7 @@ export default function MapPage() {
       {/* Mission button */}
       <button
         onClick={() => setShowMissions(true)}
-        className="absolute bottom-20 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
+        className="absolute bottom-28 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
         style={{ zIndex: 9999 }}
       >
         <span className="text-2xl">📋</span>
@@ -147,7 +147,7 @@ export default function MapPage() {
       {mixUnlocked && (
         <button
           onClick={() => router.push("/game/memory-mix")}
-          className="absolute bottom-36 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+          className="absolute bottom-44 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
           style={{ zIndex: 9999 }}
         >
           <span className="text-2xl">🌀</span>

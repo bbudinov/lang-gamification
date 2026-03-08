@@ -76,25 +76,17 @@ export function ProfessorGlobe({
 }: ProfessorGlobeProps) {
   useEffect(preloadImages, []);
 
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [animatingOut, setAnimatingOut] = useState(false);
+  // Track if 3D was ever needed so we mount Canvas once and keep it
+  const [mounted3D, setMounted3D] = useState(false);
+  const overlayVisible = expandOnSpeak && speaking;
 
   const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
 
   useEffect(() => {
-    if (!expandOnSpeak) return;
-    if (speaking) {
-      setAnimatingOut(false);
-      setShowOverlay(true);
-    } else if (showOverlay) {
-      setAnimatingOut(true);
-      const timer = setTimeout(() => {
-        setShowOverlay(false);
-        setAnimatingOut(false);
-      }, 400);
-      return () => clearTimeout(timer);
+    if (expandOnSpeak && speaking && !mounted3D) {
+      setMounted3D(true);
     }
-  }, [speaking, expandOnSpeak]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [expandOnSpeak, speaking, mounted3D]);
 
   const glow = glowColor === "gold" ? "#fbbf24" : "#38bdf8";
   const glowSize = size * 0.15;
@@ -139,14 +131,14 @@ export function ProfessorGlobe({
         </div>
       </div>
 
-      {/* Full-body overlay */}
-      {expandOnSpeak && showOverlay && (
+      {/* Full-body overlay — always mounted once triggered, toggled via CSS */}
+      {expandOnSpeak && mounted3D && (
         <div
           className="fixed inset-0 z-[200] pointer-events-none"
           style={{
-            animation: animatingOut
-              ? "prof-fade-out 0.3s ease-in forwards"
-              : "prof-fade-in 0.4s ease-out forwards",
+            opacity: overlayVisible ? 1 : 0,
+            transition: "opacity 0.4s ease",
+            visibility: overlayVisible ? "visible" : "hidden",
           }}
         >
           {/* Dark backdrop */}
@@ -171,14 +163,6 @@ export function ProfessorGlobe({
         @keyframes globe-pulse {
           0%, 100% { opacity: 0.7; transform: scale(1.25); }
           50% { opacity: 1; transform: scale(1.45); }
-        }
-        @keyframes prof-fade-in {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes prof-fade-out {
-          0% { opacity: 1; }
-          100% { opacity: 0; }
         }
         @keyframes particle-float {
           0% { transform: translateY(0) translateX(0); opacity: 0; }
