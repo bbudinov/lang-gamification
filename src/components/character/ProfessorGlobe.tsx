@@ -76,28 +76,10 @@ export function ProfessorGlobe({
 }: ProfessorGlobeProps) {
   useEffect(preloadImages, []);
 
-  const circleRef = useRef<HTMLDivElement>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [animatingOut, setAnimatingOut] = useState(false);
-  const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
 
   const imageSrc = EMOTION_IMAGES[emotion] || EMOTION_IMAGES.idle;
-
-  // Keep origin always fresh so splash starts/ends at circle position
-  useEffect(() => {
-    if (!circleRef.current) return;
-    const update = () => {
-      const rect = circleRef.current!.getBoundingClientRect();
-      setOrigin({ x: `${rect.left + rect.width / 2}px`, y: `${rect.top + rect.height / 2}px` });
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
 
   useEffect(() => {
     if (!expandOnSpeak) return;
@@ -122,7 +104,6 @@ export function ProfessorGlobe({
     <>
       {/* Small circle avatar */}
       <div
-        ref={circleRef}
         className="relative inline-flex items-center justify-center shrink-0"
         style={{ width: size, height: size }}
       >
@@ -161,12 +142,11 @@ export function ProfessorGlobe({
       {/* Full-body overlay */}
       {expandOnSpeak && showOverlay && (
         <div
-          className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center"
+          className="fixed inset-0 z-[200] pointer-events-none"
           style={{
-            transformOrigin: `${origin.x} ${origin.y}`,
             animation: animatingOut
-              ? "prof-splash-out 0.4s ease-in forwards"
-              : "prof-splash-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+              ? "prof-fade-out 0.3s ease-in forwards"
+              : "prof-fade-in 0.4s ease-out forwards",
           }}
         >
           {/* Dark backdrop */}
@@ -192,35 +172,13 @@ export function ProfessorGlobe({
           0%, 100% { opacity: 0.7; transform: scale(1.25); }
           50% { opacity: 1; transform: scale(1.45); }
         }
-        @keyframes prof-splash-in {
-          0% { opacity: 0; transform: scale(0.1); }
-          100% { opacity: 1; transform: scale(1); }
+        @keyframes prof-fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
-        @keyframes prof-splash-out {
-          0% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(0.1); }
-        }
-        @keyframes prof-glow-pulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-        @keyframes prof-sound-wave {
-          from { transform: scaleY(0.4); opacity: 0.3; }
-          to { transform: scaleY(1.3); opacity: 0.9; }
-        }
-        @keyframes prof-breathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.012); }
-        }
-        @keyframes prof-hover {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
-        @keyframes scan-line {
-          0% { top: -5%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { top: 105%; opacity: 0; }
+        @keyframes prof-fade-out {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
         }
         @keyframes particle-float {
           0% { transform: translateY(0) translateX(0); opacity: 0; }
