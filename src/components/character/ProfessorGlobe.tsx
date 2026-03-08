@@ -131,6 +131,7 @@ export function ProfessorGlobe({
             src="/images/globe/professor-head.png"
             alt="Professor Globe"
             className="w-full h-full object-cover"
+            style={{ transform: "scale(0.85)", objectPosition: "center 30%" }}
             draggable={false}
           />
           <div
