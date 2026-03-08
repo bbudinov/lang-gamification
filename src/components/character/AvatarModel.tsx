@@ -9,7 +9,7 @@ import { getLipsyncManager } from "@/lib/lipsync";
 import { getCurrentAudio, stopAudio } from "@/lib/speech";
 import { connectAudioToLipsync } from "@/lib/lipsync";
 
-const MODEL_PATH = "/models/avatar-demo.glb";
+const MODEL_PATH = "/models/professor-globe.glb";
 const ANIM_PATH = "/models/animations.glb";
 
 interface AvatarModelProps {
