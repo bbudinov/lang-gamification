@@ -16,7 +16,7 @@ export function ProfessorGlobe3D({
 }: ProfessorGlobe3DProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0.3, 3.0], fov: 35 }}
+      camera={{ position: [0, 0.35, 2.8], fov: 35 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         position: "absolute",
