@@ -4,6 +4,11 @@ import type { Language } from "@/types";
 
 let currentAudio: HTMLAudioElement | null = null;
 
+/** Expose current audio element for lip sync */
+export function getCurrentAudio(): HTMLAudioElement | null {
+  return currentAudio;
+}
+
 /** Stop any currently playing audio */
 export function stopAudio(): void {
   if (currentAudio) {

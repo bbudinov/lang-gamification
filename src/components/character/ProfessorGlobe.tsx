@@ -1,6 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+
+const ProfessorGlobe3D = dynamic(
+  () => import("./ProfessorGlobe3D").then((m) => ({ default: m.ProfessorGlobe3D })),
+  { ssr: false }
+);
 
 interface ProfessorGlobeProps {
   size?: number;
@@ -171,70 +177,25 @@ export function ProfessorGlobe({
             }}
           />
 
-          {/* Professor figure */}
-          <div
-            className="relative flex flex-col items-center"
-            style={{
-              maxHeight: "85vh",
-              animation: "prof-hover 3s ease-in-out infinite",
-            }}
-          >
+          {/* 3D Professor figure */}
+          <div className="relative w-full h-full flex items-center justify-center">
             {/* Glow behind */}
             <div
-              className="absolute inset-0 -inset-x-16"
+              className="absolute inset-0"
               style={{
-                background: `radial-gradient(ellipse at center 40%, ${glow}25 0%, ${glow}10 40%, transparent 70%)`,
+                background: `radial-gradient(ellipse at center 40%, ${glow}20 0%, ${glow}08 40%, transparent 70%)`,
                 animation: "prof-glow-pulse 2s ease-in-out infinite",
               }}
             />
 
             <HologramParticles count={25} />
 
-            {/* The image — stable, one emotion at a time */}
-            <div className="relative" style={{ maxHeight: "80vh" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageSrc}
-                alt="Professor Globe speaking"
-                className="h-full w-auto object-contain max-h-[75vh]"
-                style={{
-                  filter: `drop-shadow(0 0 24px ${glow}50) drop-shadow(0 0 80px ${glow}20)`,
-                  maskImage: "linear-gradient(to bottom, black 70%, transparent 98%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 98%)",
-                  animation: "prof-breathe 4s ease-in-out infinite",
-                }}
-                draggable={false}
-              />
-
-              {/* Hologram scan line */}
-              <div
-                className="absolute left-0 right-0 pointer-events-none"
-                style={{
-                  height: "2px",
-                  background: `linear-gradient(to right, transparent, ${glow}40, transparent)`,
-                  animation: "scan-line 4s linear infinite",
-                }}
-              />
-
-              {/* Sound waves when speaking */}
-              {speaking && !animatingOut && (
-                <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 flex gap-1.5 items-end">
-                  {[10, 18, 24, 18, 10].map((h, i) => (
-                    <div
-                      key={i}
-                      className="rounded-full"
-                      style={{
-                        width: 4,
-                        height: h,
-                        backgroundColor: glow,
-                        animation: `prof-sound-wave 0.4s ease-in-out ${i * 0.08}s infinite alternate`,
-                        opacity: 0.8,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProfessorGlobe3D
+              speaking={speaking}
+              emotion={emotion}
+              className="w-full h-full"
+              style={{ maxHeight: "85vh" }}
+            />
           </div>
         </div>
       )}
