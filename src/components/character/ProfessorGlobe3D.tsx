@@ -16,7 +16,7 @@ export function ProfessorGlobe3D({
 }: ProfessorGlobe3DProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0.3, 3.5], fov: 35 }}
+      camera={{ position: [0, 0.3, 3.0], fov: 35 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         position: "absolute",
@@ -29,7 +29,8 @@ export function ProfessorGlobe3D({
       }}
     >
       <Suspense fallback={null}>
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={1.0} />
+        <directionalLight position={[0, 0, 3]} intensity={1.2} />
         <directionalLight position={[1, 2, 2]} intensity={1.5} color="#38bdf8" />
         <directionalLight position={[-1, 1, -1]} intensity={0.8} color="#7dd3fc" />
         <directionalLight position={[0, -1, 2]} intensity={0.3} />

@@ -24,19 +24,27 @@ export function AvatarModel({ speaking = false, emotion = "idle" }: AvatarModelP
   const { actions } = useAnimations(animations, group);
   const [blink, setBlink] = useState(false);
 
-  // Fix eye materials — RPM eyes are too metallic without env map
+  // Debug + fix eye/glasses materials
   useEffect(() => {
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
         const name = mesh.name.toLowerCase();
-        if (name.includes("eye") && !name.includes("brow")) {
-          const mat = mesh.material as THREE.MeshStandardMaterial;
-          if (mat.isMeshStandardMaterial) {
-            mat.metalness = 0.1;
-            mat.roughness = 0.3;
-            mat.needsUpdate = true;
-          }
+        // Log all mesh names for debugging
+        console.log(`[Avatar Mesh] "${mesh.name}" | material:`, (mesh.material as THREE.MeshStandardMaterial).type, "metalness:", (mesh.material as THREE.MeshStandardMaterial).metalness);
+
+        // Fix eyes AND glasses — both can appear black
+        if (name.includes("eye") || name.includes("glass") || name.includes("lens")) {
+          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          materials.forEach((mat) => {
+            const stdMat = mat as THREE.MeshStandardMaterial;
+            if (stdMat.isMeshStandardMaterial) {
+              stdMat.metalness = 0.0;
+              stdMat.roughness = 0.4;
+              stdMat.envMapIntensity = 0.5;
+              stdMat.needsUpdate = true;
+            }
+          });
         }
       }
     });
