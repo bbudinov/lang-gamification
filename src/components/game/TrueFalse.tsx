@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
+import { HeartDisplay } from "./HeartDisplay";
+import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
+import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { selectAdaptiveWords } from "@/lib/adaptive";
@@ -14,6 +17,7 @@ const ROUNDS = 10;
 const CORRECT_POINTS = 10;
 const WRONG_PENALTY = 5;
 const COMPLETION_BONUS = 40;
+const MAX_LIVES = 3;
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -67,6 +71,8 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   const [cardKey, setCardKey] = useState(0);
   const [exiting, setExiting] = useState(false);
   const [pressedBtn, setPressedBtn] = useState<"true" | "false" | null>(null);
+  const [lives, setLives] = useState(MAX_LIVES);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     requestWakeLock();
@@ -81,6 +87,8 @@ export function TrueFalse({ topic }: TrueFalseProps) {
     setMistakes(0);
     setFeedback(null);
     setGameCompleted(false);
+    setGameOver(false);
+    setLives(MAX_LIVES);
     setPopup(null);
     setCardKey(0);
     setExiting(false);
@@ -96,7 +104,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
 
   const handleAnswer = useCallback(
     (userSaysTrue: boolean) => {
-      if (feedback !== null || gameCompleted) return;
+      if (feedback !== null || gameCompleted || gameOver) return;
 
       playPopSound();
       setPressedBtn(userSaysTrue ? "true" : "false");
@@ -118,6 +126,28 @@ export function TrueFalse({ topic }: TrueFalseProps) {
         setMistakes((m) => m + 1);
         setShaking(true);
         setTimeout(() => setShaking(false), 400);
+
+        const newLives = lives - 1;
+        setLives(newLives);
+
+        if (newLives <= 0) {
+          setTimeout(() => {
+            const partialScore = Math.max(0, score - WRONG_PENALTY);
+            if (partialScore > 0) {
+              addPoints(partialScore);
+              addGameResult({
+                topicId: topic.id,
+                gameType: "true-false",
+                score: partialScore,
+                maxScore: ROUNDS * CORRECT_POINTS + COMPLETION_BONUS,
+                mistakes: mistakes + 1,
+                completedAt: new Date().toISOString(),
+              });
+            }
+            setGameOver(true);
+          }, 800);
+          return;
+        }
       }
 
       // Card exit animation, then move to next
@@ -154,7 +184,7 @@ export function TrueFalse({ topic }: TrueFalseProps) {
         }
       }, nextDelay);
     },
-    [feedback, gameCompleted, rounds, currentRound, score, mistakes, targetLanguage, topic, addPoints, addGameResult, updateWordMastery]
+    [feedback, gameCompleted, gameOver, rounds, currentRound, score, mistakes, lives, targetLanguage, topic, addPoints, addGameResult, updateWordMastery]
   );
 
   const handleReplay = () => {
@@ -165,6 +195,8 @@ export function TrueFalse({ topic }: TrueFalseProps) {
     setMistakes(0);
     setFeedback(null);
     setGameCompleted(false);
+    setGameOver(false);
+    setLives(MAX_LIVES);
     setPopup(null);
     setCardKey(0);
     setExiting(false);
@@ -181,9 +213,33 @@ export function TrueFalse({ topic }: TrueFalseProps) {
   const round = rounds[currentRound];
   const progressPct = ((currentRound + (feedback !== null ? 1 : 0)) / rounds.length) * 100;
 
+  const npc = npcs.find((n) => n.topicId === topic.id);
+  const isRescueMode = lives === 1 && !gameCompleted && !gameOver;
+
   return (
-    <div className={`min-h-screen bg-[#0a1628] relative ${shaking ? "tf-screen-shake" : ""}`}>
+    <div className={`min-h-screen bg-[#0a1628] relative ${shaking ? "tf-screen-shake" : ""} ${isRescueMode ? "rescue-mode" : ""}`}>
       <GameHUD topicEmoji={topic.emoji} topicName={topic.name[targetLanguage]} />
+
+      <div className="absolute top-1 right-2 z-20 safe-area">
+        <div className="mt-[52px]">
+          <HeartDisplay lives={lives} maxLives={MAX_LIVES} />
+        </div>
+      </div>
+
+      {gameOver && (
+        <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
+      )}
+
+      {isRescueMode && (
+        <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
+          <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">{npc?.emoji || "🎮"}</span>
+            <p className="text-red-200 text-sm font-medium">
+              {NPC_RESCUE_REACTIONS[topic.id] || "Last chance! You can do it! 💪"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {popup && (
         <MatchPopup

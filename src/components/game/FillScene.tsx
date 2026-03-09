@@ -6,6 +6,9 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases, phrases as allPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { HeartDisplay } from "@/components/game/HeartDisplay";
+import { GameOverScreen, NPC_RESCUE_REACTIONS } from "@/components/game/GameOverScreen";
+import { npcs } from "@/data/npcs";
 import { playPopSound, playDingSound, playBuzzSound, playWordAudio, playPhraseAudio } from "@/lib/speech";
 import type { Topic, PhraseEntry, Language } from "@/types";
 
@@ -13,6 +16,7 @@ const CORRECT_POINTS = 15;
 const WRONG_PENALTY = 5;
 const COMPLETION_BONUS = 60;
 const OPTIONS_COUNT = 4;
+const MAX_LIVES = 3;
 
 interface Round {
   phrase: PhraseEntry;
@@ -74,6 +78,8 @@ export function FillScene({ topic }: FillSceneProps) {
   const [popup, setPopup] = useState<{ emoji: string; word: string } | null>(null);
   const [shaking, setShaking] = useState(false);
   const [roundKey, setRoundKey] = useState(0);
+  const [lives, setLives] = useState(MAX_LIVES);
+  const [gameOver, setGameOver] = useState(false);
 
   // Initialize rounds
   useEffect(() => {
@@ -117,7 +123,7 @@ export function FillScene({ topic }: FillSceneProps) {
   }, [currentRound, rounds.length, score, mistakes, topic.id, addGameResult, addPoints]);
 
   const handleSelect = (index: number) => {
-    if (selected !== null || !round) return;
+    if (selected !== null || !round || gameOver) return;
     setSelected(index);
     playPopSound();
 
@@ -140,6 +146,29 @@ export function FillScene({ topic }: FillSceneProps) {
       setMistakes((m) => m + 1);
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
+
+      const newLives = lives - 1;
+      setLives(newLives);
+
+      if (newLives <= 0) {
+        setTimeout(() => {
+          const partialScore = Math.max(0, score - WRONG_PENALTY);
+          if (partialScore > 0) {
+            addPoints(partialScore);
+            addGameResult({
+              topicId: topic.id,
+              gameType: "fill-scene",
+              score: partialScore,
+              maxScore: rounds.length * CORRECT_POINTS + COMPLETION_BONUS,
+              mistakes: mistakes + 1,
+              completedAt: new Date().toISOString(),
+            });
+          }
+          setGameOver(true);
+        }, 800);
+        return;
+      }
+
       // Auto-advance after wrong answer delay
       setTimeout(advance, 1500);
     }
@@ -215,12 +244,41 @@ export function FillScene({ topic }: FillSceneProps) {
     );
   }
 
+  const npc = npcs.find((n) => n.topicId === topic.id);
+  const isRescueMode = lives === 1 && !gameCompleted && !gameOver;
+  const handleRetry = () => {
+    setGameCompleted(false);
+    setGameOver(false);
+    setCurrentRound(0);
+    setScore(0);
+    setMistakes(0);
+    setSelected(null);
+    setLives(MAX_LIVES);
+    setRounds(buildRounds(getTopicPhrases(topic.id), targetLanguage));
+    setRoundKey(0);
+  };
+
   const sentence = round.phrase.sentence[targetLanguage];
   const context = round.phrase.context[targetLanguage];
   const progress = ((currentRound + 1) / rounds.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#0a1628] flex flex-col">
+    <div className={`min-h-screen bg-[#0a1628] flex flex-col ${isRescueMode ? "rescue-mode" : ""}`}>
+      {gameOver && (
+        <GameOverScreen topicId={topic.id} score={score} onRetry={handleRetry} />
+      )}
+
+      {isRescueMode && (
+        <div className="fixed bottom-4 left-4 right-4 z-20 rescue-message">
+          <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">{npc?.emoji || "🎮"}</span>
+            <p className="text-red-200 text-sm font-medium">
+              {NPC_RESCUE_REACTIONS[topic.id] || "Last chance! You can do it! 💪"}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
@@ -236,9 +294,12 @@ export function FillScene({ topic }: FillSceneProps) {
               {topic.name[targetLanguage] || topic.name.en}
             </span>
           </div>
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-            <span className="text-amber-400 text-xs">⭐</span>
-            <span className="text-white text-sm font-semibold">{score}</span>
+          <div className="flex items-center gap-2">
+            <HeartDisplay lives={lives} maxLives={MAX_LIVES} />
+            <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
+              <span className="text-amber-400 text-xs">⭐</span>
+              <span className="text-white text-sm font-semibold">{score}</span>
+            </div>
           </div>
         </div>
       </div>

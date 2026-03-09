@@ -7,7 +7,10 @@ import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { MatchPopup } from "./MatchPopup";
 import { GameHUD } from "./GameHUD";
-import { playWordAudio, playPopSound, playDingSound } from "@/lib/speech";
+import { HeartDisplay } from "./HeartDisplay";
+import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
+import { npcs } from "@/data/npcs";
+import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { GAME_CONFIG } from "@/lib/constants";
 import { selectAdaptiveWords } from "@/lib/adaptive";
@@ -109,6 +112,10 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
 
   const [shakingPair, setShakingPair] = useState<string | null>(null);
   const [matchPopup, setMatchPopup] = useState<{ emoji: string; word: string } | null>(null);
+  const MAX_LIVES = 3;
+  const [lives, setLives] = useState(MAX_LIVES);
+  const [gameOver, setGameOver] = useState(false);
+  const [mismatchCount, setMismatchCount] = useState(0);
 
   // Keep screen awake during gameplay
   useEffect(() => {
@@ -158,12 +165,42 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
       }, 600);
     } else {
       // Mismatch — shake the cards
+      playBuzzSound();
       addScore(-cfg.MISMATCH_PENALTY);
+
+      const newMismatch = mismatchCount + 1;
+      setMismatchCount(newMismatch);
+
+      // Lose a life every 3 mismatches
+      if (newMismatch % 3 === 0) {
+        const newLives = lives - 1;
+        setLives(newLives);
+        if (newLives <= 0) {
+          setTimeout(() => {
+            const partialScore = Math.max(0, score - cfg.MISMATCH_PENALTY);
+            if (partialScore > 0) {
+              addPoints(partialScore);
+              addGameResult({
+                topicId: isMix ? "memory-mix" : topic.id,
+                gameType: isMix ? "memory-mix" : "memory-match",
+                score: partialScore,
+                maxScore: difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS,
+                mistakes: moves - matchedPairs + 1,
+                completedAt: new Date().toISOString(),
+              });
+            }
+            setGameOver(true);
+          }, 800);
+          resetFlipped();
+          setShakingPair(null);
+          setLocked(false);
+          return;
+        }
+      }
 
       // Find which pair ID the flipped cards belong to (for shake)
       const flippedCardObjs = cards.filter((c) => flippedCards.includes(c.id));
       if (flippedCardObjs.length === 2) {
-        // Use a unique key to trigger shake
         setShakingPair(flippedCardObjs.map((c) => c.id).join(","));
       }
 
@@ -201,6 +238,9 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
     initMemoryGame(generated, newDifficulty.pairs);
     setShakingPair(null);
     setMatchPopup(null);
+    setLives(MAX_LIVES);
+    setGameOver(false);
+    setMismatchCount(0);
   };
 
   if (cards.length === 0) {
@@ -211,12 +251,36 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
     );
   }
 
+  const npc = npcs.find((n) => n.topicId === topic.id);
+  const isRescueMode = lives === 1 && !gameCompleted && !gameOver;
+
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
+    <div className={`min-h-screen bg-[#0a1628] relative ${isRescueMode ? "rescue-mode" : ""}`}>
       <GameHUD
         topicEmoji={topic.emoji}
         topicName={topic.name[targetLanguage]}
       />
+
+      <div className="absolute top-1 right-2 z-20 safe-area">
+        <div className="mt-[52px]">
+          <HeartDisplay lives={lives} maxLives={MAX_LIVES} />
+        </div>
+      </div>
+
+      {gameOver && (
+        <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
+      )}
+
+      {isRescueMode && (
+        <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
+          <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">{npc?.emoji || "🎮"}</span>
+            <p className="text-red-200 text-sm font-medium">
+              {NPC_RESCUE_REACTIONS[topic.id] || "Last chance! You can do it! 💪"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {matchPopup && (
         <MatchPopup

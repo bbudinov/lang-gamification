@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { GameHUD } from "./GameHUD";
+import { HeartDisplay } from "./HeartDisplay";
+import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
+import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { selectAdaptiveWords } from "@/lib/adaptive";
@@ -14,6 +17,7 @@ const ROUNDS = 6;
 const CORRECT_POINTS = 20;
 const WRONG_TAP_PENALTY = 3;
 const COMPLETION_BONUS = 50;
+const MAX_LIVES = 3;
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -52,6 +56,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
   const [popup, setPopup] = useState<{ emoji: string; word: string } | null>(null);
   const [roundKey, setRoundKey] = useState(0);
   const [lastFilledIndex, setLastFilledIndex] = useState(-1);
+  const [lives, setLives] = useState(MAX_LIVES);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     requestWakeLock();
@@ -84,6 +90,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
     setScore(0);
     setMistakes(0);
     setGameCompleted(false);
+    setGameOver(false);
+    setLives(MAX_LIVES);
     setPopup(null);
     setRoundKey(0);
     if (selected.length > 0) initRound(selected[0]);
@@ -98,7 +106,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
   }, [currentWord, words, nativeLanguage, wordComplete]);
 
   const handleLetterTap = (index: number) => {
-    if (wordComplete || gameCompleted) return;
+    if (wordComplete || gameCompleted || gameOver) return;
 
     const letter = scrambled[index];
     if (letter.used) return;
@@ -151,9 +159,34 @@ export function WordScramble({ topic }: WordScrambleProps) {
     } else {
       playBuzzSound();
       setWrongTap(true);
-      setMistakes((m) => m + 1);
+      const newMistakes = mistakes + 1;
+      setMistakes(newMistakes);
       setScore((s) => Math.max(0, s - WRONG_TAP_PENALTY));
       setTimeout(() => setWrongTap(false), 500);
+
+      // Lose a life every 3 wrong taps
+      if (newMistakes % 3 === 0) {
+        const newLives = lives - 1;
+        setLives(newLives);
+        if (newLives <= 0) {
+          setTimeout(() => {
+            const partialScore = Math.max(0, score - WRONG_TAP_PENALTY);
+            if (partialScore > 0) {
+              addPoints(partialScore);
+              addGameResult({
+                topicId: topic.id,
+                gameType: "word-scramble",
+                score: partialScore,
+                maxScore: ROUNDS * CORRECT_POINTS + COMPLETION_BONUS,
+                mistakes: newMistakes,
+                completedAt: new Date().toISOString(),
+              });
+            }
+            setGameOver(true);
+          }, 800);
+          return;
+        }
+      }
     }
   };
 
@@ -164,6 +197,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
     setScore(0);
     setMistakes(0);
     setGameCompleted(false);
+    setGameOver(false);
+    setLives(MAX_LIVES);
     setPopup(null);
     setRoundKey(0);
     if (selected.length > 0) initRound(selected[0]);
@@ -180,9 +215,33 @@ export function WordScramble({ topic }: WordScrambleProps) {
   const word = words[currentWord];
   const progressPct = ((currentWord + (wordComplete ? 1 : 0)) / words.length) * 100;
 
+  const npc = npcs.find((n) => n.topicId === topic.id);
+  const isRescueMode = lives === 1 && !gameCompleted && !gameOver;
+
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
+    <div className={`min-h-screen bg-[#0a1628] relative ${isRescueMode ? "rescue-mode" : ""}`}>
       <GameHUD topicEmoji={topic.emoji} topicName={topic.name[targetLanguage]} />
+
+      <div className="absolute top-1 right-2 z-20 safe-area">
+        <div className="mt-[52px]">
+          <HeartDisplay lives={lives} maxLives={MAX_LIVES} />
+        </div>
+      </div>
+
+      {gameOver && (
+        <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
+      )}
+
+      {isRescueMode && (
+        <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
+          <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">{npc?.emoji || "🎮"}</span>
+            <p className="text-red-200 text-sm font-medium">
+              {NPC_RESCUE_REACTIONS[topic.id] || "Last chance! You can do it! 💪"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {popup && (
         <MatchPopup
