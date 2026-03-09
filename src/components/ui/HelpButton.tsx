@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { playPhraseAudio, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
-import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { ProfessorGlobe, ProfessorOverlay3D } from "@/components/character/ProfessorGlobe";
 
 type RulesLang = "en" | "bg";
 
@@ -204,6 +204,9 @@ export function HelpButton() {
         <ProfessorGlobe size={38} />
       </button>
 
+      {/* 3D overlay — always mounted (hidden), so no delay when Help opens */}
+      <ProfessorOverlay3D speaking={showRules && globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+
       {showRules && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-end sm:justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
@@ -211,7 +214,7 @@ export function HelpButton() {
         >
           {/* Globe floating ABOVE the modal */}
           <div className="relative z-10 mb-[-28px] animate-in zoom-in-75 duration-500">
-            <ProfessorGlobe size={80} expandOnSpeak speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+            <ProfessorGlobe size={80} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
           </div>
 
           <div

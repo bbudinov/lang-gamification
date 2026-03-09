@@ -141,31 +141,7 @@ export function ProfessorGlobe({
         </div>
       </div>
 
-      {/* Full-body overlay — always mounted once triggered, toggled via CSS */}
-      {expandOnSpeak && (
-        <div
-          className="fixed inset-0 z-[200] pointer-events-none"
-          style={{
-            opacity: overlayVisible ? 1 : 0,
-            transition: overlayVisible
-              ? "opacity 0.4s ease, visibility 0s 0s"
-              : "opacity 0.4s ease, visibility 0s 0.4s",
-            visibility: overlayVisible ? "visible" : "hidden",
-          }}
-        >
-          {/* Dark backdrop */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "radial-gradient(ellipse at center, rgba(10,22,40,0.92) 0%, rgba(10,22,40,0.6) 50%, rgba(10,22,40,0.3) 100%)",
-            }}
-          />
 
-          {/* 3D Professor figure */}
-          <HologramParticles count={25} />
-          <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
-        </div>
-      )}
 
       <style jsx>{`
         @keyframes globe-breathe {
@@ -184,5 +160,35 @@ export function ProfessorGlobe({
         }
       `}</style>
     </>
+  );
+}
+
+// Separate overlay component — mount always in HelpButton for instant appearance
+interface ProfessorOverlay3DProps {
+  speaking?: boolean;
+  emotion?: "idle" | "happy" | "thinking" | "surprised" | "talking";
+}
+
+export function ProfessorOverlay3D({ speaking = false, emotion = "idle" }: ProfessorOverlay3DProps) {
+  return (
+    <div
+      className="fixed inset-0 z-[200] pointer-events-none"
+      style={{
+        opacity: speaking ? 1 : 0,
+        transition: speaking
+          ? "opacity 0.4s ease, visibility 0s 0s"
+          : "opacity 0.4s ease, visibility 0s 0.4s",
+        visibility: speaking ? "visible" : "hidden",
+      }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at center, rgba(10,22,40,0.92) 0%, rgba(10,22,40,0.6) 50%, rgba(10,22,40,0.3) 100%)",
+        }}
+      />
+      <HologramParticles count={25} />
+      <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
+    </div>
   );
 }
