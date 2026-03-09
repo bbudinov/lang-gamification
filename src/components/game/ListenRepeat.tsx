@@ -185,8 +185,8 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
             <span className="text-amber-400 font-bold">+{pointsEarned}</span>
           </div>
           <div className="flex justify-between text-slate-300">
-            <span>Bonus</span>
-            <span className="text-green-400 font-bold">+{COMPLETION_BONUS}</span>
+            <span>Coins</span>
+            <span className="text-yellow-300 font-bold">🪙 +{Math.round(5 + (phrases.length > 0 ? pointsEarned / (phrases.length * 15 + COMPLETION_BONUS) : 0) * 10)}</span>
           </div>
         </div>
         <div className="flex gap-3 w-full max-w-xs">

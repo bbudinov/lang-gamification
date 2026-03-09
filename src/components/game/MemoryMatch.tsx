@@ -6,7 +6,9 @@ import { useGameStore } from "@/stores/gameStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { MatchPopup } from "./MatchPopup";
-import { StarDisplay } from "./StarDisplay";
+import { StarDisplay, GameRewardSummary } from "./StarDisplay";
+import { TreasureChest } from "./TreasureChest";
+import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { GameHUD } from "./GameHUD";
 import { HeartDisplay } from "./HeartDisplay";
 import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
@@ -111,6 +113,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
     completeGame,
   } = useGameStore();
 
+  const { chestReward, checkForChest, collectReward } = useTreasureChest();
   const [shakingPair, setShakingPair] = useState<string | null>(null);
   const [matchPopup, setMatchPopup] = useState<{ emoji: string; word: string } | null>(null);
   const MAX_LIVES = 3;
@@ -228,6 +231,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
         completedAt: new Date().toISOString(),
       });
       completeGame();
+      setTimeout(checkForChest, 500);
     }
   }, [matchedPairs, totalPairs, gameCompleted]);
 
@@ -272,6 +276,10 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
         <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
       )}
 
+      {chestReward && (
+        <TreasureChest reward={chestReward} onCollect={collectReward} />
+      )}
+
       {isRescueMode && (
         <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
           <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -296,10 +304,8 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
           <div className="text-center space-y-4 animate-in fade-in">
             <StarDisplay score={score} maxScore={difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
-            <div className="space-y-1">
-              <p className="text-amber-400 text-lg font-semibold">
-                ⭐ {score} points
-              </p>
+            <div className="space-y-2">
+              <GameRewardSummary score={score} maxScore={difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS} />
               <p className="text-slate-400 text-sm">
                 {moves} moves · {moves - totalPairs} mistakes
               </p>

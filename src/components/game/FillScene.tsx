@@ -6,7 +6,9 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases, phrases as allPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { StarDisplay } from "@/components/game/StarDisplay";
+import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
+import { TreasureChest } from "@/components/game/TreasureChest";
+import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { HeartDisplay } from "@/components/game/HeartDisplay";
 import { GameOverScreen, NPC_RESCUE_REACTIONS } from "@/components/game/GameOverScreen";
 import { npcs } from "@/data/npcs";
@@ -70,6 +72,7 @@ export function FillScene({ topic }: FillSceneProps) {
     updateWordMastery,
   } = useProgressStore();
 
+  const { chestReward, checkForChest, collectReward } = useTreasureChest();
   const [rounds, setRounds] = useState<Round[]>([]);
   const [currentRound, setCurrentRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -116,6 +119,7 @@ export function FillScene({ topic }: FillSceneProps) {
       });
       addPoints(finalScore);
       setGameCompleted(true);
+      setTimeout(checkForChest, 500);
     } else {
       setCurrentRound((r) => r + 1);
       setSelected(null);
@@ -212,12 +216,12 @@ export function FillScene({ topic }: FillSceneProps) {
             <span className="text-amber-400 font-bold">⭐ {score}</span>
           </div>
           <div className="flex justify-between text-slate-300">
-            <span>Accuracy</span>
-            <span className="text-white font-bold">{accuracy}%</span>
+            <span>Coins</span>
+            <span className="text-yellow-300 font-bold">🪙 +{Math.round(5 + (rounds.length > 0 ? score / (rounds.length * CORRECT_POINTS + COMPLETION_BONUS) : 0) * 10)}</span>
           </div>
           <div className="flex justify-between text-slate-300">
-            <span>Bonus</span>
-            <span className="text-green-400 font-bold">+{COMPLETION_BONUS}</span>
+            <span>Accuracy</span>
+            <span className="text-white font-bold">{accuracy}%</span>
           </div>
         </div>
         <div className="flex gap-3 w-full max-w-xs">
@@ -268,6 +272,10 @@ export function FillScene({ topic }: FillSceneProps) {
     <div className={`min-h-screen bg-[#0a1628] flex flex-col ${isRescueMode ? "rescue-mode" : ""}`}>
       {gameOver && (
         <GameOverScreen topicId={topic.id} score={score} onRetry={handleRetry} />
+      )}
+
+      {chestReward && (
+        <TreasureChest reward={chestReward} onCollect={collectReward} />
       )}
 
       {isRescueMode && (

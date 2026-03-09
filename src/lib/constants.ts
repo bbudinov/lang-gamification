@@ -18,6 +18,11 @@ export function renderStars(stars: number): string {
   return "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars));
 }
 
+export function calculateCoins(score: number, maxScore: number): number {
+  const pct = maxScore > 0 ? score / maxScore : 0;
+  return Math.round(5 + pct * 10); // 5-15 coins
+}
+
 export const GAME_CONFIG = {
   MEMORY_MATCH: {
     PAIRS_COUNT: 6,

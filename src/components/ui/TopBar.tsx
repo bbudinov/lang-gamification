@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { InstallPWA } from "./InstallPWA";
 import type { Language } from "@/types";
@@ -14,8 +15,10 @@ const LANG_LABELS: Record<Language, string> = {
 const LANGUAGES: Language[] = ["en", "bg", "es"];
 
 export function TopBar() {
+  const router = useRouter();
   const {
     totalPoints,
+    coins,
     nativeLanguage,
     targetLanguage,
     setLanguages,
@@ -51,6 +54,10 @@ export function TopBar() {
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
             <span className="text-amber-400 text-sm">⭐</span>
             <span className="text-white text-sm font-semibold">{totalPoints}</span>
+          </div>
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+            <span className="text-yellow-300 text-sm">🪙</span>
+            <span className="text-white text-xs font-semibold">{coins}</span>
           </div>
 
           {/* Energy bar */}
@@ -90,6 +97,20 @@ export function TopBar() {
             </span>
           </div>
 
+          <button
+            onClick={() => router.push("/collection")}
+            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+            title="Word Book"
+          >
+            <span className="text-sm">📖</span>
+          </button>
+          <button
+            onClick={() => router.push("/achievements")}
+            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+            title="Achievements"
+          >
+            <span className="text-sm">🏆</span>
+          </button>
           <InstallPWA />
           <button
             onClick={cycleTarget}

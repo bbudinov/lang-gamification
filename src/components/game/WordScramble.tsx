@@ -7,7 +7,9 @@ import { GameHUD } from "./GameHUD";
 import { HeartDisplay } from "./HeartDisplay";
 import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
-import { StarDisplay } from "./StarDisplay";
+import { StarDisplay, GameRewardSummary } from "./StarDisplay";
+import { TreasureChest } from "./TreasureChest";
+import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
@@ -44,6 +46,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
   const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
 
+  const { chestReward, checkForChest, collectReward } = useTreasureChest();
   const [words, setWords] = useState<WordEntry[]>([]);
   const [currentWord, setCurrentWord] = useState(0);
   const [scrambled, setScrambled] = useState<ScrambleLetter[]>([]);
@@ -149,6 +152,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
             });
             setScore((s) => s + COMPLETION_BONUS);
             setGameCompleted(true);
+            setTimeout(checkForChest, 500);
           } else {
             const next = currentWord + 1;
             setCurrentWord(next);
@@ -233,6 +237,10 @@ export function WordScramble({ topic }: WordScrambleProps) {
         <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
       )}
 
+      {chestReward && (
+        <TreasureChest reward={chestReward} onCollect={collectReward} />
+      )}
+
       {isRescueMode && (
         <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
           <div className="bg-red-900/60 border border-red-500/40 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -257,8 +265,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
           <div className="text-center space-y-4 animate-in fade-in">
             <StarDisplay score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
-            <div className="space-y-1">
-              <p className="text-amber-400 text-lg font-semibold">⭐ {score} points</p>
+            <div className="space-y-2">
+              <GameRewardSummary score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
               <p className="text-slate-400 text-sm">
                 {ROUNDS} words · {mistakes} wrong taps
               </p>

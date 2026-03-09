@@ -8,7 +8,9 @@ import { HeartDisplay } from "./HeartDisplay";
 import { GameOverScreen } from "./GameOverScreen";
 import { NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
-import { StarDisplay } from "./StarDisplay";
+import { StarDisplay, GameRewardSummary } from "./StarDisplay";
+import { TreasureChest } from "./TreasureChest";
+import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
@@ -65,6 +67,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
   const router = useRouter();
   const { nativeLanguage, targetLanguage, addPoints, addGameResult, updateWordMastery, wordMastery } =
     useProgressStore();
+
+  const { chestReward, checkForChest, collectReward } = useTreasureChest();
 
   const [rounds, setRounds] = useState<Round[]>([]);
   const [currentRound, setCurrentRound] = useState(0);
@@ -177,6 +181,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
           });
           setScore((s) => s + COMPLETION_BONUS);
           setGameCompleted(true);
+          setTimeout(checkForChest, 500);
         } else {
           setCurrentRound((r) => r + 1);
           setRoundKey((k) => k + 1);
@@ -243,6 +248,10 @@ export function WordQuiz({ topic }: WordQuizProps) {
         <GameOverScreen topicId={topic.id} score={score} onRetry={handleReplay} />
       )}
 
+      {chestReward && (
+        <TreasureChest reward={chestReward} onCollect={collectReward} />
+      )}
+
       {/* Rescue mode NPC message */}
       {isRescueMode && (
         <div className="absolute bottom-4 left-4 right-4 z-20 rescue-message">
@@ -268,10 +277,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
           <div className="text-center space-y-4 animate-in fade-in">
             <StarDisplay score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
-            <div className="space-y-1">
-              <p className="text-amber-400 text-lg font-semibold">
-                ⭐ {score} points
-              </p>
+            <div className="space-y-2">
+              <GameRewardSummary score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
               <p className="text-slate-400 text-sm">
                 {ROUNDS} questions · {mistakes} mistakes
               </p>

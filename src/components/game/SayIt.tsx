@@ -7,7 +7,7 @@ import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognit
 import { selectAdaptiveWords } from "@/lib/adaptive";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { StarDisplay } from "@/components/game/StarDisplay";
+import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
 import { playWordAudio, playDingSound, playPopSound } from "@/lib/speech";
 import type { Topic, WordEntry } from "@/types";
 
@@ -177,12 +177,12 @@ export function SayIt({ topic }: SayItProps) {
             <span className="text-amber-400 font-bold">⭐ {score}</span>
           </div>
           <div className="flex justify-between text-slate-300">
-            <span>Attempts</span>
-            <span className="text-white font-bold">{attempts}</span>
+            <span>Coins</span>
+            <span className="text-yellow-300 font-bold">🪙 +{Math.round(5 + (words.length > 0 ? score / (words.length * GOOD_POINTS + COMPLETION_BONUS) : 0) * 10)}</span>
           </div>
           <div className="flex justify-between text-slate-300">
-            <span>Bonus</span>
-            <span className="text-green-400 font-bold">+{COMPLETION_BONUS}</span>
+            <span>Attempts</span>
+            <span className="text-white font-bold">{attempts}</span>
           </div>
         </div>
         <div className="flex gap-3 w-full max-w-xs">

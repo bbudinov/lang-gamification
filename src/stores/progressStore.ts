@@ -7,6 +7,7 @@ import { LEVEL_GAMES, LEVEL_UNLOCK } from "@/lib/levels";
 
 interface ProgressState {
   totalPoints: number;
+  coins: number;
   unlockedTopics: TopicId[];
   gameResults: GameResult[];
   nativeLanguage: Language;
@@ -23,8 +24,13 @@ interface ProgressState {
   todayGamesPlayed: number;
   dailyGoalTarget: number; // games per day
 
+  // Treasure chest
+  lastChestGame: string; // ISO timestamp of last chest award
+
   // Actions
   addPoints: (points: number) => void;
+  addCoins: (amount: number) => void;
+  spendCoins: (amount: number) => boolean;
   unlockTopic: (topicId: TopicId) => void;
   addGameResult: (result: GameResult) => void;
   setLanguages: (native: Language, target: Language) => void;
@@ -61,6 +67,7 @@ export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
       totalPoints: 0,
+      coins: 0,
       unlockedTopics: ["animals"],
       gameResults: [],
       nativeLanguage: "bg",
@@ -77,8 +84,21 @@ export const useProgressStore = create<ProgressState>()(
       todayGamesPlayed: 0,
       dailyGoalTarget: 3,
 
+      // Treasure chest
+      lastChestGame: "",
+
       addPoints: (points) =>
         set((s) => ({ totalPoints: s.totalPoints + points })),
+
+      addCoins: (amount) =>
+        set((s) => ({ coins: s.coins + amount })),
+
+      spendCoins: (amount) => {
+        const s = get();
+        if (s.coins < amount) return false;
+        set({ coins: s.coins - amount });
+        return true;
+      },
 
       unlockTopic: (topicId) =>
         set((s) => ({
@@ -108,8 +128,15 @@ export const useProgressStore = create<ProgressState>()(
           const energyGain = Math.min(15, Math.max(5, Math.round(result.score / 10)));
           const newEnergy = Math.min(s.maxEnergy, s.energy + energyGain);
 
+          // Coins: base 5-15 based on score percentage + streak bonus
+          const scorePct = result.maxScore > 0 ? result.score / result.maxScore : 0;
+          const baseCoins = Math.round(5 + scorePct * 10); // 5-15 coins
+          const streakBonus = newStreak >= 7 ? 5 : newStreak >= 3 ? 2 : 0;
+          const coinsEarned = baseCoins + streakBonus;
+
           return {
             gameResults: [...s.gameResults, result],
+            coins: s.coins + coinsEarned,
             dailyStreak: newStreak,
             lastPlayDate: today,
             todayGamesPlayed: newGamesPlayed,

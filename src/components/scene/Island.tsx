@@ -50,9 +50,11 @@ function IslandBody({ visual, unlocked, hovered, unlockEffect, topicColor, compl
   const bColor = unlocked ? visual.beachColor : "#9ca3af";
   const h = visual.height;
 
-  // Progress glow: 0 levels = 0, 1 = 0.08, 2 = 0.15, 3 = 0.25
-  const progressGlow = unlocked ? completedLevels * 0.08 : 0;
-  const emissive = unlockEffect ? topicColor : hovered && unlocked ? topicColor : (progressGlow > 0 ? topicColor : "#000000");
+  // Progress glow: 0 levels = 0, 1 = 0.08, 2 = 0.15, 3 = golden!
+  const isCompleted = completedLevels >= 3;
+  const progressGlow = unlocked ? (isCompleted ? 0.4 : completedLevels * 0.08) : 0;
+  const glowColor = isCompleted ? "#fbbf24" : topicColor;
+  const emissive = unlockEffect ? topicColor : hovered && unlocked ? topicColor : (progressGlow > 0 ? glowColor : "#000000");
   const emissiveI = unlockEffect ? 1.5 : hovered ? 0.3 : progressGlow;
 
   return (
@@ -664,6 +666,30 @@ export function Island({ topic, onSelect }: IslandProps) {
           <IslandAmbience topicId={topic.id} />
         )}
 
+        {/* 100% completion: golden crown + sparkles */}
+        {completedLevels >= 3 && !unlockEffect && (
+          <>
+            <Sparkles
+              count={20}
+              scale={3}
+              size={4}
+              speed={0.5}
+              opacity={0.6}
+              color="#fbbf24"
+            />
+            {/* Golden ring */}
+            <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[1.8, 0.06, 8, 24]} />
+              <meshStandardMaterial
+                color="#fbbf24"
+                emissive="#fbbf24"
+                emissiveIntensity={0.5}
+                flatShading
+              />
+            </mesh>
+          </>
+        )}
+
         {/* Unlock sparkles */}
         {unlockEffect && (
           <Sparkles
@@ -687,6 +713,7 @@ export function Island({ topic, onSelect }: IslandProps) {
       <Html center position={[0, 2.5, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
         <div className="text-center pointer-events-none select-none">
           <div className="text-3xl">{topic.emoji}</div>
+          {completedLevels >= 3 && <div className="text-lg -mb-1">👑</div>}
           <p className="text-white text-sm font-bold whitespace-nowrap drop-shadow-lg">
             {topic.name[lang]}
           </p>
