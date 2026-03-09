@@ -1,3 +1,23 @@
+// Star rating thresholds (percentage of maxScore)
+export const STAR_THRESHOLDS = {
+  ONE: 30,    // ≥30% → 1 star
+  TWO: 60,    // ≥60% → 2 stars
+  THREE: 85,  // ≥85% → 3 stars
+};
+
+export function getStarRating(score: number, maxScore: number): number {
+  if (maxScore <= 0) return 0;
+  const pct = (score / maxScore) * 100;
+  if (pct >= STAR_THRESHOLDS.THREE) return 3;
+  if (pct >= STAR_THRESHOLDS.TWO) return 2;
+  if (pct >= STAR_THRESHOLDS.ONE) return 1;
+  return 0;
+}
+
+export function renderStars(stars: number): string {
+  return "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars));
+}
+
 export const GAME_CONFIG = {
   MEMORY_MATCH: {
     PAIRS_COUNT: 6,

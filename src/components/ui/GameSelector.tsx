@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { playPhraseAudioAndWait, playPopSound } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { StarsBadge } from "@/components/game/StarDisplay";
 import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases } from "@/data/phrases";
 import { getNPC } from "@/data/npcs";
@@ -149,10 +150,16 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
                     const available = isGameAvailable(gameType);
                     const disabled = navigating || isLocked || !available;
 
-                    // Check if this specific game has been played
-                    const hasPlayed = !isLocked && useProgressStore.getState().gameResults.some(
-                      (r) => r.topicId === topicId && r.gameType === gameType
-                    );
+                    // Find best result for this game
+                    const bestResult = !isLocked
+                      ? useProgressStore.getState().gameResults
+                          .filter((r) => r.topicId === topicId && r.gameType === gameType)
+                          .reduce<{ score: number; maxScore: number } | null>((best, r) => {
+                            const pct = r.maxScore > 0 ? r.score / r.maxScore : 0;
+                            const bestPct = best ? best.score / best.maxScore : 0;
+                            return !best || pct > bestPct ? r : best;
+                          }, null)
+                      : null;
 
                     return (
                       <button
@@ -172,8 +179,8 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
                           </p>
                           <p className="text-slate-500 text-xs truncate">{meta.description}</p>
                         </div>
-                        {hasPlayed && !isLocked && (
-                          <span className="text-green-400 text-xs">✓</span>
+                        {bestResult && !isLocked && (
+                          <StarsBadge score={bestResult.score} maxScore={bestResult.maxScore} />
                         )}
                       </button>
                     );

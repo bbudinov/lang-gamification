@@ -6,6 +6,7 @@ import { useGameStore } from "@/stores/gameStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { MatchPopup } from "./MatchPopup";
+import { StarDisplay } from "./StarDisplay";
 import { GameHUD } from "./GameHUD";
 import { HeartDisplay } from "./HeartDisplay";
 import { GameOverScreen, NPC_RESCUE_REACTIONS } from "./GameOverScreen";
@@ -293,7 +294,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
           <div className="text-center space-y-4 animate-in fade-in">
-            <div className="text-5xl mb-2">🎉</div>
+            <StarDisplay score={score} maxScore={difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-1">
               <p className="text-amber-400 text-lg font-semibold">

@@ -8,6 +8,7 @@ import { HeartDisplay } from "./HeartDisplay";
 import { GameOverScreen } from "./GameOverScreen";
 import { NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
+import { StarDisplay } from "./StarDisplay";
 import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
@@ -265,7 +266,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
         {gameCompleted ? (
           <div className="text-center space-y-4 animate-in fade-in">
-            <div className="text-5xl mb-2">🎉</div>
+            <StarDisplay score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-1">
               <p className="text-amber-400 text-lg font-semibold">

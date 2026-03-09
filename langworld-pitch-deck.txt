@@ -1,0 +1,202 @@
+LANGWORLD — Pitch Deck Content
+================================
+
+============================================================
+SLIDE 1: Title
+============================================================
+
+LangWorld
+Learn languages by playing in them.
+
+A game world where kids practice speaking, listening, reading
+and writing in a new language — through real exercises, not textbooks.
+
+============================================================
+SLIDE 2: The Problem
+============================================================
+
+Language apps today teach words. Not language.
+
+- Kids memorize "apple = ябълка" but can't say "Can I have an apple?"
+- Most apps are multiple choice quizzes — no speaking, no listening, no real practice
+- The #1 complaint worldwide: "I understand but I'm afraid to speak"
+- Age 6–10 is almost completely ignored — apps are either for toddlers or adults
+
+There's no product that makes kids actually PRACTICE using a language.
+
+============================================================
+SLIDE 3: The Solution
+============================================================
+
+LangWorld is a game world with 8 different exercise types
+that train every language skill:
+
+LISTENING
+  - Listen & Repeat — hear a phrase, say it back
+  - Word Quiz — hear a word, pick the translation
+
+SPEAKING
+  - Say It! — pronounce words, get real-time feedback
+  - NPC Talk — have an AI conversation with a character
+
+READING
+  - Fill the Scene — read a sentence, pick the missing word
+  - True or False — read a word-translation pair, judge if correct
+
+WRITING / SPELLING
+  - Word Scramble — arrange letters to spell the word
+  - Memory Match — find matching word pairs
+
+Every skill. Every session. Through play.
+
+============================================================
+SLIDE 4: How It Works
+============================================================
+
+1. Open the app → 3D island map with 12 topic islands
+2. Tap an island (Animals, Food, Colors, Family...)
+3. Pick a game type → play 5-8 rounds
+4. Earn points → unlock new islands
+5. 3 levels per island: Discover → Use → Survive
+6. Professor Globe guides you with voice + animations
+
+No accounts. No setup. Just play.
+
+============================================================
+SLIDE 5: Professor Globe — AI Guide
+============================================================
+
+An animated energy sphere character that:
+- Speaks every word and sentence out loud (3 languages)
+- Reacts to correct/wrong answers with emotions
+- Eyes follow your finger/cursor
+- In NPC Talk mode: has real AI conversations with the child
+- Never punishes mistakes — always encourages
+
+Built with Canvas 2D animations — runs smoothly on any phone.
+
+============================================================
+SLIDE 6: Who Is It For
+============================================================
+
+PRIMARY: Kids 6–10 years old
+- Learning English, Bulgarian, or Spanish
+- Through a game they actually WANT to play
+- Safe, no ads, no social features, no in-app purchases
+
+ALSO WORKS FOR:
+- Anyone who wants to practice speaking a language
+- Beginners who know some words but can't use them
+- People with speaking anxiety — safe space to practice
+
+The exercises are universal.
+The game wrapper makes it fun for kids.
+
+============================================================
+SLIDE 7: What's Built (Current State)
+============================================================
+
+✅ Fully working PWA — install on any phone
+✅ 12 topic islands with 120+ words
+✅ 8 game types covering all language skills
+✅ 3 languages: English, Bulgarian, Spanish
+✅ 233 pre-generated audio files (real voices, not robotic)
+✅ AI-powered NPC conversations (Claude API)
+✅ Speech recognition for pronunciation practice
+✅ 3D interactive island map with day/night cycle
+✅ Points, streaks, daily missions, energy system
+✅ Professor Globe animated character with mouth-sync
+✅ Offline support via Service Worker
+✅ Works on desktop and mobile
+
+Live: langworld.vercel.app
+
+============================================================
+SLIDE 8: Tech Stack
+============================================================
+
+Frontend:  Next.js 16 + React 19 + TypeScript
+3D World:  Three.js + React Three Fiber
+Character: Canvas 2D (custom energy sphere animation)
+Styling:   Tailwind CSS v4
+State:     Zustand
+AI:        Claude API (Anthropic) — NPC conversations
+Audio:     Google Cloud TTS (pre-generated MP3s)
+Speech:    Web Speech API (browser-native, free)
+Deploy:    Vercel (serverless)
+PWA:       Service Worker + Web App Manifest
+
+Zero backend infrastructure. Zero database (for now).
+Everything runs client-side except AI conversations.
+
+============================================================
+SLIDE 9: Roadmap
+============================================================
+
+PHASE 1 — DONE ✅
+  Surface World: 12 islands, 8 games, 120+ words, 3 languages
+
+PHASE 2 — Multi-World Expansion
+  🌊 Underwater World — marine life, ocean science (+150 words)
+  🌍 Land World — biomes, buildings, earth sciences (+200 words)
+  ☁️ Sky World — weather, flight, atmosphere (+150 words)
+  Total: 500-600+ words across all worlds
+  Same 8 game types, themed per world
+
+PHASE 3 — AI Evolution
+  - Full free-form AI conversations (not just 3 options)
+  - AI-generated stories using learned vocabulary
+  - NPCs that remember the child across sessions
+  - Adaptive difficulty based on mistake patterns
+  - Survival mechanics: language = resource to progress
+
+============================================================
+SLIDE 10: Development Approach
+============================================================
+
+Built in 3 days by one person + Claude Code (AI).
+
+- 85 commits from Feb 28 to Mar 2, 2026
+- Direction given in natural language (Bulgarian)
+- AI writes all code, tests, deploys autonomously
+- Human focuses on product vision and testing
+
+This means:
+- Extremely fast iteration cycles
+- One person can build what normally takes a team
+- Product decisions drive development, not technical limitations
+
+============================================================
+SLIDE 11: Key Differentiators
+============================================================
+
+vs Duolingo:
+  - Duolingo = multiple choice quiz app
+  - LangWorld = 8 exercise types including speaking + AI chat
+
+vs Lingokids / Khan Academy Kids:
+  - Those are for ages 3–5 (preschool)
+  - LangWorld targets 6–10 (almost empty market)
+
+vs ChatGPT / AI tutors:
+  - Those are chat interfaces, not games
+  - Kids don't want to "chat with AI" — they want to PLAY
+
+LangWorld combines:
+  Game world + Real exercises + AI conversations + Speaking practice
+  ...in one product, for an underserved age group.
+
+============================================================
+SLIDE 12: Vision
+============================================================
+
+"You don't learn a language — you survive in a world through it."
+
+The future of language learning isn't apps.
+It's AI worlds where language is required to exist.
+
+LangWorld is building that world.
+
+============================================================
+END
+============================================================

@@ -1,0 +1,179 @@
+LANGWORLD — Claude Code Session Log
+Date: 2026-03-02
+Project: LangWorld (lang-gamification)
+Human: Borislav Budinov
+AI: Claude Opus 4.6 (Claude Code CLI)
+
+============================================================
+SESSION START — Continuing from previous context
+============================================================
+
+[CLAUDE]: Последната задача беше стратегическото планиране — добавихме Land World (сухоземен свят) в langworld-strategy.md с пълна визия за биоми, животински адаптации, сгради, науки за земята и мащабиране на речника до 500-600+ думи.
+
+Всичко от предишната сесия е завършено и push-нато:
+- Professor Globe Canvas 2D energy sphere
+- Say It, Fill Scene, Listen & Repeat, NPC Talk — аудио и speech recognition fixes
+- Help modal — опростен до 5 секции
+- PWA cache v4
+- Camera zoom fix
+- 2-finger rotation на мобайл
+- Multi-world стратегия (Underwater, Land, Sky)
+
+Няма висящи задачи — готов съм за следващата ти идея!
+
+============================================================
+TASK 1: Help Modal — Restore Game Rules, Remove Stats/Levels
+============================================================
+
+[BORISLAV]: в момента виждам че в модала с инструкциите стоят островите и правилата за левъли и т.н. - аз исках обратното - нека за островите стои засега, но да махнем левъли и т.н., а да си стоят различните игри какви са и правилата - махаме другите две your stats and levels
+
+[CLAUDE]: Разбрах — махаме "Your Stats", "Levels" и "Unlocking", оставяме "Islands" и "Languages", и връщаме правилата за отделните игри.
+
+> Read current HelpButton.tsx
+> Checked git history (git show 86c94d7) to find the original game sections
+> Updated SECTION_AUDIO arrays — replaced stats/levels/unlock with 8 game IDs
+> Updated EN sections — removed 3, added 8 game rules with points
+> Updated BG sections — same changes in Bulgarian
+> npm run build — passed
+
+Result: Modal now has Islands + 8 games + Languages (10 sections total)
+Commit: 26bffd3
+
+============================================================
+TASK 2: Switch Everything to English (except intro)
+============================================================
+
+[BORISLAV]: нека инструкциите да са дефоутно на английски моля, както и правилата после - всяка игра, всеки вик уааау или страхотно, всичко да е на EN - само интрото да е БГ засега
+
+[CLAUDE]:
+> Changed HelpButton default lang from "bg" to "en"
+> Searched all game components for Bulgarian text — none found (already EN)
+> Searched all feedback text (Amazing, Great, Correct, etc.) — all already EN
+> Replaced app icon on splash with ProfessorGlobe component
+> Build passed, committed and pushed
+
+Commit: 26bffd3
+
+============================================================
+TASK 3: English Intro Voice + Text
+============================================================
+
+[BORISLAV]: давай и интрото с гласа на EN дето ползваме за инструкциите, моля
+
+[CLAUDE]:
+> Checked existing story audio (story1-5.mp3) — all in Bulgarian
+> Wrote a Node.js script to generate 5 EN story MP3s via Google Cloud TTS
+> Voice: en-US-Chirp3-HD-Puck, speakingRate: 0.95
+> Generated all 5 files successfully (20-38KB each)
+> Copied to /public/audio/phrases/ replacing BG versions
+> Updated STORY_PARTS text in page.tsx to English:
+  1. "A long, long time ago, in the middle of an endless ocean, there was a magical world — LangWorld."
+  2. "Every island held the secrets of different words and languages..."
+  3. "Only one brave explorer could wake them up again — and that explorer is YOU!"
+  4. "Professor Globe will be your guide. Discover every island..."
+  5. "Hahaha, just kidding! Of course knowledge is important..."
+> Build passed, committed and pushed
+
+Commit: 6776f7a
+
+============================================================
+TASK 4: Professor Globe — Subtler Ribbons
+============================================================
+
+[BORISLAV]: виж как в проф глоуб все едно само настрани се движат елипсите в него - може ли да е през цялото лице и да са малко по-фини, защото сега нищо не се вижда от очи и уста на професора?
+[attached screenshot showing thick ribbons covering the face]
+
+[CLAUDE]:
+> Read ProfessorGlobe.tsx (full Canvas 2D energy sphere code)
+> Identified issues: ribbons too thick (3-8px), too bright, concentrated at equator
+
+Changes made:
+1. Ribbon width: 3+rand*5 → 1+rand*1.5 (much thinner)
+2. Ribbon tilt range: -0.6..0.6 → -1.2..1.2 (full sphere coverage)
+3. Ribbon gradient opacity: bb/ee → 45/55 (~50% more transparent)
+4. Removed bright core line overlay on ribbons entirely
+5. Ribbon count: 5 → 7 (more but thinner = subtle energy feel)
+6. Particle glow: reduced size and alpha values
+7. Eye glow: boosted from 0.6/30 to 0.9/50 for better visibility
+8. yTilt formula changed to use abs(sin) for more vertical variation
+
+> Build passed, committed and pushed
+
+Commit: 40dacf3
+
+============================================================
+TASK 5: Enable Pull-to-Refresh on Splash
+============================================================
+
+[BORISLAV]: надолу за рефреш не работи - не ми дава в сплаш екрана - може ли да го позволиш
+
+[CLAUDE]:
+> Found `overscroll-behavior: none` in globals.css blocking pull-to-refresh globally
+> Removed it from globals.css
+> Added `overscrollBehavior: "none"` only on map page div (3D scene needs it)
+> Now splash screen and game pages allow pull-to-refresh
+
+> Build passed, committed and pushed
+
+Commit: 658fde2
+
+============================================================
+TASK 6: Merge Two Professor Globes on Splash
+============================================================
+
+[BORISLAV]: виж как обаче имаме на две места професора - може ли само на едното да е и да си говори нещата?
+[attached screenshot showing two Globes — one static at top, one narrating below]
+
+[CLAUDE]:
+> Merged into single Globe component:
+  - Before narration: bounces (animate-bounce), shows title + "Start Playing" button
+  - During narration: stops bouncing, becomes the speaking Globe
+  - Title/subtitle hidden during story, text bubble appears below
+> No duplicate Globes anymore
+
+> Build passed, committed and pushed
+
+Commit: da3a9a1
+
+============================================================
+TECH STACK DISCUSSION
+============================================================
+
+[BORISLAV]: може ли да ми кажеш точния тек стак който сме ползвали за всичко в играта ни до момента - искам да го представя на CEO-то ни и CTO-то ни
+
+[CLAUDE]: Provided full tech stack breakdown:
+
+Framework: Next.js 16 + React 19 + TypeScript
+3D: Three.js + @react-three/fiber + @react-three/drei
+Graphics: Canvas 2D API (Professor Globe character)
+UI: Tailwind CSS v4 + 40+ custom CSS keyframe animations
+State: Zustand (game, progress, NPC memory stores)
+AI: Claude API (Haiku 4.5) for NPC Talk conversations
+Audio: Google Cloud TTS (233 pre-generated MP3s, 3 languages)
+Speech: Web Speech API (recognition) + Web Audio API (mouth sync)
+PWA: Service Worker + Web App Manifest + Wake Lock API
+Deploy: Vercel
+
+Summary: Next.js 16 + React 19 + Three.js + Canvas 2D + Zustand + Claude AI + Google TTS + Tailwind v4 + PWA
+
+============================================================
+NOTES
+============================================================
+
+[BORISLAV]: в момента ако играя на десктопа или на телефона, си имам все едно две отделни journey-та, нали така
+
+[CLAUDE]: Да — progress е в localStorage (Zustand persist). Всяко устройство е отделно. За синхронизация ще трябва backend + акаунти — за по-нататък.
+
+============================================================
+ALL COMMITS THIS SESSION
+============================================================
+
+26bffd3 — Switch help modal to EN default, restore game rules, use Globe on splash
+6776f7a — Switch intro story to English text + voice
+40dacf3 — Make Globe ribbons subtler and spread across full sphere
+658fde2 — Enable pull-to-refresh on splash screen, keep disabled on map
+da3a9a1 — Merge two Professor Globes into one on splash screen
+
+============================================================
+END OF SESSION LOG
+============================================================

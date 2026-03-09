@@ -6,6 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases, phrases as allPhrases } from "@/data/phrases";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { StarDisplay } from "@/components/game/StarDisplay";
 import { HeartDisplay } from "@/components/game/HeartDisplay";
 import { GameOverScreen, NPC_RESCUE_REACTIONS } from "@/components/game/GameOverScreen";
 import { npcs } from "@/data/npcs";
@@ -202,6 +203,7 @@ export function FillScene({ topic }: FillSceneProps) {
     const accuracy = rounds.length > 0 ? Math.round(((rounds.length - mistakes) / rounds.length) * 100) : 0;
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
+        <StarDisplay score={score} maxScore={rounds.length * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
         <ProfessorGlobe size={96} emotion="happy" />
         <h2 className="text-3xl font-bold text-white">Scene Complete!</h2>
         <div className="bg-white/5 rounded-2xl p-6 w-full max-w-xs space-y-3">

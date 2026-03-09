@@ -7,6 +7,7 @@ import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognit
 import { selectAdaptiveWords } from "@/lib/adaptive";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { StarDisplay } from "@/components/game/StarDisplay";
 import { playWordAudio, playDingSound, playPopSound } from "@/lib/speech";
 import type { Topic, WordEntry } from "@/types";
 
@@ -166,6 +167,7 @@ export function SayIt({ topic }: SayItProps) {
   if (gameCompleted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
+        <StarDisplay score={score} maxScore={words.length * GOOD_POINTS + COMPLETION_BONUS} size="lg" />
         <ProfessorGlobe size={96} emotion="happy" speaking />
         <h2 className="text-3xl font-bold text-white">Amazing Job!</h2>
         <p className="text-slate-300 text-center">You practiced saying {words.length} words!</p>

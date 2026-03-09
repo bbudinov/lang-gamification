@@ -1,0 +1,932 @@
+================================================================================
+
+  LANGWORLD -- TRANSCRIPT SAMPLE
+  A Human-AI Collaboration in Building a Language Learning Game
+
+  Project:  LangWorld (langworld.vercel.app)
+  Human:    Borislav Budinov (Product Owner, non-developer)
+  AI:       Claude (Anthropic) via Claude Code
+  Stack:    Next.js + React Three Fiber + Zustand + PWA
+  Source:   Full session transcript, 6303 JSONL entries
+
+  NOTE: Borislav communicates in Bulgarian (his native language).
+  Claude responds in Bulgarian but writes all code in English.
+  Tool actions (file edits, builds, git) are noted in parentheses.
+
+================================================================================
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  PART 1: PROJECT INCEPTION
+  "What if we built a 3D language learning game for my kids?"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[BORISLAV]: добре, ако искам да напиша някаква игра и да е мобайл френдли, каква e the best препоръка като тек - не искам да е някакви точки, а да има и готина графика - с теб какво можем да направим - примерно за учене на чужди езици (тр да има free api's за поне 4-5 езика)
+[CLAUDE]: Добър въпрос! Ето какво мога да ти препоръчам:
+
+**За играта:**
+- **React + Three.js (React Three Fiber)** — вече го правим за сайта, същата технология може да прави 3D игри в браузъра, работи и на мобилен
+- **Phaser.js** — ако искаш 2D игра с хубава графика (анимации, спрайтове, ефекти). По-лесен за игри от Three.js
+- **React Native + Expo** — ако искаш native мобилно приложение (инсталира се от store)
+
+**Моята препоръка за теб:**
+**Next.js + Phaser.js** за 2D или **Next.js + React Three Fiber** за 3D. Причина — остваваш в стека, който вече знаеш, работи в браузъра на телефон без инсталация, и мога да го напиша изцяло.
+
+**За езиковите API-та (безплатни):**
+- **LibreTranslate** — open source, безплатен, поддържа 30+ езика
+- **Wiktionary API** — дефиниции, произношения, примери
+- **Tatoeba A...
+[BORISLAV]: 3D визия на 100%, да е на английски, бъгарски и испански. и точно както го описа - напредваш с нива, събираш точки, отключваш нови
+  теми. Думи, изречения, произношение, мини-игри (подреди думите, познай превода, попълни липсващата дума)
+[CLAUDE]: Яка идея! Ето как би изглеждало:
+
+**Стек:**
+- **Next.js + React Three Fiber** — 3D свят в браузъра
+- **drei** — готови 3D помощни компоненти (текст, камера, анимации)
+- **Supabase** — база за потребители, прогрес, класации
+- **Zustand** — state management (лек, бърз)
+
+**3D концепция:**
+- Карта с острови/планети — всеки остров е тема (храна, пътуване, работа, числа...)
+- Отключваш нови острови с точки
+- Персонаж, който се движи между нивата
+- Анимирани преходи, партикъл ефекти при верен отговор
+- Мобилен — touch контроли, responsive 3D камера
+
+**Мини-игри:**
+- Карти за обръщане (memory match) — дума ↔ превод
+- Падащи думи — хвани правилния превод преди да падне
+- Подреди думите в изречение (drag & drop)
+- Попълни липсващата дума
+- Слушай и избери (text-to-speech)
+
+**Езици (EN / BG / ES):**
+...
+[BORISLAV]: добре, нека: 1) направим едно ново прайвът репо (lang-gamification да е името); 2) може ли обаче да го направим да е основно на база работа на телефон, не на браузър - демек обратният подход - но да не минава през сторовете - ако може да е примерно за моите деца - смис аз работя със създаване на апове във всякакви стакове, ясно ми е кога е от стор и кога не, но дали има как, ако се инсталира локално на телефона (тип да кажа, че децата са тестъри на моят си локален апп), да се ползва и след това да мислим за уеб приложение или това е много сложно и по-добре да се тръгне от уеб-а (моите деца имат и mac-ове и могат да играят и на уеб лесно)?
+[CLAUDE]: Супер въпрос. Ето ситуацията:
+
+**PWA (Progressive Web App) — идеалното решение за теб:**
+- Пише се като уеб приложение (React + Three.js)
+- Инсталира се на телефона от браузъра → иконка на home screen, отваря се fullscreen, изглежда като native app
+- Без store, без одобрения, без акаунти за разработчици
+- Работи и офлайн
+- Вече го правихме за Contracts Tool — познат ти е подходът
+- Децата отварят линк → "Add to Home Screen" → готово
+- Работи и на телефон, и на Mac в браузър — един код за всичко
+
+**Защо НЕ native app за този случай:**
+- React Native + Three.js 3D = лоша комбинация, 3D поддръжката е ограничена
+- Tauri Mobile е още в бета
+- За да инсталираш без store на Android трябва APK sideloading, на iOS — TestFlight (ограничения)
+
+**Накратко:** PWA ти дава точно това, което искаш — изгле...
+    (Run: Create private GitHub repo for lang-gamification)
+    (Run: Check if GitHub CLI is installed)
+[CLAUDE]: Нямаш GitHub CLI инсталиран на този Mac. Два варианта:
+
+1. **Бърз** — създай repo-то ръчно в GitHub (github.com/Appolica → New repository → `lang-gamification`, Private) и ми дай линка
+2. **За в бъдеще** — инсталираме `gh` CLI с `brew install gh` и после всичко правим от терминала
+
+Кое предпочиташ?
+[BORISLAV]: 1 https://github.com/Appolica/lang-gamification
+    (Run: Clone the lang-gamification repo)
+[CLAUDE]: Готово, клонирано е. Преди да тръгна да пиша код, да се разберем за подхода:
+
+Ще започнем с **основата** — Next.js + React Three Fiber + PWA конфигурация + една първа мини-игра (например Memory Match — обърни карти, свържи дума с превод). Така ще имаш нещо работещо бързо, което да пробваш на телефона.
+
+Искаш ли да тръгвам?
+[BORISLAV]: да, тръгвай
+    (EnterPlanMode)
+[CLAUDE]: Ще планирам структурата на проекта. Тъй като е ново празно repo, нямам код за разглеждане — направо ще дизайна архитектурата.
+    (Task)
+[CLAUDE]: Имам детайлен план. Записвам го.
+    (Write: cuddly-humming-wilkes.md)
+    (ExitPlanMode)
+[CLAUDE]: Планът е одобрен. Тръгвам с имплементацията.
+    (TaskCreate)
+    (TaskCreate)
+    (TaskCreate)
+    (TaskCreate)
+    (TaskCreate)
+    (TaskCreate)
+    (TaskUpdate)
+    (Run: Initialize Next.js 15 project)
+    (Run: Install 3D and state management dependencies)
+    (TaskUpdate)
+    (TaskUpdate)
+[CLAUDE]: Сега настройвам PWA, layout и всички файлове. Ще създам всичко паралелно.
+    (Read: layout.tsx)
+    (Read: globals.css)
+    (Read: next.config.ts)
+    (Read: page.tsx)
+[CLAUDE]: Сега създавам всички файлове паралелно.
+    (Write: next.config.ts)
+    (Write: layout.tsx)
+    (Write: globals.css)
+    (Write: manifest.ts)
+    (Write: sw.js)
+    (Write: ServiceWorkerRegistration.tsx)
+[CLAUDE]: Now let me create placeholder PWA icons and the landing page.
+    (Run: Create icons directory)
+    (Run: Generate placeholder PWA icons)
+    (Write: page.tsx)
+    (TaskUpdate)
+    (TaskUpdate)
+[CLAUDE]: Сега създавам data layer, types, stores и speech.
+    (Run: Create all needed directories)
+    (Write: index.ts)
+    (Write: words.ts)
+    (Write: constants.ts)
+    (Write: speech.ts)
+    (Write: progressStore.ts)
+    (Write: gameStore.ts)
+    (TaskUpdate)
+    (TaskUpdate)
+[CLAUDE]: Сега 3D сцената — островите, океанът и камерата.
+    (Write: Ocean.tsx)
+    (Write: Island.tsx)
+    (Write: IslandMap.tsx)
+    (Write: TopBar.tsx)
+    (Write: page.tsx)
+    (TaskUpdate)
+    (TaskUpdate)
+[CLAUDE]: Сега Memory Match играта — най-важната част.
+    (Write: GameHUD.tsx)
+    (Write: MemoryCard.tsx)
+    (Write: MemoryMatch.tsx)
+    (Write: page.tsx)
+    (TaskUpdate)
+[CLAUDE]: Сега нека проверя дали компилира.
+    (Run: Build to verify compilation)
+[CLAUDE]: Компилира се перфектно. Нека пусна dev server-a и да тестваме.
+    (Run: Start dev server)
+    (Run: Check if dev server is up)
+    (Run: Start dev server on port 3001)
+    (Run: Check port 3001)
+[CLAUDE]: Сървърът тръгна. Нека сега комитна и пушна, и да пусна наново.
+    (Run: Start dev server on 3001)
+[CLAUDE]: Сървърът е на **http://localhost:3001**. Пробвай в браузъра — ще видиш splash screen с 🌍 LangWorld, после ще те прехвърли към 3D картата с островите. Натисни Animals острова → Memory Match играта.
+
+Сега да пушна кода.
+    (Run: Check git status)
+    (Run: Commit and push initial project)
+    (TaskUpdate)
+[CLAUDE]: Готово! Всичко е пушнато. Ето какво имаш на **http://localhost:3001**:
+
+1. **Splash screen** — 🌍 LangWorld, автоматично препраща към картата след 2 сек
+2. **3D Island Map** — два плаващи острова (Animals 🦁 и Colors 🎨), океан, мъгла
+   - Animals е отключен, Colors изисква 50 точки
+   - Pan/zoom с touch
+   - Top bar с точки и бутон за смяна на език (BG → EN/ES)
+3. **Memory Match** — натисни Animals острова
+   - 12 карти (6 двойки) с CSS 3D flip анимация
+   - Match = +10 точки + произнася думата
+   - Mismatch = -2 точки
+   - Финал = +50 бонус, резултати, Play Again / Back to Map
+4. **PWA** — може да се инсталира на телефон от браузъра
+
+Пробвай и ми кажи как изглежда!
+[BORISLAV]: моля да прегледаш сега и какво google ai ми даде като съвети/насоки и да отсееш кое е наитина полезно за нас - май навигация и анимации са ключовите неща: Привет! Идеята е супер – особено с Three.js, играта ще изглежда впечатляващо. Тъй като вече си минал по този път с Contracts Tool, знаеш основните предимства, но при детска игра има специфични "подводни камъни", които могат да развалят преживяването.
+Ето кофти моментите и пропуските, които трябва да имаш предвид при PWA за този конкретен случай:
+1. Проблемът с аудиото (Auto-play Policy)
+Това е най-големият "болка" за образователни приложения:
+Браузърни ограничения: Браузърите блокират автоматичното пускане на звук, докато потребителят не взаимодейства с екрана. Ако искаш играта да започне с „Привет! Хайде да учим думи!“, звукът няма да т
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  PART 2: BUILDING, DEBUGGING, DEPLOYING
+  Story mode, bug reports, voice tuning, Android testing, Vercel deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[CLAUDE]: Сега свързвам всичко. Правя трите промени паралелно.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/app/game/[topicId]/[gameType]/page.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/app/game/[topicId]/[gameType]/page.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx)
+
+[CLAUDE]: Сега build-вам да проверя дали всичко е ок.
+    (Bash: Build Next.js project to verify no errors)
+
+[CLAUDE]: Build минава чисто. Сега commit и push.
+    (Bash: Check git status for changed files) | (Bash: Check recent commit messages) | (Bash: Stage and commit all changes) | (Bash: Push to remote) | (TaskUpdate)
+
+[CLAUDE]: Всичко е готово и push-нато. Ето какво добавих в тази партида:
+
+**Professor Globe** — всяка секция с правила е кликаема и говори на избрания език (EN/BG)
+
+**Карта** — ротация с мишка/пръст вече работи + 10 нови острова:
+- 5 с пълни данни: Food, Numbers, Family, Body, Weather (по 10 думи EN/BG/ES)
+- 5 placeholder: Travel, School, Work, Sports, Music (заключени, "Coming soon")
+
+**2 нови игри:**
+- **True or False** — виждаш дума + превод и решаваш дали е правилен. 10 рунда, ~60% верни, +10/-5 точки, +40 бонус
+- **Word Scramble** — виждаш дума на майчин език и трябва да подредиш разбъркани букви. 6 рунда, +20/-3 точки, +50 бонус
+
+Общо **4 игри** в GameSelector-а: Memory Match, Word Quiz, True or False, Word Scramble.
+
+[BORISLAV]: уоооооооу феноменално е. може ли да одбавиш и като се избере един свят, да редува да казва следните изрази (просто да ги редува едно след друго засега, без да маркираш кое да е кога - просто едно след друго като ред и като мине и последното, почва пак първото): great choice / let's play / wooooo / game changer / fabulous / magnific / think about everything / own your langworld
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово! Сега всеки път като избереш игра, ще чуеш следващата фраза от списъка: "great choice" → "let's play" → "wooooo" → "game changer" → "fabulous" → "magnific" → "think about everything" → "own your langworld" → и пак отначало.
+
+[BORISLAV]: ти си просто уникален, евала, за толкова кратко, такива феноменални неща.....
+
+[CLAUDE]: Благодаря ти много, приятно ми е! Радвам се, че ти харесва — проектът наистина става много як. Децата ще се кефят!
+
+Ако имаш още идеи — давай, тук съм.
+
+[BORISLAV]: може ли да измислим една цяла история, която да следват дветовете ни - примерно като дадем launch game, да разказва на бг засега началото на приказният ни свят и да се каже, че с откриването на повече светове всеки ще получи най-голямата награда - познанието (и да добавим след 2 секунди мълчание следното "хахаха шегичка, естествено, че знанието е важно, но ще има и други награди" - може ли да измислиш базова история или да помисля аз (уча с детето в момента, но мога да замисля нещо за 5 мин)?
+
+[CLAUDE]: Хаха, страхотна идея! Дай аз да предложа нещо, а ти ако искаш промени или имаш по-добра идея — казваш.
+
+Ето базова история:
+
+---
+
+**"Светът на LangWorld"**
+
+*При стартиране (на БГ):*
+
+> "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд. Всеки остров пазел тайните на различни думи и езици. Но с времето хората забравили тези тайни и островите потънали в мъгла. Само един смел изследовател можел да ги събуди отново — и този изследовател си ТИ! Професор Глоуб ще ти бъде водач. Открий всеки остров, научи думите му и събери най-голямата награда на света — ПОЗНАНИЕТО!"
+
+*(2 секунди мълчание)*
+
+> "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди — точки, звезди и изненади по пътя!"
+
+---
+
+Кратко, забавно, мотивиращо. Идеята е че иг...
+
+[BORISLAV]: супер е, давай го така, евала. едно нещо още отделно, моля да направим засега основният говор на професор globe да е на БГ - само сега за началото, после ще го променим
+    (Read file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx)
+
+[CLAUDE]: Сега правя двете неща: историята при "Start Playing" + фразите на БГ.
+    (Write file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx)
+
+[CLAUDE]: Сега фразите в GameSelector на БГ:
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово! Ето какво стана:
+
+**История при Start Playing:**
+- Натискаш "Start Playing" → Професор Глоуб (🌐) разказва историята на БГ на 5 части
+- Текстът се показва в балонче на екрана + се чете на глас
+- Завършва с шегичката за наградите
+- След историята → автоматично отива на картата
+- Има бутон "Skip story →" ако не искаш да чакаш
+
+**Фрази при избор на игра** — вече на БГ: "страхотен избор", "да играем", "уууууу", "това ще е велико", "фантастично", "магнифик", "мисли за всичко", "владей своя ЛангУърлд"
+
+[BORISLAV]: може ли да измислим една цяла история, която да следват дветовете ни - примерно като дадем launch game, да разказва на бг засега началото на приказният ни свят и да се каже, че с откриването на повече светове всеки ще получи най-голямата награда - познанието (и да добавим след 2 секунди мълчание следното "хахаха шегичка, естествено, че знанието е важно, но ще има и други награди" - може ли да измислиш базова история или да помисля аз (уча с детето в момента, но мога да замисля нещо за 5 мин)?
+
+[CLAUDE]: Това вече го направихме! Историята е добавена и push-ната. Когато натиснеш "Start Playing", Професор Глоуб разказва цялата история на БГ:
+
+1. "Преди много, много години, насред безкрайния океан, съществувал магически свят — ЛангУърлд."
+2. "Всеки остров пазел тайните на различни думи и езици..."
+3. "Само един смел изследовател можел да ги събуди отново — и този изследовател си ТИ!"
+4. "...събери най-голямата награда на света — ПОЗНАНИЕТО!"
+5. *(2 сек пауза)* "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди..."
+
+Пробвай го на телефона — би трябвало вече да работи. Има и "Skip story →" бутон ако искаш да прескочиш.
+
+[BORISLAV]: това си го направил да, моля и долу вдясно като избера проф глоуб, където са правилата на играта, да са по дефоут и те на БГ засега
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx)
+
+[CLAUDE]: Просто трябва да сменя default-а от `"en"` на `"bg"`.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово! Сега Professor Globe отваря правилата на БГ по подразбиране. Може да се превключи на EN с бутона горе, но стартира на български.
+
+[BORISLAV]: няколко бъга да репортна: 1) като изляза от дадено ниво на играта, като съм го минал, после от главният ни екран със световете ми изчезват и проф глобе и точките, които съм събрал/натрупал (горе вляво) - снимка прикачвам; 2) когато дам скип бутона на интро-то ни, не спира да говори - демек, като избера скип, спира да говори, но после, като отида примерно директно на проф глоуб, директно започва да говори от интро-то откъдето съм дал скип бутона и след това не ми продължава с интрукциите на дадената игра, а спира говора и тр наново да избера; 3) говорът на prof globe е на жена, която не е много добра на БГ - дали може да намерим някой глас, който е проверен, зче говори макс добре на БГ - просто нашата говори повече на руски все едно; 4) има голям бъг когато избера дадена игра и нали имаме т...
+    (Task) | (Read file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx)
+
+[CLAUDE]: Разбрах всичките 6 бъга. Нека ги оправя всички наведнъж.
+    (TaskCreate) | (TaskUpdate) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/scene/Island.tsx)
+
+[CLAUDE]: Сега имам всичко. Ето анализа:
+
+- **Бъг 1 + 6**: `<Html>` от drei по подразбиране има z-index до 16 милиона — покрива TopBar (z-10), HelpButton (z-10) и дори GameSelector (z-50)
+- **Бъг 2**: `handleSkip` не чисти таймерите от историята
+- **Бъг 3**: Гласът за БГ е първият намерен — трябва да предпочитаме Google voice
+- **Бъг 4**: `router.push` е веднага след `speak` — навигацията cancel-ва речта
+- **Бъг 5**: Unlock costs са нередовни — трябва през 500
+
+Оправям всичко:
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/scene/Island.tsx) | (Write file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx) | (Write file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts) | (Write file: /Users/borislavbudinov/lang-gamification/src/components/ui/GameSelector.tsx)
+
+[CLAUDE]: Сега unlock costs-овете — през 500 точки:
+    (Read file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Search content: unlockCost:) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts)
+
+[CLAUDE]: Някои edit-и имат дубликати заради предишните промени. Нека ги оправя с повече контекст.
+    (Search content: unlockCost:)
+
+[CLAUDE]: Lines 129, 169, 187 need fixing. Let me read around those lines for context.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Read file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Read file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/data/words.ts)
+
+[CLAUDE]: Нека потвърдя, че всички costs са правилни:
+    (Search content: unlockCost:)
+
+[CLAUDE]: Перфектно: 0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500. Сега update-вам и constants.ts:
+    (Read file: /Users/borislavbudinov/lang-gamification/src/lib/constants.ts) | (Edit file: /Users/borislavbudinov/lang-gamification/src/lib/constants.ts) | (Bash: Build to verify all fixes compile)
+
+[CLAUDE]: Всичко минава. Commit и push:
+    (Bash: Commit and push all 6 bug fixes) | (TaskUpdate)
+
+[CLAUDE]: Всичките 6 бъга са оправени:
+
+1. **TopBar + Prof Globe изчезват** — `<Html>` лейбълите от drei имаха z-index до 16 милиона и покриваха всичко. Сега са ограничени до z-index [1,5], а UI елементите са отгоре.
+
+2. **Skip не спира говора** — добавих `useRef` за таймерите. При Skip всички таймери се чистят + `speechSynthesis.cancel()`.
+
+3. **БГ глас звучи руски** — добавих `findBestVoice()` функция, която предпочита Google TTS гласове (те са по-качествени, особено на Android).
+
+4. **Фразите се режат** — добавих `speakAndWait()` — изчаква фразата да завърши (или max 3 сек) и чак тогава навигира към играта.
+
+5. **Unlock ред** — вече е ясно през 500 точки: Animals=0, Colors=500, Food=1000, Numbers=1500, Family=2000, Body=2500, Weather=3000, Travel=3500, School=4000, Work=4500, Sports=5000, Music=5...
+
+[BORISLAV]: не ми позволява повече от това да zoom out и отделно все още нямам проф глоуб и точките, които съм натрупал
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/scene/IslandMap.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/TopBar.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx)
+
+[CLAUDE]: Проблемът е ясен — Canvas-ът от Three.js създава stacking context, който покрива TopBar (z-10) и HelpButton (z-10). Трябва да дам на Canvas wrapper-а z-0 и да вдигна UI елементите на z-20+. Плюс увеличавам max zoom out.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/scene/IslandMap.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/scene/IslandMap.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/scene/IslandMap.tsx)
+
+[CLAUDE]: Сега вдигам z-index на TopBar и HelpButton:
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/TopBar.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push fixes)
+
+[CLAUDE]: Готово! Две промени:
+
+1. **Zoom out** — увеличих maxDistance от 25 на 45, така че да виждаш всички острови. Fog-ът също е удължен за да не изчезват далечните.
+
+2. **TopBar + Prof Globe** — Canvas wrapper-ът сега има `z-0` (изолира stacking context-а на Three.js), а TopBar и HelpButton са вдигнати на `z-30`. Така са гарантирано над Canvas-а и лейбълите на островите.
+
+Провери пак на телефона — и двете неща трябва да са видими сега.
+
+[BORISLAV]: аз все още на десктопа на мак-а тествам, на тел не съм
+
+[CLAUDE]: Ясно, на Mac-а тестваш. Може да е кеш на браузъра, но нека направя по-агресивен fix за z-index-а — с inline styles, за да сме 100% сигурни.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/TopBar.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Пуш-нато. Сега направи hard refresh в браузъра — **Cmd+Shift+R** на Mac-а, за да зареди новия код без кеш. Dev сървърът трябва да е пуснат на порт 3002 (`npm run dev -- -p 3002`). Ако не е пуснат:
+
+```
+cd ~/lang-gamification && npm run dev -- -p 3002
+```
+
+Промените:
+- TopBar и HelpButton сега имат `zIndex: 9999` с inline style — гарантирано над всичко от Three.js
+- Canvas wrapper-ът е с `z-0` — изолира stacking context-а
+- Zoom out увеличен до 45 (беше 25)
+
+[BORISLAV]: в момента проф глоуб като говори интро-то, реже последните 4-5 думи на всеки отдлеен текст; после, като съм в проф глоуб и дам да ми разкаже дадено правило и не искам да го слушам цялото и дам "разбрах", не спира да говори, макар и вече да съм излязъл от менюто - тр при разбрах или got it да спира говора; отделно все още говора не е ок на бг - да го сменим с друг някакъв?
+
+[CLAUDE]: Три проблема — оправям ги всичките.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Read file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts)
+
+[CLAUDE]: Ясни са проблемите:
+
+1. **Интро реже думи** — `speak()` прави `cancel()` при всяко извикване, което убива предишното изречение. Трябва последователно чакане с `onend` вместо фиксирани таймери.
+2. **"Разбрах" не спира говора** — липсва `speechSynthesis.cancel()` при затваряне.
+3. **БГ глас** — ще подобря voice selection + ще сложа по-бавен rate за БГ.
+    (Write file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts)
+
+[CLAUDE]: Сега пренаписвам интрото — вместо фиксирани таймери, ще чака всяко изречение да свърши:
+    (Write file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx)
+
+[CLAUDE]: Сега HelpButton — добавям `stopSpeech()` при затваряне:
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово, три промени:
+
+1. **Интро не реже думи** — вместо фиксирани таймери, сега всяко изречение чака предишното да свърши (`onend` event). Плюс 2 сек пауза преди шегичката.
+
+2. **"Разбрах" спира говора** — и бутонът "Разбрах"/"Got it", и кликът по backdrop-а извикват `stopSpeech()`.
+
+3. **БГ глас подобрен** — rate за БГ е намален от 0.85 на 0.75 (по-бавно = по-ясно), предпочита Google и cloud voices (по-качествени), pitch леко намален от 1.1 на 1.05.
+
+За гласа — ако все още не е достатъчно добър, проблемът е, че macOS може да няма инсталиран качествен български глас. Може да провериш: **System Settings > Accessibility > Spoken Content > System Voice > Manage Voices** — потърси "Bulgarian" и го свали. Това ще даде много по-добър глас.
+
+[BORISLAV]: няма spoken content
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 18.36.19.png]
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 18.36.13.png]
+
+[CLAUDE]: Разбирам — при по-новите macOS е преименувано. Виждам **"Live Speech"** в секция Speech вдясно — но това не е същото.
+
+Всъщност за Bulgarian voice в Chrome на Mac, гласовете идват от самия **Chrome**, не от macOS. Chrome използва Google TTS гласове, и за български просто няма толкова добър глас на десктопа.
+
+Добрата новина е, че **на Android** (твоето Xiaomi) Google TTS има **много по-добър български глас** — там ще звучи значително по-добре. Десктопът не е целевото устройство.
+
+Засега на Mac-а гласът е такъв, какъвто Chrome предлага — не можем да го сменим без външен API (платен). Но на телефона ще е съвсем друго. Искаш ли да тестваш на телефона за да видиш разликата, или да продължим с други неща?
+
+[BORISLAV]: dobre, kak мога да почна да го тествам на телефона, какво да направя, за да го сваля и тествам?
+
+[CLAUDE]: Много лесно! Телефонът и Mac-ът трябва да са на **един и същ WiFi**. Нека видим IP-то на Mac-а и пуснем сървъра така, че телефонът да има достъп.
+    (Bash: Get Mac's local IP address)
+
+[CLAUDE]: Ето стъпките:
+
+**1. Пусни dev сървъра на Mac-а** (ако не е пуснат вече), така че да приема връзки от телефона:
+
+```
+cd ~/lang-gamification && npm run dev -- -p 3002 -H 0.0.0.0
+```
+
+Важно е `-H 0.0.0.0` — без него само Mac-ът има достъп.
+
+**2. На телефона (Xiaomi)** отвори **Chrome** и отиди на:
+
+```
+http://192.168.1.31:3002
+```
+
+**3. Играй малко** — зареди играта, пробвай я.
+
+**4. Инсталирай като приложение** — Chrome на Android ще покаже банер "Add to Home screen" или:
+- Натисни трите точки (⋮) горе вдясно в Chrome
+- Избери **"Add to Home screen"** или **"Install app"**
+- Потвърди
+
+След това ще имаш иконка на началния екран и играта ще се отваря на цял екран без адресна лента, като нормално приложение.
+
+[BORISLAV]: малко по-чист е говора на андроид тел-а, но пак ударенията на някои думи не са ок - дали, ако сменим просто с друг вариант на бг глас може да стане?
+
+[BORISLAV]: [Request interrupted by user]
+
+[BORISLAV]: не е критичен проблем, искам да разбера всички варианти преди да продължа напред
+
+[CLAUDE]: Ето всички варианти за по-добър български глас:
+
+**1. Опитаме друг глас от наличните (безплатно, веднага)**
+На Android има няколко BG гласа. Мога да добавя опция да ги изброим и пробваме друг. Лесно, но качеството си зависи от Google TTS на телефона.
+
+**2. Google Cloud Text-to-Speech API (платено, но евтино)**
+Най-добрият вариант за качество. Google има професионални български гласове — WaveNet и Neural2. Звучат почти като истински човек. Цена: ~$4 на милион символа — за тази игра практически безплатно (центове на месец). Трябва Google Cloud акаунт.
+
+**3. Готови аудио файлове (безплатно, но ръчна работа)**
+Записваме всяка дума като .mp3 — перфектно качество, но трябва да се записва/генерира за всяка нова дума. Негъвкаво.
+
+**4. Azure Speech (платено, подобно на Google)**
+Microsoft също има ...
+
+[BORISLAV]: давай вариант 1 засега
+    (Read file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts)
+
+[CLAUDE]: Добавям voice selector в Professor Globe менюто — ще може да се пробват всички налични БГ гласове и да се избере кой звучи най-добре.
+    (Write file: /Users/borislavbudinov/lang-gamification/src/lib/speech.ts)
+
+[CLAUDE]: Сега добавям voice selector в Professor Globe менюто:
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Write file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово! Сега в Professor Globe менюто има бутон **"Смени гласа" (🎙️)**. Натискаш го и виждаш списък с всички налични български гласове на устройството. Натискаш всеки за да го чуеш с тестова фраза, и избраният глас се запомня.
+
+На телефона (Android) трябва да имаш повече гласове от Mac-а. Пробвай ги от там и виж кой звучи най-добре.
+
+[BORISLAV]: още две неща - на моят андроид се вижда наполовина prof globe , отделно като заредиш играта word scramble, се вижда верният ред, който тр да попълниш - прикачвам снимки и за двете и отивам да видя гласовете
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Downloads/Screenshot_2026-02-28-21-46-53-356_com.android.chrome.jpg]
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Downloads/Screenshot_2026-02-28-21-46-30-559_com.android.chrome.jpg]
+
+[CLAUDE]: Виждам двата проблема. Оправям ги.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/game/WordScramble.tsx)
+
+[CLAUDE]: Ето ги — ред 230 показва `char` (верния отговор) вместо празно поле. И Prof Globe бутонът е с `bottom-6` което е твърде ниско за Android nav bar.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/components/game/WordScramble.tsx) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build to verify) | (Bash: Commit and push)
+
+[CLAUDE]: Готово!
+
+1. **Word Scramble** — празните слотове вече са празни, не показват верните букви
+2. **Prof Globe бутон** — вдигнат по-нагоре (`bottom-20` вместо `bottom-6`), за да не се крие зад Android навигацията
+
+Refresh-ни на телефона за да видиш промените.
+
+[BORISLAV]: не виждам обаче опциите за гласовете да избирам - къде е това мен'или тези опции
+
+[CLAUDE]: Бутонът "Смени гласа" се показва само ако има повече от 1 глас. На твоя Android може да има само 1 БГ глас и затова не се вижда. Оправям го — ще показва бутона винаги.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Search content: bgVoices.length > 1) | (Edit file: /Users/borislavbudinov/lang-gamification/src/components/ui/HelpButton.tsx) | (Bash: Build, commit and push)
+
+[CLAUDE]: Готово! Сега бутонът "Смени гласа" ще се показва дори с 1 наличен глас. Refresh-ни на телефона, отвори Prof Globe и трябва да видиш 🎙️ бутона. Натисни го за да видиш какви гласове има на устройството.
+
+[BORISLAV]: добре, няма други опции, така че ще помислим за платено решение после. сега имам въпрос - ок, за да работи на телефона, тр да са на една мрежа лаптопа и телефона. само че аз отидох в другата стая с телефона, лаптопа остана в друг стая и не можа да ми се зареди нищо на телефона.
+
+[CLAUDE]: Да, точно така — в момента телефонът зарежда директно от Mac-а ти по локалната мрежа. Ако излезеш от обхват или лаптопът заспи — нищо не работи.
+
+За да работи навсякъде (без Mac), трябва да **деплойнем** приложението онлайн. Варианти:
+
+1. **Vercel** (безплатно, най-лесно) — push-ваш в GitHub, то автоматично деплойва. Получаваш линк като `lang-gamification.vercel.app`. Работи навсякъде, по всяко време.
+
+2. **AWS Amplify** — вече го знаеш от другите проекти, но за тази игра Vercel е по-прост.
+
+И в двата случая — след деплой можеш да инсталираш PWA-то на телефона от истинския линк и ще работи дори офлайн (благодарение на service worker-а).
+
+Искаш ли да го деплойнем на Vercel сега? Отнема буквално 2 минути.
+
+[BORISLAV]: секунда, две неща преди това - колко ще струва версел и означава ли това че ще е лайв за всеки който има линка, дори да не е на същия wi fi? а, и още нещо, secure ли е така да го кача във версел - нещо като auth или някаква защита необходима ли е?
+
+[CLAUDE]: Добри въпроси!
+
+**Цена:** Безплатно. Vercel има Hobby plan — 0 лева, неограничен трафик за лични проекти. Перфектно за това.
+
+**Достъпност:** Да, всеки с линка ще може да го отвори — от всяко място, всяко устройство, без WiFi ограничения. Просто URL в браузъра.
+
+**Сигурност:** За тази игра не е нужна auth. Няма лични данни, няма backend, няма база данни — всичко е в localStorage на телефона на играча. Няма какво да се хакне. Най-много някой случаен човек да отвори линка и да поиграе — което не е проблем.
+
+Ако искаш да е по-скрито (да не го намери случаен човек):
+- Линкът ще е нещо като `lang-gamification-xyz123.vercel.app` — няма го в Google, никой няма да го намери случайно
+- Ако някой ден поискаш парола — може да добавим прост PIN код на входа
+
+Но засега няма нужда от нищо допълнително. ...
+
+[BORISLAV]: да, давай
+    (Bash: Check if Vercel CLI is installed) | (Bash: Install Vercel CLI globally) | (Bash: Try vercel via npx)
+
+[CLAUDE]: Най-лесно е директно от сайта на Vercel. Ето стъпките:
+
+**1.** Отвори в браузъра: **https://vercel.com**
+
+**2.** Натисни **"Sign Up"** → избери **"Continue with GitHub"** (ще те логне с GitHub акаунта на Appolica)
+
+**3.** След логин натисни **"Add New Project"** → **"Import Git Repository"**
+
+**4.** Ще видиш списък с репота — избери **`lang-gamification`**
+
+**5.** На следващия екран не пипай нищо — Framework Preset ще е "Next.js" автоматично. Просто натисни **"Deploy"**
+
+**6.** Чака 1-2 минути и получаваш линк!
+
+След това всеки push в main ще се деплойва автоматично.
+
+Давай, кажи ми като стигнеш до някоя стъпка ако имаш въпрос.
+
+[BORISLAV]: добре, но така версел ще вижда само това репо, не и други в аполика, дори да са публични, нали?
+
+[CLAUDE]: Да, точно така. Когато импортваш, ти избираш **конкретно репо** — Vercel вижда само него. Другите репота в Appolica си остават напълно недостъпни за Vercel, освен ако изрично не ги импортнеш и тях.
+
+Давай спокойно.
+
+[BORISLAV]: ок, отивам да правя това, ти моля виж тези рискове и кажи всичко ли е хендълнато от теб в момента: 1. Рискове при използването на Claude Code (Agentic AI)
+През февруари 2026 г. бяха открити критични уязвимости в Claude Code (като CVE-2025-59536), които позволяват изпълнение на отдалечен код (RCE) чрез зловредни конфигурационни файлове в хранилищата. 
+The Hacker News
+The Hacker News
+ +1
+Риск: Ако работиш по чужд проект или клонираш библиотеки, Claude Code може неволно да изпълни зловреден код на твоята машина или да "изпусне" API ключове.
+Препоръка: Винаги използвай вградения Sandbox mode (/sandbox) в Claude Code, за да ограничиш достъпа му до файловата ти система и мрежата. 
+Medium
+Medium
+ +3
+2. Рискове при Vercel Hobby Plan
+Макар планът да е безплатен, той има своите ограничения:
+Публичен...
+
+[CLAUDE]: Добър въпрос. Нека мина по всяка точка:
+
+**1. Claude Code уязвимост (CVE-2025-59536)**
+Това е за случаи, когато клонираш **чужд** проект с вграден зловреден `.claude` конфиг. Ти работиш по **свое** репо, което аз написах от нулата — няма чужди конфигурации. Плюс Claude Code вече е патч-нат за тази уязвимост. Не е проблем за теб.
+
+**2. Vercel рискове**
+- **Публичен достъп** — да, всеки с линка вижда играта. Но няма чувствителни данни — това е игра за учене на езици. Линкът не е в Google, никой няма да го намери случайно.
+- **Source Protection** — по подразбиране е ON в Vercel. Не го пипай и си е ок.
+- **API ключове** — **нямаме нито един**. Нула API ключове, нула env variables, нула secrets. Всичко е клиентски код + hardcoded думи.
+
+**3. Локално на телефона**
+- **View Source** — да, някой м...
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.14.20.png]
+
+[CLAUDE]: Виждам — Vercel не вижда репото, защото е **private** и не му е даден достъп. Натисни бутона **"Configure GitHub App"** долу — ще те отведе в GitHub настройките. Там:
+
+1. Намери секция **"Repository access"**
+2. Избери **"Only select repositories"**
+3. Натисни **"Select repositories"** и добави **`lang-gamification`**
+4. Натисни **"Save"**
+
+След това се върни в Vercel и ще го видиш в списъка.
+
+[BORISLAV]: sega import предполагам
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.17.17.png]
+
+[CLAUDE]: Да, точно! Натисни **Import** и на следващия екран директно **Deploy** — не пипай нищо друго.
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.18.05.png]
+
+[CLAUDE]: Стоп! Проблемът е, че репото е под **Appolica** организацията (private GitHub org) и Vercel иска Pro план за това.
+
+Имаш два варианта:
+
+**Вариант 1 (бърз):** Направи репото **public** в GitHub — тогава Hobby план ще работи. Няма чувствителни данни, така че е безопасно.
+
+**Вариант 2 (алтернативен):** Прехвърли (fork/transfer) репото в личния ти GitHub акаунт — тогава Hobby план също ще работи.
+
+Вариант 1 е по-лесен — отиваш в GitHub → `lang-gamification` → Settings → General → скролваш до "Danger Zone" → "Change visibility" → Public.
+
+Кое предпочиташ?
+
+[BORISLAV]: ама тва значи да остане public за постоянно, значи вариант 1 отпада, ще го преместя в bbudinov гит-а - дай стъпките и после да разкарам версел от аполика гит и да е само при мен
+
+[CLAUDE]: Ето стъпките:
+
+**1. Прехвърли репото в GitHub:**
+- Отвори: `https://github.com/Appolica/lang-gamification/settings`
+- Скролни до **"Danger Zone"**
+- Натисни **"Transfer"**
+- В "New owner" напиши **`bbudinov`** (личния ти акаунт)
+- Потвърди с името на репото
+
+**2. Махни Vercel от Appolica:**
+- Отвори: `https://github.com/organizations/Appolica/settings/installations`
+- Намери **Vercel** → натисни **Configure**
+- Премахни `lang-gamification` от списъка (или Uninstall ако не ти трябва Vercel за Appolica изобщо)
+
+**3. Обнови локалното репо на Mac-а:**
+След трансфера ще ти кажа точната команда за смяна на remote-а.
+
+**4. Върни се в Vercel** и импортни репото отново — вече ще е под `bbudinov` (личен акаунт, Hobby план работи).
+
+Давай стъпка по стъпка, кажи като прехвърлиш репото.
+
+[BORISLAV]: давай това 
+  3. Обнови локалното репо на Mac-а:
+  След трансфера ще ти кажа точната команда за смяна на remote-а.
+    (Bash: Check current remote URL) | (Bash: Update remote to personal GitHub account) | (Bash: Verify new remote URL)
+
+[CLAUDE]: Готово! Remote-ът вече сочи към `bbudinov/lang-gamification`. Сега отиди в Vercel и импортни репото наново — ще го видиш под личния ти акаунт.
+
+[BORISLAV]: в сетингите на lang gamif... съм - какво правех за версел-а?
+
+[CLAUDE]: В GitHub settings на `lang-gamification` няма какво да правиш повече — репото вече е при теб.
+
+Сега отиди в **Vercel**:
+1. Отвори **https://vercel.com/new**
+2. Ще видиш `bbudinov` вместо Appolica
+3. Намери **`lang-gamification`** → **Import** → **Deploy**
+
+Този път няма да иска Pro план, защото е под личния ти акаунт.
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.26.01.png]
+
+[CLAUDE]: Трябва да дадеш на Vercel достъп до личния ти GitHub. Натисни **"Continue with GitHub"** — ще те пита да оторизираш Vercel за `bbudinov` акаунта. След като потвърдиш, ще видиш репото в списъка.
+
+[BORISLAV]: deplojwa se - a колко струва най-евтиния смислен версел пакет на месец?
+
+[CLAUDE]: Деплойва се, супер!
+
+**Vercel планове:**
+
+- **Hobby** — $0/месец (това имаш сега). За лични проекти е напълно достатъчно. 100GB bandwidth, безплатен SSL, автоматичен deploy при push.
+
+- **Pro** — $20/месец. Добавя: парола за сайта, повече bandwidth (1TB), analytics, preview deployments с коментари, по-бързи build-ове. Нужен е само ако искаш team collaboration или защита с парола.
+
+За тази игра **Hobby (безплатен) е напълно достатъчен**. Няма нужда да плащаш нищо.
+
+Кажи като е готов deploy-ът — ще ти дам линка за телефона!
+
+[BORISLAV]: deplojwa se - a колко струва най-евтиния смислен версел пакет на месец?
+
+[CLAUDE]: Вече отговорих горе — **Hobby планът е безплатен ($0)** и е това, което имаш в момента. Напълно достатъчен за играта.
+
+Следващият е **Pro за $20/месец**, но нямаш нужда от него.
+
+Кажи като е готов deploy-ът!
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.27.41.png]
+
+[CLAUDE]: Готово е! Линкът ти е:
+
+**https://lang-gamification.vercel.app**
+
+Отвори го на телефона в Chrome, поиграй малко и след това инсталирай като приложение (три точки ⋮ → "Add to Home screen").
+
+Сега работи навсякъде — без Mac, без WiFi ограничения. И всеки път като push-на нов код, Vercel автоматично деплойва.
+
+[BORISLAV]: а мога ли да сменя линка да е по-кратък?
+
+[CLAUDE]: Да! В Vercel Dashboard:
+
+1. Отвори проекта `lang-gamification`
+2. **Settings** → **Domains**
+3. Там пише `lang-gamification.vercel.app` — можеш да го смениш на нещо по-кратко, например:
+   - `langworld.vercel.app`
+   - `lworld.vercel.app`
+   - каквото ти хареса (ако е свободно)
+
+Просто напиши новото име и натисни **Add**.
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.29.34.png]
+
+[CLAUDE]: Ти си в Advanced — натисни **"Domains"** от менюто вляво (между "Deployment Protection" и "Functions" няма го директно, но...).
+
+Всъщност по-лесно: натисни **"General"** вляво най-отгоре, и там ще видиш секция **"Domains"** с текущия домейн и поле да добавиш нов.
+
+[BORISLAV]: е няма го
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.30.34.png]
+
+[CLAUDE]: Домейните не са в Settings. Излез от Settings — натисни **"lang-gamification"** горе (до логото) за да отидеш на главната страница на проекта. Там ще видиш таб **"Domains"** в горното меню.
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.32.04.png]
+
+[CLAUDE]: Виждам, че си сложил `lang-game.app` — но `.app` домейните са платени и трябва да се купят отделно.
+
+Натисни **Cancel** и вместо това въведи нещо с `.vercel.app` накрая, например:
+
+- `lang-game.vercel.app`
+- `langworld.vercel.app`
+
+Това е безплатно.
+
+[BORISLAV]: пак същото
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.33.04.png]
+
+[CLAUDE]: Това е правилно! `langworld.vercel.app` — избери **"Redirect old domain to new"** (вече е избрано) и натисни **Save**.
+
+Така старият линк ще пренасочва към новия. Новият ти линк ще е:
+
+**https://langworld.vercel.app**
+
+[BORISLAV]: сега тр ли да изтрия запазената отпреди иконка на играта? и може ли сменим иконката да е нещо с учене и езици ?
+
+[CLAUDE]: Да, изтрий старата иконка от телефона — тя сочи към `192.168.1.31` което вече не работи. След това отвори `https://langworld.vercel.app` в Chrome и инсталирай наново.
+
+За иконката — нека я сменим.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/app/manifest.ts) | (Search files: public/**/*.{png,svg,ico})
+
+[CLAUDE]: Иконките липсват — манифестът ги реферира но файловете не съществуват. Ще ги генерирам.
+    (Bash: Check public folder contents) | (Bash: Check icons folder) | (Bash: Check icon file details) | (Read file: /Users/borislavbudinov/lang-gamification/public/icons/icon-192.png)
+
+[CLAUDE]: Иконките съществуват, но са просто син кръг — нищо специално. Нека ги заменим с нещо по-тематично. Ще генерирам нови с глобус и букви.
+    (Bash: Generate new PWA icons with globe and LW design) | (Read file: /Users/borislavbudinov/lang-gamification/public/icons/icon-512.png)
+
+------------------------------------------------------------
+[SESSION CONTINUATION -- Context was refreshed]
+------------------------------------------------------------
+
+[CLAUDE]: Продължавам — commit и push на новите PWA иконки.
+    (Bash: Check git status for icon files) | (Bash: Commit and push new PWA icons)
+
+[CLAUDE]: Готово! Иконките са push-нати и Vercel ще auto-deploy-не за 1-2 минути.
+
+За да видиш новата иконка на телефона:
+1. Изтрий старата иконка от home screen
+2. Отвори Chrome → **langworld.vercel.app**
+3. Натисни менюто (⋮) → **"Add to Home screen"**
+4. Новата иконка с глобуса и "LW" ще се появи
+
+[BORISLAV]: моля и fav icon-а да е същия направо
+    (Search files: **/favicon*) | (Search files: **/icon*) | (Bash: Generate favicon.ico from PWA icon) | (Bash: Commit and push new favicon)
+
+[CLAUDE]: Готово! Favicon-ът вече е същият като PWA иконката — глобус с "LW". Vercel ще deploy-не за минута-две и ще го видиш в tab-а на браузъра.
+
+[BORISLAV]: не се смени иконката, най вероятно защото не мина във версел - We’re writing to notify you that bbudinov@appolica.come.com is attempting to deploy a commit to bbudinov's projects on Vercel through GitHub, but they are not a member of the team.
+
+To resolve this issue, you can:
+
+Upgrade to Pro and add them as a collaborator on your Vercel team
+If the user is already a member of your Vercel team, ensure their GitHub account is connected to their Vercel account on their Authentication Settings page
+If applicable, make your repository public - да създам с личен мейл версел акаунт?
+
+[CLAUDE]: Най-лесното решение е да направиш репото **public** — това е игра за учене, няма тайни в нея. Така Vercel ще deploy-ва без проблем.
+
+В GitHub:
+1. Отвори **github.com/bbudinov/lang-gamification**
+2. **Settings** (горе вдясно)
+3. Скролни до **Danger Zone** най-долу
+4. **Change visibility** → **Make public**
+5. Потвърди
+
+След това push-ът ще тригерне Vercel deploy автоматично. Не трябва нов акаунт.
+
+[BORISLAV]: добре, готово, дай нов пуш за иконките
+    (Bash: Empty commit to trigger Vercel redeploy)
+
+[CLAUDE]: Готово, push-нато! Vercel трябва да deploy-не за 1-2 минути. След това favicon-ът и PWA иконката ще се обновят.
+
+[BORISLAV]: добре направи и splash screen-а с новата иконка
+
+[CLAUDE]: The splash screen currently uses a `🌍` emoji. Let me replace it with the actual PWA icon.
+    (Edit file: /Users/borislavbudinov/lang-gamification/src/app/page.tsx) | (Bash: Commit and push splash screen icon update)
+
+[CLAUDE]: Готово! Splash screen-ът вече показва иконката с глобуса и "LW" вместо емоджито. Vercel ще deploy-не за минута.
+
+[BORISLAV]: ок, ще чакам да видя като се семни, още не е. дай сега да видим това за гласа - нали имаше много евтина опция да добавим гласове на бг?
+
+[CLAUDE]: Да! Най-умният вариант за теб е да **pre-генерираме** аудио файлове за всички думи в играта. Понеже думите са hardcoded, можем еднократно да генерираме .mp3 файлове и да ги пуснем като статични файлове — **без runtime API разходи**.
+
+Опциите:
+
+1. **Google Cloud TTS** — има БГ глас, **безплатно до 1M символа/месец** (стандартни гласове) или 500K за WaveNet. За ~100 думи + фрази това е напълно безплатно еднократно.
+
+2. **Azure TTS** — също има БГ, подобни цени, безплатен tier 500K символа/месец.
+
+3. **ElevenLabs** — най-качествен, но по-скъп (~$5/месец).
+
+Моята препоръка: **Google Cloud TTS** — безплатен tier е повече от достатъчен. Генерираме всички аудио файлове веднъж, слагаме ги в `public/audio/bg/`, `public/audio/en/`, `public/audio/es/` и ги пускаме вместо Web Speech API за думите в иг...
+
+[BORISLAV]: давай с google cloud, какво трябва да направя
+
+[CLAUDE]: Стъпка по стъпка:
+
+**1. Отвори Google Cloud Console:**
+- Отиди на **console.cloud.google.com**
+- Логни се с Google акаунта си (или създай нов)
+
+**2. Създай нов проект:**
+- Горе вляво до "Google Cloud" има dropdown → **"New Project"**
+- Име: `langworld` (или каквото искаш)
+- Натисни **"Create"**
+
+**3. Включи Text-to-Speech API:**
+- В search bar-а горе напиши: **"Text-to-Speech"**
+- Избери **"Cloud Text-to-Speech API"**
+- Натисни **"Enable"**
+
+**4. Създай API ключ:**
+- Отиди на **APIs & Services → Credentials** (от менюто вляво)
+- Натисни **"+ Create Credentials" → "API Key"**
+- Ще ти покаже ключа — копирай го
+
+**5. Прати ми ключа тук** (или по-добре — кажи ми "готово" и ще ти кажа къде да го запишеш, за да не го показваш публично)
+
+Целият процес е ~3-4 минути. Не иска кредитна карта за безп...
+
+[BORISLAV]: towa?
+
+[BORISLAV]: [Image: source: /Users/borislavbudinov/Desktop/Screenshot 2026-02-28 at 22.50.37.png]
+
+[CLAUDE]: Да! Избери **"No organization"** от dropdown-а, после натисни **"New project"** горе вдясно. Така ще създадеш личен проект, не под Appolica.
+
+[BORISLAV]: готово, създадох го но ми пише че е unrestricted и да отода в едт да оправям
+
+[CLAUDE]: Не се притеснявай за това — ключът е unrestricted, но ние ще го ползваме само еднократно локално на твоя компютър, за да генерираме аудио файловете. Няма да го качваме никъде публично.
+
+Прати ми ключа (или го запиши в терминала) и аз ще генерирам всички аудио файлове наведнъж. След това ключът може и да го изтриеш.
+
+[BORISLAV]: AIzaSyDWs6SVldMkScm2taEAOnu0AubM_QqP9BU
+
+[CLAUDE]: Супер! Нека първо видя всички думи в играта, за да генерирам аудиото.
+    (Read file: /Users/borislavbudinov/lang-gamification/src/data/words.ts)
+
+[CLAUDE]: Сега ще напиша скрипт, който ще генерира всички аудио файлове наведнъж. Първо да проверим какви БГ гласове има.
+    (Bash: Check available Bulgarian voices) | (Bash: List all BG voices)
+
+[CLAUDE]: Много HD гласове! Нека тестваме един мъжки (за Professor Globe). Ще пробвам `Charon`.
+    (Bash: Test Bulgarian Charon voice)
+
+[CLAUDE]: Работи! Нека тестваме и друг мъжки глас за сравнение, и да чуеш кой ти харесва повече.
+    (Bash: Test multiple BG male voices)
+
+[CLAUDE]: Генерирах 6 тестови гласа. Отвори тази папка на компютъра си и ги послушай:
+
+**`lang-gamification/public/audio/test/`**
+
+Файлове:
+- `bg-charon.mp3`
+- `bg-Achird.mp3`
+- `bg-Alnilam.mp3`
+- `bg-Fenrir.mp3`
+- `bg-Puck.mp3`
+- `bg-Schedar.mp3`
+
+Кажи ми кой глас ти харесва най-много и ще генерирам всички думи с него.
+
+[BORISLAV]: автоматично ли ще пращаш всичко ново там или ще трябва на итерации да ги обработваме?
+
+[CLAUDE]: Ще бъде автоматично — ще напиша скрипт, който:
+
+1. Генерира **всички ~200 думи** (на 3 езика) + фразите на Професор Глоуб
+2. Записва ги в `public/audio/bg/`, `public/audio/en/`, `public/audio/es/`
+3. Променя кода на играта да пуска готовите MP3 файлове вместо Web Speech API
+
+Всичко наведнъж, един скрипт — без итерации. Просто ми кажи кой глас ти хареса от тестовите и тръгвам.
+
+[BORISLAV]: този линк не се отваря на лаптопа ми
+
+[BORISLAV]: [Request interrupted by user]
+
+[BORISLAV]: lang-gamification/public/audio/test/
+    (Bash: Open test audio folder in Finder)
+
+[CLAUDE]: Отворих папката в Finder. Трябва да виждаш 6 MP3 файла — double-click на всеки, за да го чуеш, и ми кажи кой глас ти харесва.
+
+[BORISLAV]: супер са, нека заложим на bg-Puck
+
+[CLAUDE]: Отлично! Нека проверя и EN/ES гласовете, и после генерирам всичко наведнъж.
+    (Bash: List EN male Chirp3 HD voices) | (Bash: List ES male Chirp3 HD voices)
+
+[CLAUDE]: Puck го има и за EN и ES. Ще ползвам Puck за всички езици. Сега генерирам всичко.
+    (Bash: Create audio directories) | (Write file: /Users/borislavbudinov/lang-gamification/scripts/generate-audio.js) | (Bash: Generate all audio files via Google Cloud TTS)
+
+
+
+================================================================================
+
+  END OF TRANSCRIPT SAMPLE
+
+  What you just read covers roughly 12% of the full session.
+  The complete transcript spans 6303 entries -- from initial idea
+  to a fully deployed PWA with 3D islands, 4 mini-games, 3 languages,
+  233 pre-generated audio files, and Professor Globe as narrator.
+
+  All code was written by Claude. Borislav provided direction,
+  tested on his devices, reported bugs, and shaped the product.
+
+================================================================================

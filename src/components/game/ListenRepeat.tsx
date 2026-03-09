@@ -6,6 +6,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { getTopicPhrases } from "@/data/phrases";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { StarDisplay } from "@/components/game/StarDisplay";
 import { playPopSound, playDingSound, playPhraseAudioAndWait } from "@/lib/speech";
 import type { Topic, PhraseEntry } from "@/types";
 
@@ -169,6 +170,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     const pointsEarned = totalStars * 5 + COMPLETION_BONUS;
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
+        <StarDisplay score={pointsEarned} maxScore={phrases.length * 15 + COMPLETION_BONUS} size="lg" />
         <ProfessorGlobe size={96} emotion="happy" speaking />
         <h2 className="text-3xl font-bold text-white">Great Speaking!</h2>
         <div className="bg-white/5 rounded-2xl p-6 w-full max-w-xs space-y-3">

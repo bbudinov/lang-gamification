@@ -1,0 +1,2152 @@
+COMMIT #
+
+Hash: a8035a6
+Date: February 28, 2026 at 16:17
+Message: Initial setup: 3D language learning game with Memory Match
+- Next.js 15 + React Three Fiber + Zustand + Tailwind
+- PWA configuration (manifest, service worker, mobile viewport)
+- 3D island map with floating low-poly islands (Animals + Colors topics)
+- Memory Match mini-game with CSS 3D card flip animations
+- Word database for 3 languages (EN/BG/ES)
+- Progress system with localStorage persistence
+- Web Speech API for pronunciation
+- Mobile-first: touch controls, no shadows, performance monitor
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ .gitignore                                   |   41 +
+ README.md                                    |   36 +
+ eslint.config.mjs                            |   18 +
+ next.config.ts                               |   18 +
+ package-lock.json                            | 7221 ++++++++++++++++++++++++++
+ package.json                                 |   31 +
+ postcss.config.mjs                           |    7 +
+ public/file.svg                              |    1 +
+ public/globe.svg                             |    1 +
+ public/icons/icon-192.png                    |  Bin 0 -> 1069 bytes
+ public/icons/icon-512.png                    |  Bin 0 -> 4131 bytes
+ public/next.svg                              |    1 +
+ public/sw.js                                 |   53 +
+ public/vercel.svg                            |    1 +
+ public/window.svg                            |    1 +
+ src/app/favicon.ico                          |  Bin 0 -> 25931 bytes
+ src/app/game/[topicId]/[gameType]/page.tsx   |   46 +
+ src/app/globals.css                          |   25 +
+ src/app/layout.tsx                           |   42 +
+ src/app/manifest.ts                          |   18 +
+ src/app/map/page.tsx                         |   31 +
+ src/app/page.tsx                             |   21 +
+ src/components/ServiceWorkerRegistration.tsx |   15 +
+ src/components/game/GameHUD.tsx              |   44 +
+ src/components/game/MemoryCard.tsx           |   48 +
+ src/components/game/MemoryMatch.tsx          |  203 +
+ src/components/scene/Island.tsx              |  110 +
+ src/components/scene/IslandMap.tsx           |   49 +
+ src/components/scene/Ocean.tsx               |   27 +
+ src/components/ui/TopBar.tsx                 |   48 +
+ src/data/words.ts                            |   42 +
+ src/lib/constants.ts                         |   19 +
+ src/lib/speech.ts                            |   25 +
+ src/stores/gameStore.ts                      |  114 +
+ src/stores/progressStore.ts                  |   49 +
+ src/types/index.ts                           |   49 +
+ tsconfig.json                                |   34 +
+ 37 files changed, 8489 insertions(+)
+COMMIT #
+
+Hash: 5034cd3
+Date: February 28, 2026 at 16:20
+Message: Add audio unlock, Install PWA button, and Wake Lock
+- Splash screen now requires tap to start (unlocks Web Speech API)
+- Install PWA button shows on Android via beforeinstallprompt
+- Wake Lock keeps screen on during gameplay
+- TopBar includes Install button when available
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                    | 27 ++++++++++++++++-------
+ src/components/game/MemoryMatch.tsx |  9 +++++++-
+ src/components/ui/InstallPWA.tsx    | 43 +++++++++++++++++++++++++++++++++++++
+ src/components/ui/TopBar.tsx        | 28 +++++++++++++-----------
+ src/lib/wakeLock.ts                 | 19 ++++++++++++++++
+ 5 files changed, 105 insertions(+), 21 deletions(-)
+COMMIT #
+
+Hash: ed0ae97
+Date: February 28, 2026 at 16:24
+Message: Fix speech: preload voices async and unlock on user gesture
+Voices load asynchronously - now we wait for voiceschanged event.
+Splash screen preloads voices on mount and unlocks synthesis on tap.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx  | 14 +++++++++++---
+ src/lib/speech.ts | 37 +++++++++++++++++++++++++++++++++++--
+ 2 files changed, 46 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 4eff0b7
+Date: February 28, 2026 at 16:37
+Message: Add welcome speech, Word Quiz game, game selector, and helper character
+- Splash screen: welcome speech on load, "Enjoy the game" on start
+- Word Quiz: listen to a word, pick correct translation from 4 options
+  (+15 correct, -5 wrong, +60 completion bonus)
+- Game selector modal: tap island to choose between Memory Match and Word Quiz
+- Professor Globe helper: floating button on map, tap to see scoring rules
+  and game explanations with speech greeting
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/game/[topicId]/[gameType]/page.tsx |   5 +
+ src/app/map/page.tsx                       |  20 +-
+ src/app/page.tsx                           |  39 +++-
+ src/components/game/WordQuiz.tsx           | 282 +++++++++++++++++++++++++++++
+ src/components/scene/Island.tsx            |   7 +-
+ src/components/scene/IslandMap.tsx         |  18 +-
+ src/components/ui/GameSelector.tsx         |  71 ++++++++
+ src/components/ui/HelpButton.tsx           | 109 +++++++++++
+ 8 files changed, 534 insertions(+), 17 deletions(-)
+COMMIT #
+
+Hash: d53cf2d
+Date: February 28, 2026 at 16:38
+Message: Add EN/BG language toggle to Professor Globe rules
+Rules modal now has EN/BG toggle in the header. Switching language
+updates all text and speaks the greeting in the selected language.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 164 +++++++++++++++++++++++++++++----------
+ 1 file changed, 125 insertions(+), 39 deletions(-)
+COMMIT #
+
+Hash: a81654b
+Date: February 28, 2026 at 16:54
+Message: Add True/False and Word Scramble games, expand map with 10 new islands
+- True/False game: 10 rounds, judge if translation is correct (+10/-5/+40 bonus)
+- Word Scramble game: 6 rounds, tap letters to spell translation (+20/-3/+50 bonus)
+- GameSelector updated with all 4 game types
+- 10 new islands (Food, Numbers, Family, Body, Weather with data; Travel, School, Work, Sports, Music as placeholders)
+- Map rotation enabled, ocean expanded, Professor Globe sections now clickable with speech
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/game/[topicId]/[gameType]/page.tsx |  10 ++
+ src/components/game/TrueFalse.tsx          | 257 +++++++++++++++++++++++++++
+ src/components/game/WordScramble.tsx       | 271 +++++++++++++++++++++++++++++
+ src/components/scene/Island.tsx            |  10 +-
+ src/components/scene/IslandMap.tsx         |  15 +-
+ src/components/scene/Ocean.tsx             |   2 +-
+ src/components/ui/GameSelector.tsx         |  12 ++
+ src/components/ui/HelpButton.tsx           | 217 +++++++++++++----------
+ src/data/words.ts                          | 150 ++++++++++++++++
+ src/types/index.ts                         |   4 +-
+ 10 files changed, 839 insertions(+), 109 deletions(-)
+COMMIT #
+
+Hash: 47c685b
+Date: February 28, 2026 at 17:07
+Message: Add rotating motivational phrases when selecting a game
+Speaks "great choice", "let's play", "wooooo", etc. in order each time a game is picked.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/GameSelector.tsx | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+COMMIT #
+
+Hash: eb62207
+Date: February 28, 2026 at 17:17
+Message: Add story narration on game start and switch Professor Globe to Bulgarian
+- Start Playing now triggers a 5-part story narrated by Professor Globe in Bulgarian
+- Story text appears on screen with speech synthesis, ends with a joke about rewards
+- Skip button to jump straight to map
+- GameSelector motivational phrases switched to Bulgarian
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                   | 115 ++++++++++++++++++++++++++-----------
+ src/components/ui/GameSelector.tsx |  18 +++---
+ 2 files changed, 92 insertions(+), 41 deletions(-)
+COMMIT #
+
+Hash: c09d234
+Date: February 28, 2026 at 17:19
+Message: Set Professor Globe rules default language to Bulgarian
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+COMMIT #
+
+Hash: 189f6c3
+Date: February 28, 2026 at 18:16
+Message: Fix 6 bugs: z-index, skip timers, voice quality, speech cutoff, unlock costs, labels
+1. Island Html labels z-index capped to [1,5] — fixes TopBar/HelpButton/GameSelector being covered
+2. Skip story now clears all pending timers — no more lingering speech after skip
+3. Voice selection prefers Google TTS voices for better Bulgarian pronunciation
+4. Game phrases use speakAndWait — waits for speech to finish before navigating
+5. Unlock costs now regular 500pt increments (0, 500, 1000, ... 5500)
+6. Same z-index fix resolves island labels bleeding over game/modal overlays
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                   | 18 ++++++++--
+ src/components/scene/Island.tsx    |  2 +-
+ src/components/ui/GameSelector.tsx | 27 +++++++++++----
+ src/data/words.ts                  | 22 ++++++------
+ src/lib/constants.ts               | 16 ++++++---
+ src/lib/speech.ts                  | 70 ++++++++++++++++++++++++++++++++++++--
+ 6 files changed, 126 insertions(+), 29 deletions(-)
+COMMIT #
+
+Hash: b2822e1
+Date: February 28, 2026 at 18:23
+Message: Fix TopBar/HelpButton visibility and increase max zoom out
+- Canvas wrapper gets relative z-0 to contain its stacking context
+- TopBar and HelpButton bumped to z-30 (above Canvas layer)
+- Max zoom distance increased from 25 to 45
+- Fog extended to 55 so distant islands stay visible
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 6 +++---
+ src/components/ui/HelpButton.tsx   | 2 +-
+ src/components/ui/TopBar.tsx       | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 7614b8b
+Date: February 28, 2026 at 18:28
+Message: Force TopBar and HelpButton above Canvas with inline z-index 9999
+drei Html portal can override Tailwind z-index classes — using inline
+style={{ zIndex: 9999 }} to guarantee UI stays on top of 3D scene.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 3 ++-
+ src/components/ui/TopBar.tsx     | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: 0aa6892
+Date: February 28, 2026 at 18:34
+Message: Fix speech: sequential story narration, stop on dismiss, better BG voice
+1. Story intro now chains parts sequentially via speakAndWait (onend event)
+   instead of fixed timers — no more cutting off last words
+2. "Got it" / backdrop click now calls stopSpeech() to cancel ongoing speech
+3. Better BG voice: rate lowered to 0.75 for BG, prefers Google and cloud
+   voices, added stopSpeech() export, speakAndWait no longer auto-cancels
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                 | 89 ++++++++++++++++++----------------------
+ src/components/ui/HelpButton.tsx |  6 +--
+ src/lib/speech.ts                | 42 ++++++++++++++-----
+ 3 files changed, 75 insertions(+), 62 deletions(-)
+COMMIT #
+
+Hash: 14bc2d3
+Date: February 28, 2026 at 21:47
+Message: Add voice picker in Professor Globe to choose best BG voice
+- New "Change voice" button in rules panel shows all available BG voices
+- Tap any voice to hear a test phrase, selection is saved to localStorage
+- speech.ts: added getVoicesForLanguage, speakWithVoice, setPreferredVoice
+- findBestVoice now checks user preference first before auto-selecting
+- Updated unlock rules text to reflect new 500pt increments
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 93 ++++++++++++++++++++++++++++++++++++----
+ src/lib/speech.ts                | 63 +++++++++++++++++++++++++++
+ 2 files changed, 148 insertions(+), 8 deletions(-)
+COMMIT #
+
+Hash: d17c5ca
+Date: February 28, 2026 at 21:49
+Message: Fix Word Scramble showing answer and Prof Globe cut off on Android
+- Word Scramble: empty slots no longer reveal the target letters
+- HelpButton: moved from bottom-6 to bottom-20 to clear Android nav bar
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/WordScramble.tsx | 2 +-
+ src/components/ui/HelpButton.tsx     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: ea71b9d
+Date: February 28, 2026 at 21:51
+Message: Show voice picker even with single BG voice available
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: 183b194
+Date: February 28, 2026 at 22:39
+Message: Update PWA icons with globe + LW learning theme design
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/icons/icon-192.png | Bin 1069 -> 12547 bytes
+ public/icons/icon-512.png | Bin 4131 -> 42157 bytes
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+COMMIT #
+
+Hash: a2562e3
+Date: February 28, 2026 at 22:40
+Message: Update favicon to match PWA icon design
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/favicon.ico | Bin 25931 -> 2434 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+COMMIT #
+
+Hash: 4dc8988
+Date: February 28, 2026 at 22:43
+Message: Trigger redeploy for updated icons
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+COMMIT #
+
+Hash: 54450c2
+Date: February 28, 2026 at 22:43
+Message: Use PWA icon on splash screen instead of emoji
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+COMMIT #
+
+Hash: 6ad7391
+Date: February 28, 2026 at 23:07
+Message: Add pre-generated Google Cloud TTS audio for all words and phrases
+Replace Web Speech API with high-quality Chirp3-HD Puck voice.
+233 audio files: 68 words × 3 languages + story/motivational/rules phrases.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/bg/a1.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/a10.mp3                     | Bin 0 -> 3744 bytes
+ public/audio/bg/a2.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/bg/a3.mp3                      | Bin 0 -> 3744 bytes
+ public/audio/bg/a4.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/a5.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/a6.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/a7.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/bg/a8.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/a9.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/b1.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/b10.mp3                     | Bin 0 -> 2592 bytes
+ public/audio/bg/b2.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/b3.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/bg/b4.mp3                      | Bin 0 -> 3072 bytes
+ public/audio/bg/b5.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/b6.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/b7.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/b8.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/b9.mp3                      | Bin 0 -> 2592 bytes
+ public/audio/bg/c1.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/c2.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/bg/c3.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/bg/c4.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/bg/c5.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/c6.mp3                      | Bin 0 -> 3072 bytes
+ public/audio/bg/c7.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/bg/c8.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/f1.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/bg/f10.mp3                     | Bin 0 -> 4032 bytes
+ public/audio/bg/f2.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/f3.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/f4.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/f5.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/f6.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/f7.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/f8.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/bg/f9.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/fm1.mp3                     | Bin 0 -> 3264 bytes
+ public/audio/bg/fm10.mp3                    | Bin 0 -> 4416 bytes
+ public/audio/bg/fm2.mp3                     | Bin 0 -> 3264 bytes
+ public/audio/bg/fm3.mp3                     | Bin 0 -> 3456 bytes
+ public/audio/bg/fm4.mp3                     | Bin 0 -> 3072 bytes
+ public/audio/bg/fm5.mp3                     | Bin 0 -> 4224 bytes
+ public/audio/bg/fm6.mp3                     | Bin 0 -> 3456 bytes
+ public/audio/bg/fm7.mp3                     | Bin 0 -> 3264 bytes
+ public/audio/bg/fm8.mp3                     | Bin 0 -> 2016 bytes
+ public/audio/bg/fm9.mp3                     | Bin 0 -> 3264 bytes
+ public/audio/bg/n1.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/bg/n10.mp3                     | Bin 0 -> 3456 bytes
+ public/audio/bg/n2.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/bg/n3.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/bg/n4.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/n5.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/bg/n6.mp3                      | Bin 0 -> 5856 bytes
+ public/audio/bg/n7.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/bg/n8.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/n9.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/bg/w1.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/w10.mp3                     | Bin 0 -> 2784 bytes
+ public/audio/bg/w2.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/bg/w3.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/w4.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/w5.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/bg/w6.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/bg/w7.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/bg/w8.mp3                      | Bin 0 -> 3936 bytes
+ public/audio/bg/w9.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/en/a1.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/en/a10.mp3                     | Bin 0 -> 3072 bytes
+ public/audio/en/a2.mp3                      | Bin 0 -> 5664 bytes
+ public/audio/en/a3.mp3                      | Bin 0 -> 1824 bytes
+ public/audio/en/a4.mp3                      | Bin 0 -> 5664 bytes
+ public/audio/en/a5.mp3                      | Bin 0 -> 4896 bytes
+ public/audio/en/a6.mp3                      | Bin 0 -> 4416 bytes
+ public/audio/en/a7.mp3                      | Bin 0 -> 3072 bytes
+ public/audio/en/a8.mp3                      | Bin 0 -> 4224 bytes
+ public/audio/en/a9.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/en/b1.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/en/b10.mp3                     | Bin 0 -> 4704 bytes
+ public/audio/en/b2.mp3                      | Bin 0 -> 4896 bytes
+ public/audio/en/b3.mp3                      | Bin 0 -> 1824 bytes
+ public/audio/en/b4.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/en/b5.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/en/b6.mp3                      | Bin 0 -> 6336 bytes
+ public/audio/en/b7.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/en/b8.mp3                      | Bin 0 -> 4704 bytes
+ public/audio/en/b9.mp3                      | Bin 0 -> 2592 bytes
+ public/audio/en/c1.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/en/c2.mp3                      | Bin 0 -> 4224 bytes
+ public/audio/en/c3.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/en/c4.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/en/c5.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/en/c6.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/en/c7.mp3                      | Bin 0 -> 3456 bytes
+ public/audio/en/c8.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/en/f1.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/en/f10.mp3                     | Bin 0 -> 4224 bytes
+ public/audio/en/f2.mp3                      | Bin 0 -> 5664 bytes
+ public/audio/en/f3.mp3                      | Bin 0 -> 4512 bytes
+ public/audio/en/f4.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/en/f5.mp3                      | Bin 0 -> 5376 bytes
+ public/audio/en/f6.mp3                      | Bin 0 -> 2592 bytes
+ public/audio/en/f7.mp3                      | Bin 0 -> 5376 bytes
+ public/audio/en/f8.mp3                      | Bin 0 -> 4704 bytes
+ public/audio/en/f9.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/en/fm1.mp3                     | Bin 0 -> 4224 bytes
+ public/audio/en/fm10.mp3                    | Bin 0 -> 1824 bytes
+ public/audio/en/fm2.mp3                     | Bin 0 -> 4704 bytes
+ public/audio/en/fm3.mp3                     | Bin 0 -> 2784 bytes
+ public/audio/en/fm4.mp3                     | Bin 0 -> 5376 bytes
+ public/audio/en/fm5.mp3                     | Bin 0 -> 7296 bytes
+ public/audio/en/fm6.mp3                     | Bin 0 -> 6336 bytes
+ public/audio/en/fm7.mp3                     | Bin 0 -> 3456 bytes
+ public/audio/en/fm8.mp3                     | Bin 0 -> 2592 bytes
+ public/audio/en/fm9.mp3                     | Bin 0 -> 4224 bytes
+ public/audio/en/n1.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/en/n10.mp3                     | Bin 0 -> 5184 bytes
+ public/audio/en/n2.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/en/n3.mp3                      | Bin 0 -> 3744 bytes
+ public/audio/en/n4.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/en/n5.mp3                      | Bin 0 -> 3744 bytes
+ public/audio/en/n6.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/en/n7.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/en/n8.mp3                      | Bin 0 -> 3552 bytes
+ public/audio/en/n9.mp3                      | Bin 0 -> 3072 bytes
+ public/audio/en/w1.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/en/w10.mp3                     | Bin 0 -> 5856 bytes
+ public/audio/en/w2.mp3                      | Bin 0 -> 4224 bytes
+ public/audio/en/w3.mp3                      | Bin 0 -> 4032 bytes
+ public/audio/en/w4.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/en/w5.mp3                      | Bin 0 -> 2976 bytes
+ public/audio/en/w6.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/en/w7.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/en/w8.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/en/w9.mp3                      | Bin 0 -> 4704 bytes
+ public/audio/es/a1.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/es/a10.mp3                     | Bin 0 -> 2304 bytes
+ public/audio/es/a2.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/es/a3.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/es/a4.mp3                      | Bin 0 -> 1824 bytes
+ public/audio/es/a5.mp3                      | Bin 0 -> 2592 bytes
+ public/audio/es/a6.mp3                      | Bin 0 -> 3744 bytes
+ public/audio/es/a7.mp3                      | Bin 0 -> 5952 bytes
+ public/audio/es/a8.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/es/a9.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/b1.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/es/b10.mp3                     | Bin 0 -> 5664 bytes
+ public/audio/es/b2.mp3                      | Bin 0 -> 1824 bytes
+ public/audio/es/b3.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/es/b4.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/es/b5.mp3                      | Bin 0 -> 4416 bytes
+ public/audio/es/b6.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/es/b7.mp3                      | Bin 0 -> 2112 bytes
+ public/audio/es/b8.mp3                      | Bin 0 -> 7392 bytes
+ public/audio/es/b9.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/es/c1.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/c2.mp3                      | Bin 0 -> 2304 bytes
+ public/audio/es/c3.mp3                      | Bin 0 -> 6912 bytes
+ public/audio/es/c4.mp3                      | Bin 0 -> 2592 bytes
+ public/audio/es/c5.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/es/c6.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/c7.mp3                      | Bin 0 -> 5952 bytes
+ public/audio/es/c8.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/f1.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/es/f10.mp3                     | Bin 0 -> 2784 bytes
+ public/audio/es/f2.mp3                      | Bin 0 -> 5376 bytes
+ public/audio/es/f3.mp3                      | Bin 0 -> 4992 bytes
+ public/audio/es/f4.mp3                      | Bin 0 -> 6816 bytes
+ public/audio/es/f5.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/f6.mp3                      | Bin 0 -> 4416 bytes
+ public/audio/es/f7.mp3                      | Bin 0 -> 5184 bytes
+ public/audio/es/f8.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/f9.mp3                      | Bin 0 -> 2784 bytes
+ public/audio/es/fm1.mp3                     | Bin 0 -> 5376 bytes
+ public/audio/es/fm10.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/es/fm2.mp3                     | Bin 0 -> 2592 bytes
+ public/audio/es/fm3.mp3                     | Bin 0 -> 5856 bytes
+ public/audio/es/fm4.mp3                     | Bin 0 -> 1824 bytes
+ public/audio/es/fm5.mp3                     | Bin 0 -> 6144 bytes
+ public/audio/es/fm6.mp3                     | Bin 0 -> 5184 bytes
+ public/audio/es/fm7.mp3                     | Bin 0 -> 2016 bytes
+ public/audio/es/fm8.mp3                     | Bin 0 -> 5376 bytes
+ public/audio/es/fm9.mp3                     | Bin 0 -> 2112 bytes
+ public/audio/es/n1.mp3                      | Bin 0 -> 1632 bytes
+ public/audio/es/n10.mp3                     | Bin 0 -> 5856 bytes
+ public/audio/es/n2.mp3                      | Bin 0 -> 4416 bytes
+ public/audio/es/n3.mp3                      | Bin 0 -> 6144 bytes
+ public/audio/es/n4.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/es/n5.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/n6.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/n7.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/n8.mp3                      | Bin 0 -> 5472 bytes
+ public/audio/es/n9.mp3                      | Bin 0 -> 3264 bytes
+ public/audio/es/w1.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/w10.mp3                     | Bin 0 -> 2112 bytes
+ public/audio/es/w2.mp3                      | Bin 0 -> 5664 bytes
+ public/audio/es/w3.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/w4.mp3                      | Bin 0 -> 2496 bytes
+ public/audio/es/w5.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/w6.mp3                      | Bin 0 -> 3072 bytes
+ public/audio/es/w7.mp3                      | Bin 0 -> 5376 bytes
+ public/audio/es/w8.mp3                      | Bin 0 -> 2016 bytes
+ public/audio/es/w9.mp3                      | Bin 0 -> 6816 bytes
+ public/audio/phrases/motiv1.mp3             | Bin 0 -> 5184 bytes
+ public/audio/phrases/motiv2.mp3             | Bin 0 -> 4224 bytes
+ public/audio/phrases/motiv3.mp3             | Bin 0 -> 1344 bytes
+ public/audio/phrases/motiv4.mp3             | Bin 0 -> 5856 bytes
+ public/audio/phrases/motiv5.mp3             | Bin 0 -> 4416 bytes
+ public/audio/phrases/motiv6.mp3             | Bin 0 -> 4032 bytes
+ public/audio/phrases/motiv7.mp3             | Bin 0 -> 4992 bytes
+ public/audio/phrases/motiv8.mp3             | Bin 0 -> 9216 bytes
+ public/audio/phrases/rules-greeting-bg.mp3  | Bin 0 -> 11712 bytes
+ public/audio/phrases/rules-greeting-en.mp3  | Bin 0 -> 10464 bytes
+ public/audio/phrases/rules-islands-bg.mp3   | Bin 0 -> 25056 bytes
+ public/audio/phrases/rules-islands-en.mp3   | Bin 0 -> 21984 bytes
+ public/audio/phrases/rules-lang-bg.mp3      | Bin 0 -> 21984 bytes
+ public/audio/phrases/rules-lang-en.mp3      | Bin 0 -> 24192 bytes
+ public/audio/phrases/rules-memory-bg.mp3    | Bin 0 -> 46272 bytes
+ public/audio/phrases/rules-memory-en.mp3    | Bin 0 -> 45024 bytes
+ public/audio/phrases/rules-quiz-bg.mp3      | Bin 0 -> 52224 bytes
+ public/audio/phrases/rules-quiz-en.mp3      | Bin 0 -> 39264 bytes
+ public/audio/phrases/rules-scramble-bg.mp3  | Bin 0 -> 45792 bytes
+ public/audio/phrases/rules-scramble-en.mp3  | Bin 0 -> 35136 bytes
+ public/audio/phrases/rules-truefalse-bg.mp3 | Bin 0 -> 45312 bytes
+ public/audio/phrases/rules-truefalse-en.mp3 | Bin 0 -> 33504 bytes
+ public/audio/phrases/rules-unlock-bg.mp3    | Bin 0 -> 30816 bytes
+ public/audio/phrases/rules-unlock-en.mp3    | Bin 0 -> 24192 bytes
+ public/audio/phrases/story1.mp3             | Bin 0 -> 23616 bytes
+ public/audio/phrases/story2.mp3             | Bin 0 -> 32736 bytes
+ public/audio/phrases/story3.mp3             | Bin 0 -> 23136 bytes
+ public/audio/phrases/story4.mp3             | Bin 0 -> 34272 bytes
+ public/audio/phrases/story5.mp3             | Bin 0 -> 30432 bytes
+ scripts/generate-audio.js                   | 233 ++++++++++++++++++++++++++++
+ src/app/page.tsx                            |  15 +-
+ src/components/game/MemoryMatch.tsx         |   7 +-
+ src/components/game/TrueFalse.tsx           |   5 +-
+ src/components/game/WordQuiz.tsx            |   9 +-
+ src/components/game/WordScramble.tsx        |   7 +-
+ src/components/ui/GameSelector.tsx          |  18 +--
+ src/components/ui/HelpButton.tsx            | 118 ++++----------
+ src/lib/speech.ts                           | 107 ++++++++++---
+ 242 files changed, 370 insertions(+), 149 deletions(-)
+COMMIT #
+
+Hash: 1447e8e
+Date: February 28, 2026 at 23:13
+Message: Bump SW cache to v2, cache MP3 audio files
+Forces old cache to be deleted so updated icons load on mobile.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/sw.js | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: eb43bad
+Date: February 28, 2026 at 23:21
+Message: Disable Android back button from exiting the PWA
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ServiceWorkerRegistration.tsx | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+COMMIT #
+
+Hash: 68d94a7
+Date: February 28, 2026 at 23:33
+Message: Add 6 visual/audio upgrades to island map
+- Ocean: MeshDistortMaterial waves (GPU simplex noise)
+- Clouds: 4 low-poly drifting cloud groups
+- Day/Night: lighting changes based on real hour
+- ContactShadows: subtle shadows under islands
+- Unlock effect: scale pop + sparkles + emissive flash
+- Click sounds: Web Audio API pop/ding (no files needed)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Clouds.tsx    | 89 ++++++++++++++++++++++++++++++++++
+ src/components/scene/Island.tsx    | 41 ++++++++++++++--
+ src/components/scene/IslandMap.tsx | 86 ++++++++++++++++++++++++++++++---
+ src/components/scene/Ocean.tsx     |  8 +++-
+ src/lib/speech.ts                  | 97 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 309 insertions(+), 12 deletions(-)
+COMMIT #
+
+Hash: 8b5936c
+Date: February 28, 2026 at 23:35
+Message: Add camera zoom to island + enhanced game selector
+- Camera lerps toward selected island when game menu opens
+- Camera returns to default view when menu closes
+- Stronger backdrop blur (backdrop-blur-md)
+- Bouncing topic emoji in selector
+- Pop sound on game selection
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/map/page.tsx               |  5 ++-
+ src/components/scene/IslandMap.tsx | 70 +++++++++++++++++++++++++++++---------
+ src/components/ui/GameSelector.tsx | 15 ++++----
+ 3 files changed, 65 insertions(+), 25 deletions(-)
+COMMIT #
+
+Hash: a364891
+Date: February 28, 2026 at 23:40
+Message: Enhance Memory Match with animations and sound effects
+Add card shimmer, shake on mismatch, sparkle burst on match,
+glow pulse on matched cards, and pop/ding sound effects.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css                 | 43 +++++++++++++++++++++++++++
+ src/components/game/MemoryCard.tsx  | 58 ++++++++++++++++++++++++++++++-------
+ src/components/game/MemoryMatch.tsx | 31 ++++++++++++++++----
+ 3 files changed, 117 insertions(+), 15 deletions(-)
+COMMIT #
+
+Hash: 8f6d22b
+Date: February 28, 2026 at 23:43
+Message: Fix camera lock and improve ocean waves visibility
+- Camera no longer forces position when no island is selected,
+  allowing free pan/zoom/rotate on the map
+- Camera smoothly returns to saved position after closing game menu
+- Increase ocean distort factor for more visible waves
+- Brighten night mode lighting so islands aren't too dark
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 68 ++++++++++++++++++++++++++++++--------
+ src/components/scene/Ocean.tsx     | 14 ++++----
+ 2 files changed, 62 insertions(+), 20 deletions(-)
+COMMIT #
+
+Hash: b376437
+Date: February 28, 2026 at 23:45
+Message: Add emoji pop-up effect on Memory Match pair found
+When a match is found, a big emoji bounces into view with confetti
+particles and the target language word, then gracefully exits.
+Adds delight and reinforces word-emoji association for learning.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css                 | 21 +++++++++
+ src/components/game/MatchPopup.tsx  | 87 +++++++++++++++++++++++++++++++++++++
+ src/components/game/MemoryMatch.tsx | 17 +++++++-
+ 3 files changed, 123 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: 2eb1abe
+Date: February 28, 2026 at 23:47
+Message: Remove hardcoded API key from audio generation script
+Key is now read from GOOGLE_TTS_API_KEY env variable.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ scripts/generate-audio.js | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+COMMIT #
+
+Hash: 3226461
+Date: February 28, 2026 at 23:52
+Message: Enhance Word Quiz with animations, sounds, and emoji popup
+- Floating/bobbing word display with drop shadows
+- Staggered slide-in animation for answer options
+- Emoji popup with confetti on correct answer (reuses MatchPopup)
+- Shake animation + buzz sound on wrong answer
+- Pop sound on button press, ding on correct
+- Animated progress bar with walking topic emoji
+- Score display during gameplay
+- Better button styling with borders, icons (check/cross)
+- Add playBuzzSound() to speech.ts (sawtooth wave, 150-100Hz)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css              |  50 ++++++++++++++++++
+ src/components/game/WordQuiz.tsx | 110 +++++++++++++++++++++++++++------------
+ src/lib/speech.ts                |  21 ++++++++
+ 3 files changed, 149 insertions(+), 32 deletions(-)
+COMMIT #
+
+Hash: 6b88106
+Date: February 28, 2026 at 23:55
+Message: Enhance True/False game with animations and sound effects
+- Floating flashcard with 3D perspective and bob animation
+- Card slide-in/exit animations between questions (rotateY + translateX)
+- Screen shake on wrong answer, emoji popup on correct
+- Tactile True/False buttons with press-down + glow animations
+- Thumbs up/down icons on buttons for visual clarity
+- Pop/ding/buzz sound effects for button press and feedback
+- Animated progress bar with walking topic emoji
+- Live score display, feedback badge on card
+- Listen again button for word audio replay
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css               |  48 ++++++++++
+ src/components/game/TrueFalse.tsx | 197 +++++++++++++++++++++++++++++---------
+ 2 files changed, 201 insertions(+), 44 deletions(-)
+COMMIT #
+
+Hash: 108f5b6
+Date: February 28, 2026 at 23:59
+Message: Improve ocean waves and clouds visibility on map
+Ocean:
+- Two-layer system: deep ocean + surface wave layer
+- Emissive glow makes waves visible even from top-down view
+- Surface layer has higher distort factor (0.9) with lower opacity
+- Creates visible color variation between wave crests and troughs
+
+Clouds:
+- 7 clouds instead of 4, larger scale (up to 1.6x)
+- White color with subtle blue emissive glow
+- Higher opacity (0.8), higher geometry detail (dodecahedron level 1)
+- Gentle vertical bobbing animation
+- Positioned closer to islands for better visibility
+
+Also push fog distance back (30-65) so clouds aren't hidden.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Clouds.tsx    | 74 ++++++++++++++++++++++++++++----------
+ src/components/scene/IslandMap.tsx |  2 +-
+ src/components/scene/Ocean.tsx     | 56 +++++++++++++++++++++--------
+ 3 files changed, 97 insertions(+), 35 deletions(-)
+COMMIT #
+
+Hash: efcc05b
+Date: March 01, 2026 at 00:01
+Message: Enhance Word Scramble with 3D-style blocks and animations
+- Letter blocks with gradient (from-white/15 to-white/5) and shadow
+  for a physical 3D block appearance
+- Bounce-in animation for scrambled letters with staggered delay
+- Slot fill glow animation (blue pulse) when correct letter placed
+- Complete word glow (green pulse cascade) on word finish
+- Wrong letter shake animation on entire slot row
+- Used letters shrink away with exit animation
+- Emoji popup with confetti on word completion
+- Pop sound on correct letter, buzz + shake on wrong
+- Floating hint word with emoji, listen again button
+- Animated progress bar with walking topic emoji
+- Live score display
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css                  |  39 +++++++++
+ src/components/game/WordScramble.tsx | 150 ++++++++++++++++++++++++++---------
+ 2 files changed, 151 insertions(+), 38 deletions(-)
+COMMIT #
+
+Hash: 0397f9b
+Date: March 01, 2026 at 00:07
+Message: Fix True/False audio overlap — longer delay on correct answer
+Correct answer: 2.3s before next round (was 1.2s) so popup and
+word audio finish before the next question's auto-speak starts.
+Wrong answer: keeps 1.2s since there's no popup/audio overlap.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/TrueFalse.tsx | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: ca349ad
+Date: March 01, 2026 at 00:10
+Message: Center camera on islands and add intro zoom-in effect
+- Camera starts far (y:25, z:28) and smoothly zooms to home
+  position (y:15, z:18) centered on all islands
+- Home target moved from (0,0,2) to (0,0,5) to center the
+  island cluster (islands span z:-2 to z:12)
+- Intro animation runs once on mount, then stops for free control
+- Simplified return-to-saved logic (deduplicated branch)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 45 ++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 21 deletions(-)
+COMMIT #
+
+Hash: d6a94e1
+Date: March 01, 2026 at 00:14
+Message: Increase island bobbing effect for more visible floating motion
+- Y rotation: 0.1 → 0.15 rad (more noticeable sway)
+- Add X tilt: ±0.06 rad (front-back rock)
+- Add Z tilt: ±0.04 rad (side lean)
+- Each island uses unique offset from position for variation
+- Float intensity: 0.3 → 0.5 (more vertical bob)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Island.tsx | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: 0972413
+Date: March 01, 2026 at 00:19
+Message: Add sailing boat that marks the last unlocked island
+Low-poly 3D boat (hull, cabin, mast, sail, flag) that:
+- Parks next to the last unlocked island as a progress marker
+- Smoothly sails to the new island when one is unlocked
+- Faces the direction of travel during animation
+- Shows wake trail behind it while traveling
+- Bobs and rocks on the water with Float + useFrame
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Boat.tsx      | 175 +++++++++++++++++++++++++++++++++++++
+ src/components/scene/IslandMap.tsx |   2 +
+ 2 files changed, 177 insertions(+)
+COMMIT #
+
+Hash: d9635d0
+Date: March 01, 2026 at 00:22
+Message: Give each island unique visuals based on its category
+Each of 12 islands now has its own:
+- Scale (0.85-1.35) for size variety
+- Ground color matching its theme
+- Beach ring color
+- Category-specific decorations:
+  - Trees: Animals (lush green, extra bush)
+  - Palms: Weather, Travel (bent trunks, coconuts)
+  - Rocks: Numbers, Body, Work (dodecahedron boulders)
+  - Crystals: Colors, Music (glowing colored cones)
+  - House: Family, School (walls, roof, chimney, door)
+  - Flowers: Food, Sports (colored spheres + small tree)
+
+Locked islands show greyed-out versions of their decorations.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Island.tsx | 253 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 224 insertions(+), 29 deletions(-)
+COMMIT #
+
+Hash: 0c4aea7
+Date: March 01, 2026 at 00:29
+Message: Hide emoji in True/False until answer is given
+Emoji illustration is now hidden during the question to avoid
+giving away the answer. It appears with a zoom-in animation
+only after the player responds.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/TrueFalse.tsx | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: e70894c
+Date: March 01, 2026 at 00:35
+Message: Spread islands into organic archipelago layout with size/height variation
+- Repositioned all 12 islands with wider spacing (x:-9..9, z:-5..21)
+- Added height variation per island (0.7-1.3x cone height)
+- Added satellite mini-islands (0-3 per island) for archipelago feel
+- Increased scale range (0.8-1.5x) for more visual variety
+- Updated camera home position to frame the wider layout
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Island.tsx    | 79 +++++++++++++++++++++++++++++---------
+ src/components/scene/IslandMap.tsx |  6 +--
+ src/data/words.ts                  | 24 ++++++------
+ 3 files changed, 76 insertions(+), 33 deletions(-)
+COMMIT #
+
+Hash: 16ae070
+Date: March 01, 2026 at 00:36
+Message: Add lantern light and anchor animation to boat
+- Warm flickering lantern on bow with PointLight (distance 5, soft decay)
+- Anchor drops with chain when boat arrives at island
+- Reduced bobbing when anchored vs traveling
+- Pop sound when boat starts sailing to new island
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Boat.tsx | 81 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 77 insertions(+), 4 deletions(-)
+COMMIT #
+
+Hash: 6d556e7
+Date: March 01, 2026 at 00:39
+Message: Add ambient island effects and rise-from-water unlock animation
+Ambient effects (only on unlocked islands):
+- Animals: golden butterflies orbiting
+- Colors: colorful orbs circling
+- Food: steam wisps rising
+- Weather: floating ice particles
+- Music: purple notes rising
+- Family: pink hearts floating up
+
+Unlock animation upgraded:
+- Island rises from below water (y: -2.5 → 0) with ease-out
+- 8 colored bubbles burst around island during rise
+- Scale pop in second half of animation
+- 2-second total duration for dramatic effect
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Island.tsx | 186 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 182 insertions(+), 4 deletions(-)
+COMMIT #
+
+Hash: c928780
+Date: March 01, 2026 at 00:45
+Message: Organic 3D islands + wider archipelago spread
+Island geometry completely reworked:
+- Replaced flat hexagonal cones with multi-layer organic shapes
+- Main body: squashed icosahedron (detail 1) for natural rocky terrain
+- Secondary peak offset for mountain silhouette
+- Cliff face: dodecahedron mass on one side
+- Underwater rock base for depth
+- Shoreline foam ring (semi-transparent torus)
+- 3 scattered shore rocks per island
+- Satellite islands also organic (icosahedrons + peaks + rocks)
+- Added cliffColor to visual config for layered coloring
+
+Layout spread ~1.8x wider:
+- x range: -16..15, z range: -9..36 (was -9..9, -5..21)
+- Camera pulled back to y=28, z=30
+- Fog extended to 40-90
+- Ocean expanded to 160x160
+- ContactShadows scale 70
+- Max zoom distance 60
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Island.tsx    | 241 +++++++++++++++++++++++--------------
+ src/components/scene/IslandMap.tsx |  18 +--
+ src/components/scene/Ocean.tsx     |   4 +-
+ src/data/words.ts                  |  24 ++--
+ 4 files changed, 173 insertions(+), 114 deletions(-)
+COMMIT #
+
+Hash: 9295118
+Date: March 01, 2026 at 00:47
+Message: Free zoom-to-cursor and increased max zoom out
+- zoomToCursor: zoom now follows mouse/finger position instead of fixed center
+- screenSpacePanning: pan feels more natural for map navigation
+- maxDistance increased to 100 for full archipelago overview
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+COMMIT #
+
+Hash: 6874b75
+Date: March 01, 2026 at 00:52
+Message: Fix mobile zoom snapping to center
+- Cancel intro animation immediately on user touch (onStart callback)
+- Auto-cancel intro after 3s max to prevent stuck state
+- Faster intro lerp (0.05 vs 0.03) for quicker convergence
+- Added enableDamping with 0.08 factor for smoother inertia
+- Zoom/pan is now fully free after intro ends or user touches
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
+COMMIT #
+
+Hash: c611386
+Date: March 01, 2026 at 00:57
+Message: Fix mobile pinch-zoom drift and allow closer zoom
+- Disable zoomToCursor on touch devices (causes island drift on pinch)
+- Keep zoomToCursor on desktop (works perfectly with mouse wheel)
+- Reduced minDistance from 5 to 3 for closer island inspection
+- Touch detection via ontouchstart + maxTouchPoints
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: 9db1456
+Date: March 01, 2026 at 01:00
+Message: Fix mobile zoom drift - switch to map-style touch controls
+On mobile, single-finger now PANS (drags map) instead of rotating.
+This keeps the orbit target synced with the view, so pinch-zoom
+always goes toward what's on screen instead of drifting to center.
+
+- Mobile: ONE finger = PAN, TWO fingers = DOLLY_PAN
+- Desktop: ONE finger = ROTATE, TWO fingers = DOLLY_PAN (unchanged)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+COMMIT #
+
+Hash: 4f4240e
+Date: March 01, 2026 at 01:34
+Message: Add stress marks to Bulgarian splash screen narration
+Added Unicode combining acute accents to all Bulgarian words
+in the story narration for correct pronunciation guidance.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 9bb5651
+Date: March 01, 2026 at 07:47
+Message: Hide emoji during questions, show only on correct answer
+- WordQuiz: emoji hidden until correct answer, then zoom-in reveal
+- WordScramble: emoji hidden until word is complete, then zoom-in
+- MemoryMatch: emoji removed from card text, shown only when matched
+- TrueFalse: already done previously
+- Added emoji field to MemoryCard type for conditional rendering
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/MemoryCard.tsx   | 3 +++
+ src/components/game/MemoryMatch.tsx  | 6 ++++--
+ src/components/game/WordQuiz.tsx     | 4 +++-
+ src/components/game/WordScramble.tsx | 4 +++-
+ src/types/index.ts                   | 1 +
+ 5 files changed, 14 insertions(+), 4 deletions(-)
+COMMIT #
+
+Hash: 152c939
+Date: March 01, 2026 at 10:47
+Message: Fix broken story audio files - regenerate without Unicode accents
+Unicode combining accents break Google Chirp3-HD TTS (produces silence).
+Reverted script to plain text and regenerated story1-5.mp3.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/phrases/story1.mp3 | Bin 23616 -> 21504 bytes
+ public/audio/phrases/story2.mp3 | Bin 32736 -> 32832 bytes
+ public/audio/phrases/story3.mp3 | Bin 23136 -> 21024 bytes
+ public/audio/phrases/story4.mp3 | Bin 34272 -> 29856 bytes
+ public/audio/phrases/story5.mp3 | Bin 30432 -> 30336 bytes
+ scripts/generate-audio.js       |   2 ++
+ 6 files changed, 2 insertions(+)
+COMMIT #
+
+Hash: 1aed101
+Date: March 01, 2026 at 10:48
+Message: Remove stress marks from displayed intro text
+Stress marks (ударения) removed from visual text — plain Bulgarian only.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 0f234d2
+Date: March 01, 2026 at 10:56
+Message: Switch Bulgarian TTS voice to Standard-B for correct pronunciation
+Chirp3-HD voices mispronounce Bulgarian stress patterns. Standard-B
+handles them correctly. Regenerated all BG word and phrase audio files.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/bg/a1.mp3                      | Bin 3264 -> 6144 bytes
+ public/audio/bg/a10.mp3                     | Bin 3744 -> 7104 bytes
+ public/audio/bg/a2.mp3                      | Bin 2976 -> 5760 bytes
+ public/audio/bg/a3.mp3                      | Bin 3744 -> 6144 bytes
+ public/audio/bg/a4.mp3                      | Bin 4032 -> 5760 bytes
+ public/audio/bg/a5.mp3                      | Bin 3264 -> 5184 bytes
+ public/audio/bg/a6.mp3                      | Bin 4032 -> 6528 bytes
+ public/audio/bg/a7.mp3                      | Bin 3552 -> 6336 bytes
+ public/audio/bg/a8.mp3                      | Bin 3264 -> 5760 bytes
+ public/audio/bg/a9.mp3                      | Bin 3264 -> 5376 bytes
+ public/audio/bg/b1.mp3                      | Bin 3456 -> 6336 bytes
+ public/audio/bg/b10.mp3                     | Bin 2592 -> 5568 bytes
+ public/audio/bg/b2.mp3                      | Bin 4032 -> 5952 bytes
+ public/audio/bg/b3.mp3                      | Bin 2304 -> 5568 bytes
+ public/audio/bg/b4.mp3                      | Bin 3072 -> 5184 bytes
+ public/audio/bg/b5.mp3                      | Bin 3264 -> 5184 bytes
+ public/audio/bg/b6.mp3                      | Bin 3456 -> 5568 bytes
+ public/audio/bg/b7.mp3                      | Bin 3264 -> 5760 bytes
+ public/audio/bg/b8.mp3                      | Bin 3264 -> 6528 bytes
+ public/audio/bg/b9.mp3                      | Bin 2592 -> 5760 bytes
+ public/audio/bg/c1.mp3                      | Bin 3264 -> 6720 bytes
+ public/audio/bg/c2.mp3                      | Bin 2304 -> 5376 bytes
+ public/audio/bg/c3.mp3                      | Bin 5472 -> 6336 bytes
+ public/audio/bg/c4.mp3                      | Bin 2304 -> 5952 bytes
+ public/audio/bg/c5.mp3                      | Bin 3264 -> 5568 bytes
+ public/audio/bg/c6.mp3                      | Bin 3072 -> 6336 bytes
+ public/audio/bg/c7.mp3                      | Bin 5472 -> 7680 bytes
+ public/audio/bg/c8.mp3                      | Bin 3456 -> 6528 bytes
+ public/audio/bg/f1.mp3                      | Bin 2016 -> 5568 bytes
+ public/audio/bg/f10.mp3                     | Bin 4032 -> 6144 bytes
+ public/audio/bg/f2.mp3                      | Bin 3456 -> 5760 bytes
+ public/audio/bg/f3.mp3                      | Bin 3264 -> 6528 bytes
+ public/audio/bg/f4.mp3                      | Bin 4032 -> 7680 bytes
+ public/audio/bg/f5.mp3                      | Bin 3456 -> 6912 bytes
+ public/audio/bg/f6.mp3                      | Bin 4032 -> 6336 bytes
+ public/audio/bg/f7.mp3                      | Bin 3264 -> 5760 bytes
+ public/audio/bg/f8.mp3                      | Bin 3552 -> 5952 bytes
+ public/audio/bg/f9.mp3                      | Bin 3456 -> 6336 bytes
+ public/audio/bg/fm1.mp3                     | Bin 3264 -> 6336 bytes
+ public/audio/bg/fm10.mp3                    | Bin 4416 -> 7104 bytes
+ public/audio/bg/fm2.mp3                     | Bin 3264 -> 5952 bytes
+ public/audio/bg/fm3.mp3                     | Bin 3456 -> 6528 bytes
+ public/audio/bg/fm4.mp3                     | Bin 3072 -> 5376 bytes
+ public/audio/bg/fm5.mp3                     | Bin 4224 -> 5760 bytes
+ public/audio/bg/fm6.mp3                     | Bin 3456 -> 5952 bytes
+ public/audio/bg/fm7.mp3                     | Bin 3264 -> 6144 bytes
+ public/audio/bg/fm8.mp3                     | Bin 2016 -> 5376 bytes
+ public/audio/bg/fm9.mp3                     | Bin 3264 -> 7104 bytes
+ public/audio/bg/n1.mp3                      | Bin 2976 -> 4992 bytes
+ public/audio/bg/n10.mp3                     | Bin 3456 -> 6720 bytes
+ public/audio/bg/n2.mp3                      | Bin 2976 -> 5184 bytes
+ public/audio/bg/n3.mp3                      | Bin 2304 -> 4416 bytes
+ public/audio/bg/n4.mp3                      | Bin 3456 -> 6336 bytes
+ public/audio/bg/n5.mp3                      | Bin 3552 -> 5184 bytes
+ public/audio/bg/n6.mp3                      | Bin 5856 -> 6144 bytes
+ public/audio/bg/n7.mp3                      | Bin 2976 -> 6528 bytes
+ public/audio/bg/n8.mp3                      | Bin 3456 -> 5952 bytes
+ public/audio/bg/n9.mp3                      | Bin 2784 -> 6528 bytes
+ public/audio/bg/w1.mp3                      | Bin 4032 -> 7104 bytes
+ public/audio/bg/w10.mp3                     | Bin 2784 -> 5952 bytes
+ public/audio/bg/w2.mp3                      | Bin 3552 -> 5760 bytes
+ public/audio/bg/w3.mp3                      | Bin 3456 -> 6528 bytes
+ public/audio/bg/w4.mp3                      | Bin 3456 -> 6144 bytes
+ public/audio/bg/w5.mp3                      | Bin 3264 -> 6144 bytes
+ public/audio/bg/w6.mp3                      | Bin 3456 -> 6144 bytes
+ public/audio/bg/w7.mp3                      | Bin 4032 -> 7488 bytes
+ public/audio/bg/w8.mp3                      | Bin 3936 -> 7296 bytes
+ public/audio/bg/w9.mp3                      | Bin 3456 -> 5568 bytes
+ public/audio/phrases/motiv1.mp3             | Bin 5184 -> 10176 bytes
+ public/audio/phrases/motiv2.mp3             | Bin 4224 -> 7296 bytes
+ public/audio/phrases/motiv3.mp3             | Bin 1344 -> 5376 bytes
+ public/audio/phrases/motiv4.mp3             | Bin 5856 -> 10176 bytes
+ public/audio/phrases/motiv5.mp3             | Bin 4416 -> 9600 bytes
+ public/audio/phrases/motiv6.mp3             | Bin 4032 -> 8064 bytes
+ public/audio/phrases/motiv7.mp3             | Bin 4992 -> 10368 bytes
+ public/audio/phrases/motiv8.mp3             | Bin 9216 -> 13632 bytes
+ public/audio/phrases/rules-greeting-bg.mp3  | Bin 11712 -> 25728 bytes
+ public/audio/phrases/rules-islands-bg.mp3   | Bin 25056 -> 50688 bytes
+ public/audio/phrases/rules-lang-bg.mp3      | Bin 21984 -> 46080 bytes
+ public/audio/phrases/rules-memory-bg.mp3    | Bin 46272 -> 90240 bytes
+ public/audio/phrases/rules-quiz-bg.mp3      | Bin 52224 -> 91776 bytes
+ public/audio/phrases/rules-scramble-bg.mp3  | Bin 45792 -> 86976 bytes
+ public/audio/phrases/rules-truefalse-bg.mp3 | Bin 45312 -> 72000 bytes
+ public/audio/phrases/rules-unlock-bg.mp3    | Bin 30816 -> 60672 bytes
+ public/audio/phrases/story1.mp3             | Bin 21504 -> 51072 bytes
+ public/audio/phrases/story2.mp3             | Bin 32832 -> 65280 bytes
+ public/audio/phrases/story3.mp3             | Bin 21024 -> 41664 bytes
+ public/audio/phrases/story4.mp3             | Bin 29856 -> 64704 bytes
+ public/audio/phrases/story5.mp3             | Bin 30336 -> 60672 bytes
+ scripts/generate-audio.js                   |   2 +-
+ 90 files changed, 1 insertion(+), 1 deletion(-)
+COMMIT #
+
+Hash: 54f8047
+Date: March 01, 2026 at 11:20
+Message: Add Word Mastery tracking and adaptive difficulty
+- Track per-word performance (correct/wrong/streak/lastSeen) in progressStore
+- All 4 games now update word mastery on each answer
+- New adaptive.ts algorithm weights word selection toward weak/unseen words
+- Formula: wrongCount*3 - streak*2 + daysSinceLastSeen (higher = more likely)
+- At least 2 unseen words guaranteed per round for variety
+- Foundation for Invisible Teacher AI feature
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/MemoryMatch.tsx  | 14 +++---
+ src/components/game/TrueFalse.tsx    | 14 +++---
+ src/components/game/WordQuiz.tsx     | 15 ++++---
+ src/components/game/WordScramble.tsx |  8 ++--
+ src/lib/adaptive.ts                  | 86 ++++++++++++++++++++++++++++++++++++
+ src/stores/progressStore.ts          | 21 ++++++++-
+ src/types/index.ts                   |  7 +++
+ 7 files changed, 143 insertions(+), 22 deletions(-)
+COMMIT #
+
+Hash: f1321b6
+Date: March 01, 2026 at 11:22
+Message: Add AI backend with Claude Haiku API route
+- Install @anthropic-ai/sdk
+- Create POST /api/ai/chat endpoint with rate limiting (30 req/min)
+- Max 300 tokens per response to control costs
+- Client-side helper in src/lib/ai.ts
+- Default system prompt: friendly, encouraging, age-appropriate (6-10)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ package-lock.json            | 42 +++++++++++++++++++++++++++++-
+ package.json                 |  1 +
+ src/app/api/ai/chat/route.ts | 62 ++++++++++++++++++++++++++++++++++++++++++++
+ src/lib/ai.ts                | 40 ++++++++++++++++++++++++++++
+ 4 files changed, 144 insertions(+), 1 deletion(-)
+COMMIT #
+
+Hash: 20fabc2
+Date: March 01, 2026 at 11:25
+Message: Add origin check to AI endpoint to prevent abuse
+Only allows requests from localhost and langworld.vercel.app.
+Blocks external calls that could burn API credits.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/api/ai/chat/route.ts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+COMMIT #
+
+Hash: ef7a44d
+Date: March 01, 2026 at 11:30
+Message: Add Professor Globe animated AI Hologram character
+Replace emoji placeholders with animated CSS/HTML character across
+intro screen, game selector, and help button. Features eye tracking,
+mouth sync via AudioContext, blink animation, and emotion states.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                            |  25 ++-
+ src/components/character/ProfessorGlobe.tsx | 284 ++++++++++++++++++++++++++++
+ src/components/ui/GameSelector.tsx          |  11 +-
+ src/components/ui/HelpButton.tsx            |  31 +--
+ 4 files changed, 332 insertions(+), 19 deletions(-)
+COMMIT #
+
+Hash: 2e61aa5
+Date: March 01, 2026 at 11:44
+Message: Add Phase 3: Fill the Scene game, phrases, and 5 new topics
+- Add PhraseEntry type and phrases data (72 phrases across 12 topics)
+- Create Fill the Scene game: complete sentences in context scenarios
+- Populate Travel, School, Work, Sports, Music with 10 words each
+- Add fill-scene to GameSelector (only shown for topics with phrases)
+- Update audio generation script with 50 new words
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ scripts/generate-audio.js                  |  55 +++
+ src/app/game/[topicId]/[gameType]/page.tsx |   5 +
+ src/components/game/FillScene.tsx          | 334 ++++++++++++++
+ src/components/ui/GameSelector.tsx         |  48 +-
+ src/data/phrases.ts                        | 680 +++++++++++++++++++++++++++++
+ src/data/words.ts                          |  67 ++-
+ src/types/index.ts                         |  16 +-
+ 7 files changed, 1180 insertions(+), 25 deletions(-)
+COMMIT #
+
+Hash: 08e60fe
+Date: March 01, 2026 at 11:51
+Message: Add Phase 4: Speaking games (Say It! + Listen & Repeat) and new audio
+- Create useSpeechRecognition hook wrapping Web Speech API
+- Add Levenshtein similarity scoring for fuzzy pronunciation matching
+- Build Say It! game: safe space word pronunciation practice
+  - Only positive scoring (5pts attempt, 10pts good match)
+  - Pulsing mic button, hints, skip option
+- Build Listen & Repeat: phrase repetition with star ratings (1-3)
+- Add both games to GameSelector and routing
+- Generate 150 audio files for 5 new topics (3 languages × 50 words)
+- Add Web Speech API TypeScript declarations
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/bg/mu1.mp3                    | Bin 0 -> 6528 bytes
+ public/audio/bg/mu10.mp3                   | Bin 0 -> 6336 bytes
+ public/audio/bg/mu2.mp3                    | Bin 0 -> 5376 bytes
+ public/audio/bg/mu3.mp3                    | Bin 0 -> 7680 bytes
+ public/audio/bg/mu4.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/mu5.mp3                    | Bin 0 -> 7680 bytes
+ public/audio/bg/mu6.mp3                    | Bin 0 -> 6336 bytes
+ public/audio/bg/mu7.mp3                    | Bin 0 -> 7104 bytes
+ public/audio/bg/mu8.mp3                    | Bin 0 -> 6720 bytes
+ public/audio/bg/mu9.mp3                    | Bin 0 -> 7488 bytes
+ public/audio/bg/sc1.mp3                    | Bin 0 -> 6720 bytes
+ public/audio/bg/sc10.mp3                   | Bin 0 -> 9024 bytes
+ public/audio/bg/sc2.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/sc3.mp3                    | Bin 0 -> 6720 bytes
+ public/audio/bg/sc4.mp3                    | Bin 0 -> 5376 bytes
+ public/audio/bg/sc5.mp3                    | Bin 0 -> 7296 bytes
+ public/audio/bg/sc6.mp3                    | Bin 0 -> 9216 bytes
+ public/audio/bg/sc7.mp3                    | Bin 0 -> 5952 bytes
+ public/audio/bg/sc8.mp3                    | Bin 0 -> 6720 bytes
+ public/audio/bg/sc9.mp3                    | Bin 0 -> 7296 bytes
+ public/audio/bg/spt1.mp3                   | Bin 0 -> 6144 bytes
+ public/audio/bg/spt10.mp3                  | Bin 0 -> 6336 bytes
+ public/audio/bg/spt2.mp3                   | Bin 0 -> 6720 bytes
+ public/audio/bg/spt3.mp3                   | Bin 0 -> 6336 bytes
+ public/audio/bg/spt4.mp3                   | Bin 0 -> 5568 bytes
+ public/audio/bg/spt5.mp3                   | Bin 0 -> 6528 bytes
+ public/audio/bg/spt6.mp3                   | Bin 0 -> 7104 bytes
+ public/audio/bg/spt7.mp3                   | Bin 0 -> 5184 bytes
+ public/audio/bg/spt8.mp3                   | Bin 0 -> 6720 bytes
+ public/audio/bg/spt9.mp3                   | Bin 0 -> 8448 bytes
+ public/audio/bg/tr1.mp3                    | Bin 0 -> 7296 bytes
+ public/audio/bg/tr10.mp3                   | Bin 0 -> 5760 bytes
+ public/audio/bg/tr2.mp3                    | Bin 0 -> 5952 bytes
+ public/audio/bg/tr3.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/tr4.mp3                    | Bin 0 -> 6912 bytes
+ public/audio/bg/tr5.mp3                    | Bin 0 -> 6528 bytes
+ public/audio/bg/tr6.mp3                    | Bin 0 -> 7104 bytes
+ public/audio/bg/tr7.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/tr8.mp3                    | Bin 0 -> 5952 bytes
+ public/audio/bg/tr9.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/wk1.mp3                    | Bin 0 -> 5760 bytes
+ public/audio/bg/wk10.mp3                   | Bin 0 -> 8064 bytes
+ public/audio/bg/wk2.mp3                    | Bin 0 -> 8256 bytes
+ public/audio/bg/wk3.mp3                    | Bin 0 -> 7104 bytes
+ public/audio/bg/wk4.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/bg/wk5.mp3                    | Bin 0 -> 7104 bytes
+ public/audio/bg/wk6.mp3                    | Bin 0 -> 7488 bytes
+ public/audio/bg/wk7.mp3                    | Bin 0 -> 6528 bytes
+ public/audio/bg/wk8.mp3                    | Bin 0 -> 6336 bytes
+ public/audio/bg/wk9.mp3                    | Bin 0 -> 8064 bytes
+ public/audio/en/mu1.mp3                    | Bin 0 -> 4224 bytes
+ public/audio/en/mu10.mp3                   | Bin 0 -> 4512 bytes
+ public/audio/en/mu2.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/en/mu3.mp3                    | Bin 0 -> 4992 bytes
+ public/audio/en/mu4.mp3                    | Bin 0 -> 5472 bytes
+ public/audio/en/mu5.mp3                    | Bin 0 -> 4704 bytes
+ public/audio/en/mu6.mp3                    | Bin 0 -> 5376 bytes
+ public/audio/en/mu7.mp3                    | Bin 0 -> 7104 bytes
+ public/audio/en/mu8.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/en/mu9.mp3                    | Bin 0 -> 4032 bytes
+ public/audio/en/sc1.mp3                    | Bin 0 -> 3744 bytes
+ public/audio/en/sc10.mp3                   | Bin 0 -> 4224 bytes
+ public/audio/en/sc2.mp3                    | Bin 0 -> 3264 bytes
+ public/audio/en/sc3.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/en/sc4.mp3                    | Bin 0 -> 4416 bytes
+ public/audio/en/sc5.mp3                    | Bin 0 -> 3264 bytes
+ public/audio/en/sc6.mp3                    | Bin 0 -> 4512 bytes
+ public/audio/en/sc7.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/en/sc8.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/en/sc9.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/en/spt1.mp3                   | Bin 0 -> 4992 bytes
+ public/audio/en/spt10.mp3                  | Bin 0 -> 5472 bytes
+ public/audio/en/spt2.mp3                   | Bin 0 -> 1824 bytes
+ public/audio/en/spt3.mp3                   | Bin 0 -> 3456 bytes
+ public/audio/en/spt4.mp3                   | Bin 0 -> 2784 bytes
+ public/audio/en/spt5.mp3                   | Bin 0 -> 2784 bytes
+ public/audio/en/spt6.mp3                   | Bin 0 -> 4224 bytes
+ public/audio/en/spt7.mp3                   | Bin 0 -> 2496 bytes
+ public/audio/en/spt8.mp3                   | Bin 0 -> 2304 bytes
+ public/audio/en/spt9.mp3                   | Bin 0 -> 3744 bytes
+ public/audio/en/tr1.mp3                    | Bin 0 -> 4512 bytes
+ public/audio/en/tr10.mp3                   | Bin 0 -> 4896 bytes
+ public/audio/en/tr2.mp3                    | Bin 0 -> 3072 bytes
+ public/audio/en/tr3.mp3                    | Bin 0 -> 5184 bytes
+ public/audio/en/tr4.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/en/tr5.mp3                    | Bin 0 -> 2112 bytes
+ public/audio/en/tr6.mp3                    | Bin 0 -> 3264 bytes
+ public/audio/en/tr7.mp3                    | Bin 0 -> 5376 bytes
+ public/audio/en/tr8.mp3                    | Bin 0 -> 4416 bytes
+ public/audio/en/tr9.mp3                    | Bin 0 -> 2496 bytes
+ public/audio/en/wk1.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/en/wk10.mp3                   | Bin 0 -> 5472 bytes
+ public/audio/en/wk2.mp3                    | Bin 0 -> 4896 bytes
+ public/audio/en/wk3.mp3                    | Bin 0 -> 3552 bytes
+ public/audio/en/wk4.mp3                    | Bin 0 -> 4992 bytes
+ public/audio/en/wk5.mp3                    | Bin 0 -> 3744 bytes
+ public/audio/en/wk6.mp3                    | Bin 0 -> 5376 bytes
+ public/audio/en/wk7.mp3                    | Bin 0 -> 2976 bytes
+ public/audio/en/wk8.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/en/wk9.mp3                    | Bin 0 -> 4992 bytes
+ public/audio/es/mu1.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/es/mu10.mp3                   | Bin 0 -> 2496 bytes
+ public/audio/es/mu2.mp3                    | Bin 0 -> 2304 bytes
+ public/audio/es/mu3.mp3                    | Bin 0 -> 4992 bytes
+ public/audio/es/mu4.mp3                    | Bin 0 -> 4896 bytes
+ public/audio/es/mu5.mp3                    | Bin 0 -> 4032 bytes
+ public/audio/es/mu6.mp3                    | Bin 0 -> 5472 bytes
+ public/audio/es/mu7.mp3                    | Bin 0 -> 7392 bytes
+ public/audio/es/mu8.mp3                    | Bin 0 -> 2592 bytes
+ public/audio/es/mu9.mp3                    | Bin 0 -> 6624 bytes
+ public/audio/es/sc1.mp3                    | Bin 0 -> 4896 bytes
+ public/audio/es/sc10.mp3                   | Bin 0 -> 2784 bytes
+ public/audio/es/sc2.mp3                    | Bin 0 -> 4704 bytes
+ public/audio/es/sc3.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/es/sc4.mp3                    | Bin 0 -> 6336 bytes
+ public/audio/es/sc5.mp3                    | Bin 0 -> 3072 bytes
+ public/audio/es/sc6.mp3                    | Bin 0 -> 5472 bytes
+ public/audio/es/sc7.mp3                    | Bin 0 -> 2976 bytes
+ public/audio/es/sc8.mp3                    | Bin 0 -> 5856 bytes
+ public/audio/es/sc9.mp3                    | Bin 0 -> 5184 bytes
+ public/audio/es/spt1.mp3                   | Bin 0 -> 2112 bytes
+ public/audio/es/spt10.mp3                  | Bin 0 -> 3072 bytes
+ public/audio/es/spt2.mp3                   | Bin 0 -> 1824 bytes
+ public/audio/es/spt3.mp3                   | Bin 0 -> 2112 bytes
+ public/audio/es/spt4.mp3                   | Bin 0 -> 5184 bytes
+ public/audio/es/spt5.mp3                   | Bin 0 -> 3264 bytes
+ public/audio/es/spt6.mp3                   | Bin 0 -> 3264 bytes
+ public/audio/es/spt7.mp3                   | Bin 0 -> 5376 bytes
+ public/audio/es/spt8.mp3                   | Bin 0 -> 2112 bytes
+ public/audio/es/spt9.mp3                   | Bin 0 -> 2496 bytes
+ public/audio/es/tr1.mp3                    | Bin 0 -> 6816 bytes
+ public/audio/es/tr10.mp3                   | Bin 0 -> 2112 bytes
+ public/audio/es/tr2.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/es/tr3.mp3                    | Bin 0 -> 2016 bytes
+ public/audio/es/tr4.mp3                    | Bin 0 -> 3264 bytes
+ public/audio/es/tr5.mp3                    | Bin 0 -> 6624 bytes
+ public/audio/es/tr6.mp3                    | Bin 0 -> 2784 bytes
+ public/audio/es/tr7.mp3                    | Bin 0 -> 2976 bytes
+ public/audio/es/tr8.mp3                    | Bin 0 -> 2496 bytes
+ public/audio/es/tr9.mp3                    | Bin 0 -> 2016 bytes
+ public/audio/es/wk1.mp3                    | Bin 0 -> 5184 bytes
+ public/audio/es/wk10.mp3                   | Bin 0 -> 3264 bytes
+ public/audio/es/wk2.mp3                    | Bin 0 -> 5952 bytes
+ public/audio/es/wk3.mp3                    | Bin 0 -> 6144 bytes
+ public/audio/es/wk4.mp3                    | Bin 0 -> 2304 bytes
+ public/audio/es/wk5.mp3                    | Bin 0 -> 2592 bytes
+ public/audio/es/wk6.mp3                    | Bin 0 -> 3552 bytes
+ public/audio/es/wk7.mp3                    | Bin 0 -> 3264 bytes
+ public/audio/es/wk8.mp3                    | Bin 0 -> 3456 bytes
+ public/audio/es/wk9.mp3                    | Bin 0 -> 4032 bytes
+ src/app/game/[topicId]/[gameType]/page.tsx |  10 +
+ src/components/game/ListenRepeat.tsx       | 358 +++++++++++++++++++++++++++++
+ src/components/game/SayIt.tsx              | 350 ++++++++++++++++++++++++++++
+ src/components/ui/GameSelector.tsx         |  13 ++
+ src/hooks/useSpeechRecognition.ts          | 133 +++++++++++
+ src/types/speech-recognition.d.ts          |  48 ++++
+ 156 files changed, 912 insertions(+)
+COMMIT #
+
+Hash: b65d4c9
+Date: March 01, 2026 at 11:57
+Message: Add Phase 5: AI NPC Dialogues with World Memory
+- Create 12 unique NPCs (one per topic) with personality, goals, greetings
+  - Zara (Zookeeper), Pablo (Artist), Chef Marco, Digit (Robot),
+    Grandma Rose, Dr. Bones, Sunny (Weather), Captain Jack, Miss Luna,
+    Mayor Max, Coach Tiger, Melody (Musician)
+- Build DialogueBox component with Claude Haiku AI conversations
+  - Invisible Teacher: corrects mistakes naturally without scolding
+  - 3 AI-generated reply options per exchange
+  - Max 6 exchanges per conversation, +10pts each, +50 bonus
+  - Vocabulary-constrained: uses topic words + 20% new
+- Create NPC Memory store (Zustand persist)
+  - AI extracts facts from conversations (MEMORY: tag)
+  - Facts injected into system prompt on next conversation
+  - NPCs remember what the child told them previously
+- Add NPC Talk to GameSelector and routing
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/game/[topicId]/[gameType]/page.tsx |   5 +
+ src/components/dialogue/DialogueBox.tsx    | 387 +++++++++++++++++++++++++++++
+ src/components/ui/GameSelector.tsx         |  13 +-
+ src/data/npcs.ts                           | 250 +++++++++++++++++++
+ src/stores/npcMemoryStore.ts               |  52 ++++
+ 5 files changed, 705 insertions(+), 2 deletions(-)
+COMMIT #
+
+Hash: 9a9ce8f
+Date: March 01, 2026 at 11:59
+Message: Add Phase 6+7: Energy bar, missions, streaks, and daily goals
+- Add energy system to progressStore (starts at 100, regenerates on
+  game completion, visual bar in TopBar with color/pulse for low energy)
+- Add daily streak tracking with flame icon in TopBar
+- Add daily goal counter (3 games/day target) with progress display
+- Create MissionBoard with AI-generated quests via Claude Haiku
+  - 3 missions per batch with fallback for offline play
+  - Refresh button for new AI missions
+  - Bonus points per mission completion
+- Add Mission button (clipboard icon) on map page
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/map/page.tsx                     |  15 ++
+ src/components/missions/MissionBoard.tsx | 229 +++++++++++++++++++++++++++++++
+ src/components/ui/TopBar.tsx             |  75 +++++++++-
+ src/stores/progressStore.ts              |  93 ++++++++++++-
+ 4 files changed, 404 insertions(+), 8 deletions(-)
+COMMIT #
+
+Hash: 250fa37
+Date: March 01, 2026 at 12:18
+Message: Add voice to NPC Talk + bigger NPC characters
+- NPC greeting and AI responses are now spoken aloud via speechSynthesis
+- NPC character displayed as large emoji (text-7xl) with blue glow + sound wave animation when speaking
+- Idle floating animation when not speaking
+- MissionBoard now speaks when missions load and when starting a mission
+- Professor Globe enlarged to 80px in mission board
+- Completed screen uses text-8xl NPC emoji with glow
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/dialogue/DialogueBox.tsx  | 106 ++++++++++++++++++++++++++-----
+ src/components/missions/MissionBoard.tsx |  20 ++++--
+ 2 files changed, 103 insertions(+), 23 deletions(-)
+COMMIT #
+
+Hash: 7d8e07f
+Date: March 01, 2026 at 12:27
+Message: Add 3-level-per-island progression system
+- Level 1 (Discover): Memory Match, Word Quiz, True/False
+- Level 2 (Use): Word Scramble, Fill Scene, Say It
+- Level 3 (Survive): Listen & Repeat, NPC Talk
+- Levels unlock after completing 2+ games with avg score >= 50%
+- GameSelector now shows 3 level sections with lock/unlock states
+- Islands show colored progress dots (green/blue/purple) on map
+- Fixed 4 game components storing wrong gameType values
+- Level progress computed from existing gameResults (no migration needed)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/dialogue/DialogueBox.tsx |   2 +-
+ src/components/game/ListenRepeat.tsx    |   2 +-
+ src/components/game/SayIt.tsx           |   2 +-
+ src/components/game/WordQuiz.tsx        |   2 +-
+ src/components/scene/Island.tsx         |  26 ++++-
+ src/components/ui/GameSelector.tsx      | 190 ++++++++++++++++++++------------
+ src/lib/levels.ts                       |  58 ++++++++++
+ src/stores/progressStore.ts             |  71 +++++++++++-
+ src/types/index.ts                      |   4 +-
+ 9 files changed, 277 insertions(+), 80 deletions(-)
+COMMIT #
+
+Hash: 829d0cc
+Date: March 01, 2026 at 12:37
+Message: Add map visual enhancements: fog, bridges, chest, streak aura, polish
+- Fog of War: locked islands wrapped in swirling cloud meshes that
+  fade out on unlock with smooth opacity animation
+- Glowing bridges: luminous paths connect consecutive islands when
+  Level 1+ is completed (green→blue→gold based on progress)
+- Island glow: emissive intensity scales with completed levels
+  (0 levels = dim, 3 levels = bright topic-colored glow)
+- Floating treasure chest: clickable chest between islands gives
+  +15 points and +10 energy with sparkle effect on collection
+- Streak aura: orange point light illuminates the map when daily
+  streak is active, intensity scales with streak count
+- Visual polish: richer ocean colors, rim/fill lights for depth,
+  warm accent light, improved cloud tinting
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Bridges.tsx       | 103 ++++++++++++++++++++++++++++++
+ src/components/scene/Clouds.tsx        |   8 +--
+ src/components/scene/Island.tsx        |  68 ++++++++++++++++++--
+ src/components/scene/IslandMap.tsx     |  46 ++++++++++++++
+ src/components/scene/Ocean.tsx         |  26 ++++----
+ src/components/scene/TreasureChest.tsx | 113 +++++++++++++++++++++++++++++++++
+ 6 files changed, 343 insertions(+), 21 deletions(-)
+COMMIT #
+
+Hash: dd627e8
+Date: March 01, 2026 at 13:28
+Message: Fix Globe speaking animation + make Globe much bigger + add rules text
+- MissionBoard Globe: 80px → 140px, with timed speaking state (3s)
+- GameSelector Globe: 52px → 100px, stacked vertically with topic emoji
+- Speaking animation now properly turns on/off with speak() calls
+- Added explanation text: "Complete 2 games per level to unlock the next"
+- Added mission explanation: "Pick a mission to earn bonus points!"
+- Loading state Globe: 80px → 100px with thinking emotion
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/missions/MissionBoard.tsx | 26 ++++++++++++++++----------
+ src/components/ui/GameSelector.tsx       | 10 ++++++----
+ 2 files changed, 22 insertions(+), 14 deletions(-)
+COMMIT #
+
+Hash: 01a46ec
+Date: March 01, 2026 at 13:35
+Message: Fix PWA caching: bump cache version, add auto-update detection
+- Bump CACHE_NAME from v2 to v3 to invalidate stale caches
+- Switch static assets to stale-while-revalidate strategy
+- Add SW update detection with automatic reload on new version
+- Add message listener for SKIP_WAITING to activate new SW immediately
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/sw.js                                 | 34 +++++++++++++++++++--------
+ src/components/ServiceWorkerRegistration.tsx | 35 ++++++++++++++++++++++++----
+ 2 files changed, 54 insertions(+), 15 deletions(-)
+COMMIT #
+
+Hash: a891bb0
+Date: March 01, 2026 at 13:40
+Message: Make Professor Globe bigger in HelpButton instructions panel
+- Increase Globe size from 48px to 120px
+- Center Globe vertically with name and language toggle below
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+COMMIT #
+
+Hash: 9d46d66
+Date: March 01, 2026 at 14:21
+Message: Fix bridges between unlocked islands + make islands more colorful
+- Bridge now appears when both islands are unlocked (not requiring Level 1)
+- Add silver/white color for bridges with 0 completed levels
+- Numbers island: gray → sky blue (#0ea5e9)
+- Body island: dark teal → vibrant teal (#14b8a6)
+- Work island: slate gray → indigo (#6366f1)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/Bridges.tsx | 7 +++----
+ src/components/scene/Island.tsx  | 6 +++---
+ 2 files changed, 6 insertions(+), 7 deletions(-)
+COMMIT #
+
+Hash: 86c94d7
+Date: March 01, 2026 at 14:24
+Message: Add rules for all games + levels section in HelpButton
+- Add Levels section explaining 3-level progression system
+- Add Fill the Scene, Say It, Listen & Repeat, NPC Talk rules
+- Both EN and BG translations
+- Add audio IDs for new sections (fallback silent if no audio files)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 60 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+COMMIT #
+
+Hash: 3ce67e3
+Date: March 01, 2026 at 14:28
+Message: Add audio for new rules sections (levels, fill-scene, say-it, listen-repeat, npc-talk)
+- 10 new MP3 files: 5 BG + 5 EN via Google Cloud TTS
+- Updated generate-audio.js with new phrase entries
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/phrases/rules-fillscene-bg.mp3    | Bin 0 -> 87936 bytes
+ public/audio/phrases/rules-fillscene-en.mp3    | Bin 0 -> 43104 bytes
+ public/audio/phrases/rules-levels-bg.mp3       | Bin 0 -> 91584 bytes
+ public/audio/phrases/rules-levels-en.mp3       | Bin 0 -> 46752 bytes
+ public/audio/phrases/rules-listenrepeat-bg.mp3 | Bin 0 -> 62016 bytes
+ public/audio/phrases/rules-listenrepeat-en.mp3 | Bin 0 -> 33984 bytes
+ public/audio/phrases/rules-npctalk-bg.mp3      | Bin 0 -> 98496 bytes
+ public/audio/phrases/rules-npctalk-en.mp3      | Bin 0 -> 48864 bytes
+ public/audio/phrases/rules-sayit-bg.mp3        | Bin 0 -> 76992 bytes
+ public/audio/phrases/rules-sayit-en.mp3        | Bin 0 -> 31296 bytes
+ scripts/generate-audio.js                      |  10 ++++++++++
+ 11 files changed, 10 insertions(+)
+COMMIT #
+
+Hash: a14b05f
+Date: March 02, 2026 at 10:04
+Message: Upgrade ProfessorGlobe to Canvas 2D energy sphere
+- Replace CSS gradient ball with animated Canvas 2D energy sphere
+- Glowing core with radial gradient (dark center → bright edge)
+- Orbiting particles with 3D-ish depth simulation
+- Swirling energy arcs with gradient strokes and additive blending
+- Pulsing outer glow ring that reacts to speaking amplitude
+- Emotion-based animation speeds (happy=fast, thinking=slow, surprised=burst)
+- Particle count scales with size (20 at 38px, 84 at 140px)
+- DPR-aware rendering capped at 2x for sharp mobile display
+- Preserved: eyes, mouth, antenna, blink, eye-tracking, AudioContext mouth-sync
+- Same props interface — zero changes to 17 consumer files
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/character/ProfessorGlobe.tsx | 384 +++++++++++++++++++++++-----
+ 1 file changed, 315 insertions(+), 69 deletions(-)
+COMMIT #
+
+Hash: 3f2ad62
+Date: March 02, 2026 at 10:14
+Message: Upgrade Globe to thick energy ribbons + float above HelpButton modal
+Energy sphere visual overhaul:
+- Replace thin arcs with 5 thick swirling bezier curve ribbons
+- Dark core (#050d1a) with cyan energy lines (#22d3ee/#06b6d4)
+- Bright center line on each ribbon for depth
+- Star-like particles with soft radial glow
+- Clipped to sphere edge for clean look
+- Bigger sphere ratio (85% of container vs 75%)
+- Double-ring speaking pulse animation
+
+HelpButton layout:
+- Globe (180px) floats ABOVE the modal panel with -40px overlap
+- Modal panel has pt-12 to accommodate Globe overlap
+- Reduced max-h to 65vh since Globe is outside
+- Added zoom-in entrance animation on Globe
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/character/ProfessorGlobe.tsx | 446 +++++++++++++---------------
+ src/components/ui/HelpButton.tsx            |  14 +-
+ 2 files changed, 218 insertions(+), 242 deletions(-)
+COMMIT #
+
+Hash: fd5ecd8
+Date: March 02, 2026 at 10:23
+Message: Make Globe more blue/saturated, remove antenna, fix modal overlap
+- Richer blue color palette: core #0a1e3d, mid #1e4a8a, brighter accents
+- Core gradient transitions to blue earlier (less black center)
+- Stronger outer glow and rim light for blue saturation
+- Removed antenna (line + tip) — Globe floats freely
+- Mouth brighter white/light-blue for better visibility
+- Help button: gradient blue background (1e40af → 3b82f6)
+- Reduced Globe-modal overlap (mb-[-28px] instead of -40px)
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/character/ProfessorGlobe.tsx | 63 +++++++++++------------------
+ src/components/ui/HelpButton.tsx            |  6 +--
+ 2 files changed, 26 insertions(+), 43 deletions(-)
+COMMIT #
+
+Hash: b1f8bfd
+Date: March 02, 2026 at 10:29
+Message: Add "Your Stats" section to help rules explaining HUD bar icons
+- New section between Islands and Levels (EN + BG)
+- Explains: points (star), energy (lightning), streak (fire),
+  daily goals (checkmarks), language switcher
+- Generated audio files for both languages
+- Added audio IDs to SECTION_AUDIO mapping
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/phrases/rules-stats-bg.mp3 | Bin 0 -> 130368 bytes
+ public/audio/phrases/rules-stats-en.mp3 | Bin 0 -> 57216 bytes
+ scripts/generate-audio.js               |   2 ++
+ src/components/ui/HelpButton.tsx        |  24 ++++++++++++++++++++++++
+ 4 files changed, 26 insertions(+)
+COMMIT #
+
+Hash: 082ee1e
+Date: March 02, 2026 at 10:30
+Message: Fix Say It game not processing speech recognition results
+The useEffect that processes transcript was skipping when
+feedback === "listening", but that's exactly the state when
+results arrive. Removed the guard so results are processed
+correctly. Also fixed variable shadowing (score vs sim).
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/game/SayIt.tsx | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 42a6fc0
+Date: March 02, 2026 at 10:41
+Message: Add audio feedback in Fill Scene + speech input in NPC Talk
+Fill Scene: Play the correct word audio when player selects the
+right answer, matching word from topic vocabulary.
+
+NPC Talk: Add microphone button below response options so players
+can speak their own answer instead of just tapping. Both input
+methods work — tap a suggested reply OR say your own words.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/dialogue/DialogueBox.tsx | 40 ++++++++++++++++++++++++++++++++-
+ src/components/game/FillScene.tsx       | 10 +++++++--
+ 2 files changed, 47 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: 960b12b
+Date: March 02, 2026 at 10:48
+Message: Add sentence audio for all 72 phrases (EN+BG) + fix Listen & Repeat and Fill Scene
+Generated 144 MP3 files (72 phrases × 2 languages) via Google Cloud TTS
+for full sentence audio used in Listen & Repeat and Fill the Scene games.
+
+Listen & Repeat:
+- Now plays actual sentence audio when round starts (was silent before)
+- Added "Listen again" button to replay the phrase
+- Globe speaking state syncs with audio playback
+
+Fill the Scene:
+- Auto-plays sentence audio when a new round starts (0.5s delay)
+- Already had correct-answer word audio from previous commit
+
+Audio files: /public/audio/phrases/sentence-{phraseId}-{lang}.mp3
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/phrases/sentence-ap1-bg.mp3  | Bin 0 -> 13056 bytes
+ public/audio/phrases/sentence-ap1-en.mp3  | Bin 0 -> 9216 bytes
+ public/audio/phrases/sentence-ap2-bg.mp3  | Bin 0 -> 12864 bytes
+ public/audio/phrases/sentence-ap2-en.mp3  | Bin 0 -> 5184 bytes
+ public/audio/phrases/sentence-ap3-bg.mp3  | Bin 0 -> 13824 bytes
+ public/audio/phrases/sentence-ap3-en.mp3  | Bin 0 -> 9216 bytes
+ public/audio/phrases/sentence-ap4-bg.mp3  | Bin 0 -> 14592 bytes
+ public/audio/phrases/sentence-ap4-en.mp3  | Bin 0 -> 6144 bytes
+ public/audio/phrases/sentence-ap5-bg.mp3  | Bin 0 -> 17280 bytes
+ public/audio/phrases/sentence-ap5-en.mp3  | Bin 0 -> 11424 bytes
+ public/audio/phrases/sentence-ap6-bg.mp3  | Bin 0 -> 14016 bytes
+ public/audio/phrases/sentence-ap6-en.mp3  | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-bp1-bg.mp3  | Bin 0 -> 12672 bytes
+ public/audio/phrases/sentence-bp1-en.mp3  | Bin 0 -> 4896 bytes
+ public/audio/phrases/sentence-bp2-bg.mp3  | Bin 0 -> 11712 bytes
+ public/audio/phrases/sentence-bp2-en.mp3  | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-bp3-bg.mp3  | Bin 0 -> 12480 bytes
+ public/audio/phrases/sentence-bp3-en.mp3  | Bin 0 -> 9024 bytes
+ public/audio/phrases/sentence-bp4-bg.mp3  | Bin 0 -> 11904 bytes
+ public/audio/phrases/sentence-bp4-en.mp3  | Bin 0 -> 7872 bytes
+ public/audio/phrases/sentence-bp5-bg.mp3  | Bin 0 -> 11328 bytes
+ public/audio/phrases/sentence-bp5-en.mp3  | Bin 0 -> 7872 bytes
+ public/audio/phrases/sentence-bp6-bg.mp3  | Bin 0 -> 22656 bytes
+ public/audio/phrases/sentence-bp6-en.mp3  | Bin 0 -> 10944 bytes
+ public/audio/phrases/sentence-cp1-bg.mp3  | Bin 0 -> 10560 bytes
+ public/audio/phrases/sentence-cp1-en.mp3  | Bin 0 -> 6912 bytes
+ public/audio/phrases/sentence-cp2-bg.mp3  | Bin 0 -> 11136 bytes
+ public/audio/phrases/sentence-cp2-en.mp3  | Bin 0 -> 6432 bytes
+ public/audio/phrases/sentence-cp3-bg.mp3  | Bin 0 -> 11520 bytes
+ public/audio/phrases/sentence-cp3-en.mp3  | Bin 0 -> 4224 bytes
+ public/audio/phrases/sentence-cp4-bg.mp3  | Bin 0 -> 13248 bytes
+ public/audio/phrases/sentence-cp4-en.mp3  | Bin 0 -> 9504 bytes
+ public/audio/phrases/sentence-cp5-bg.mp3  | Bin 0 -> 9792 bytes
+ public/audio/phrases/sentence-cp5-en.mp3  | Bin 0 -> 6816 bytes
+ public/audio/phrases/sentence-cp6-bg.mp3  | Bin 0 -> 13440 bytes
+ public/audio/phrases/sentence-cp6-en.mp3  | Bin 0 -> 7584 bytes
+ public/audio/phrases/sentence-fmp1-bg.mp3 | Bin 0 -> 15360 bytes
+ public/audio/phrases/sentence-fmp1-en.mp3 | Bin 0 -> 8736 bytes
+ public/audio/phrases/sentence-fmp2-bg.mp3 | Bin 0 -> 14592 bytes
+ public/audio/phrases/sentence-fmp2-en.mp3 | Bin 0 -> 8352 bytes
+ public/audio/phrases/sentence-fmp3-bg.mp3 | Bin 0 -> 16320 bytes
+ public/audio/phrases/sentence-fmp3-en.mp3 | Bin 0 -> 6144 bytes
+ public/audio/phrases/sentence-fmp4-bg.mp3 | Bin 0 -> 10176 bytes
+ public/audio/phrases/sentence-fmp4-en.mp3 | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-fmp5-bg.mp3 | Bin 0 -> 22272 bytes
+ public/audio/phrases/sentence-fmp5-en.mp3 | Bin 0 -> 8832 bytes
+ public/audio/phrases/sentence-fmp6-bg.mp3 | Bin 0 -> 21504 bytes
+ public/audio/phrases/sentence-fmp6-en.mp3 | Bin 0 -> 9216 bytes
+ public/audio/phrases/sentence-fp1-bg.mp3  | Bin 0 -> 13248 bytes
+ public/audio/phrases/sentence-fp1-en.mp3  | Bin 0 -> 5664 bytes
+ public/audio/phrases/sentence-fp2-bg.mp3  | Bin 0 -> 12096 bytes
+ public/audio/phrases/sentence-fp2-en.mp3  | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-fp3-bg.mp3  | Bin 0 -> 13824 bytes
+ public/audio/phrases/sentence-fp3-en.mp3  | Bin 0 -> 5472 bytes
+ public/audio/phrases/sentence-fp4-bg.mp3  | Bin 0 -> 14976 bytes
+ public/audio/phrases/sentence-fp4-en.mp3  | Bin 0 -> 9024 bytes
+ public/audio/phrases/sentence-fp5-bg.mp3  | Bin 0 -> 14976 bytes
+ public/audio/phrases/sentence-fp5-en.mp3  | Bin 0 -> 9792 bytes
+ public/audio/phrases/sentence-fp6-bg.mp3  | Bin 0 -> 23424 bytes
+ public/audio/phrases/sentence-fp6-en.mp3  | Bin 0 -> 8544 bytes
+ public/audio/phrases/sentence-mp1-bg.mp3  | Bin 0 -> 11136 bytes
+ public/audio/phrases/sentence-mp1-en.mp3  | Bin 0 -> 7872 bytes
+ public/audio/phrases/sentence-mp2-bg.mp3  | Bin 0 -> 19584 bytes
+ public/audio/phrases/sentence-mp2-en.mp3  | Bin 0 -> 11136 bytes
+ public/audio/phrases/sentence-mp3-bg.mp3  | Bin 0 -> 14592 bytes
+ public/audio/phrases/sentence-mp3-en.mp3  | Bin 0 -> 6816 bytes
+ public/audio/phrases/sentence-mp4-bg.mp3  | Bin 0 -> 17088 bytes
+ public/audio/phrases/sentence-mp4-en.mp3  | Bin 0 -> 10944 bytes
+ public/audio/phrases/sentence-mp5-bg.mp3  | Bin 0 -> 15360 bytes
+ public/audio/phrases/sentence-mp5-en.mp3  | Bin 0 -> 8544 bytes
+ public/audio/phrases/sentence-mp6-bg.mp3  | Bin 0 -> 16320 bytes
+ public/audio/phrases/sentence-mp6-en.mp3  | Bin 0 -> 5856 bytes
+ public/audio/phrases/sentence-np1-bg.mp3  | Bin 0 -> 13440 bytes
+ public/audio/phrases/sentence-np1-en.mp3  | Bin 0 -> 8064 bytes
+ public/audio/phrases/sentence-np2-bg.mp3  | Bin 0 -> 9792 bytes
+ public/audio/phrases/sentence-np2-en.mp3  | Bin 0 -> 6144 bytes
+ public/audio/phrases/sentence-np3-bg.mp3  | Bin 0 -> 16704 bytes
+ public/audio/phrases/sentence-np3-en.mp3  | Bin 0 -> 7296 bytes
+ public/audio/phrases/sentence-np4-bg.mp3  | Bin 0 -> 14976 bytes
+ public/audio/phrases/sentence-np4-en.mp3  | Bin 0 -> 9024 bytes
+ public/audio/phrases/sentence-np5-bg.mp3  | Bin 0 -> 16896 bytes
+ public/audio/phrases/sentence-np5-en.mp3  | Bin 0 -> 10176 bytes
+ public/audio/phrases/sentence-np6-bg.mp3  | Bin 0 -> 19008 bytes
+ public/audio/phrases/sentence-np6-en.mp3  | Bin 0 -> 6816 bytes
+ public/audio/phrases/sentence-sp1-bg.mp3  | Bin 0 -> 9600 bytes
+ public/audio/phrases/sentence-sp1-en.mp3  | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-sp2-bg.mp3  | Bin 0 -> 16320 bytes
+ public/audio/phrases/sentence-sp2-en.mp3  | Bin 0 -> 6144 bytes
+ public/audio/phrases/sentence-sp3-bg.mp3  | Bin 0 -> 17472 bytes
+ public/audio/phrases/sentence-sp3-en.mp3  | Bin 0 -> 10272 bytes
+ public/audio/phrases/sentence-sp4-bg.mp3  | Bin 0 -> 15744 bytes
+ public/audio/phrases/sentence-sp4-en.mp3  | Bin 0 -> 7776 bytes
+ public/audio/phrases/sentence-sp5-bg.mp3  | Bin 0 -> 16320 bytes
+ public/audio/phrases/sentence-sp5-en.mp3  | Bin 0 -> 7776 bytes
+ public/audio/phrases/sentence-sp6-bg.mp3  | Bin 0 -> 18240 bytes
+ public/audio/phrases/sentence-sp6-en.mp3  | Bin 0 -> 5472 bytes
+ public/audio/phrases/sentence-spp1-bg.mp3 | Bin 0 -> 10560 bytes
+ public/audio/phrases/sentence-spp1-en.mp3 | Bin 0 -> 5184 bytes
+ public/audio/phrases/sentence-spp2-bg.mp3 | Bin 0 -> 12096 bytes
+ public/audio/phrases/sentence-spp2-en.mp3 | Bin 0 -> 7392 bytes
+ public/audio/phrases/sentence-spp3-bg.mp3 | Bin 0 -> 12672 bytes
+ public/audio/phrases/sentence-spp3-en.mp3 | Bin 0 -> 9312 bytes
+ public/audio/phrases/sentence-spp4-bg.mp3 | Bin 0 -> 14208 bytes
+ public/audio/phrases/sentence-spp4-en.mp3 | Bin 0 -> 5184 bytes
+ public/audio/phrases/sentence-spp5-bg.mp3 | Bin 0 -> 14592 bytes
+ public/audio/phrases/sentence-spp5-en.mp3 | Bin 0 -> 6624 bytes
+ public/audio/phrases/sentence-spp6-bg.mp3 | Bin 0 -> 12864 bytes
+ public/audio/phrases/sentence-spp6-en.mp3 | Bin 0 -> 6432 bytes
+ public/audio/phrases/sentence-tp1-bg.mp3  | Bin 0 -> 20736 bytes
+ public/audio/phrases/sentence-tp1-en.mp3  | Bin 0 -> 4992 bytes
+ public/audio/phrases/sentence-tp2-bg.mp3  | Bin 0 -> 22272 bytes
+ public/audio/phrases/sentence-tp2-en.mp3  | Bin 0 -> 7872 bytes
+ public/audio/phrases/sentence-tp3-bg.mp3  | Bin 0 -> 10176 bytes
+ public/audio/phrases/sentence-tp3-en.mp3  | Bin 0 -> 5184 bytes
+ public/audio/phrases/sentence-tp4-bg.mp3  | Bin 0 -> 24000 bytes
+ public/audio/phrases/sentence-tp4-en.mp3  | Bin 0 -> 11616 bytes
+ public/audio/phrases/sentence-tp5-bg.mp3  | Bin 0 -> 17088 bytes
+ public/audio/phrases/sentence-tp5-en.mp3  | Bin 0 -> 8736 bytes
+ public/audio/phrases/sentence-tp6-bg.mp3  | Bin 0 -> 20928 bytes
+ public/audio/phrases/sentence-tp6-en.mp3  | Bin 0 -> 10272 bytes
+ public/audio/phrases/sentence-wkp1-bg.mp3 | Bin 0 -> 15168 bytes
+ public/audio/phrases/sentence-wkp1-en.mp3 | Bin 0 -> 5664 bytes
+ public/audio/phrases/sentence-wkp2-bg.mp3 | Bin 0 -> 16320 bytes
+ public/audio/phrases/sentence-wkp2-en.mp3 | Bin 0 -> 6816 bytes
+ public/audio/phrases/sentence-wkp3-bg.mp3 | Bin 0 -> 15360 bytes
+ public/audio/phrases/sentence-wkp3-en.mp3 | Bin 0 -> 6432 bytes
+ public/audio/phrases/sentence-wkp4-bg.mp3 | Bin 0 -> 15360 bytes
+ public/audio/phrases/sentence-wkp4-en.mp3 | Bin 0 -> 7392 bytes
+ public/audio/phrases/sentence-wkp5-bg.mp3 | Bin 0 -> 17280 bytes
+ public/audio/phrases/sentence-wkp5-en.mp3 | Bin 0 -> 7872 bytes
+ public/audio/phrases/sentence-wkp6-bg.mp3 | Bin 0 -> 14016 bytes
+ public/audio/phrases/sentence-wkp6-en.mp3 | Bin 0 -> 8064 bytes
+ public/audio/phrases/sentence-wp1-bg.mp3  | Bin 0 -> 13248 bytes
+ public/audio/phrases/sentence-wp1-en.mp3  | Bin 0 -> 6816 bytes
+ public/audio/phrases/sentence-wp2-bg.mp3  | Bin 0 -> 16704 bytes
+ public/audio/phrases/sentence-wp2-en.mp3  | Bin 0 -> 11136 bytes
+ public/audio/phrases/sentence-wp3-bg.mp3  | Bin 0 -> 13056 bytes
+ public/audio/phrases/sentence-wp3-en.mp3  | Bin 0 -> 8544 bytes
+ public/audio/phrases/sentence-wp4-bg.mp3  | Bin 0 -> 15936 bytes
+ public/audio/phrases/sentence-wp4-en.mp3  | Bin 0 -> 8064 bytes
+ public/audio/phrases/sentence-wp5-bg.mp3  | Bin 0 -> 17280 bytes
+ public/audio/phrases/sentence-wp5-en.mp3  | Bin 0 -> 7392 bytes
+ public/audio/phrases/sentence-wp6-bg.mp3  | Bin 0 -> 19200 bytes
+ public/audio/phrases/sentence-wp6-en.mp3  | Bin 0 -> 9216 bytes
+ src/components/game/FillScene.tsx         |  12 +++++++++++-
+ src/components/game/ListenRepeat.tsx      |  23 ++++++++++++++++++-----
+ 146 files changed, 29 insertions(+), 6 deletions(-)
+COMMIT #
+
+Hash: a83343c
+Date: March 02, 2026 at 10:51
+Message: Darken help button background + enable 2-finger rotation on mobile
+Help button: darker blue-to-black gradient background so the
+energy sphere stands out better instead of blue-on-blue.
+
+3D Map controls: Changed two-finger touch from DOLLY_PAN to
+DOLLY_ROTATE so users can freely rotate the world with two
+fingers while still panning with one finger.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 2 +-
+ src/components/ui/HelpButton.tsx   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: 70e479e
+Date: March 02, 2026 at 10:53
+Message: Bump SW cache to v4, add aggressive update detection
+- Cache version v3 → v4 to force refresh of stale PWA installs
+- Added updateViaCache: "none" to prevent browser caching sw.js itself
+- Added periodic update check every 60 seconds
+- Old cached content from yesterday will be purged on next visit
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/sw.js                                 | 2 +-
+ src/components/ServiceWorkerRegistration.tsx | 9 +++++++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: efe3a1d
+Date: March 02, 2026 at 10:57
+Message: Simplify help modal — keep only 5 core sections
+Removed 8 per-game rule sections (Memory, Quiz, True/False,
+Scramble, Fill Scene, Say It, Listen & Repeat, NPC Talk) to
+reduce clutter. Kept: Islands, Your Stats, Levels, Unlocking,
+Languages. Game sections preserved as comments + audio files
+remain for future re-addition.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/ui/HelpButton.tsx | 101 ++-------------------------------------
+ 1 file changed, 5 insertions(+), 96 deletions(-)
+COMMIT #
+
+Hash: 3ea9ced
+Date: March 02, 2026 at 11:00
+Message: Fix camera diving under water — restrict polar angle + more zoom out
+- maxPolarAngle: PI/2.5 (72°) → PI/3 (60°) — camera stays higher
+- minPolarAngle: PI/6 (30°) → PI/8 (22°) — allows more top-down view
+- maxDistance: 100 → 120 — more zoom out to see all islands
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/scene/IslandMap.tsx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+COMMIT #
+
+Hash: 26bffd3
+Date: March 02, 2026 at 17:20
+Message: Switch help modal to EN default, restore game rules, use Globe on splash
+- HelpButton defaults to English instead of Bulgarian
+- Remove Stats/Levels/Unlocking sections, restore 8 game rule sections
+- Replace app icon with ProfessorGlobe on splash screen
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx                 |   4 +-
+ src/components/ui/HelpButton.tsx | 125 ++++++++++++++++++++++++++-------------
+ 2 files changed, 88 insertions(+), 41 deletions(-)
+COMMIT #
+
+Hash: 6776f7a
+Date: March 02, 2026 at 17:23
+Message: Switch intro story to English text + voice
+- Translate all 5 story parts to English
+- Replace story MP3s with en-US-Chirp3-HD-Puck voice
+- Splash screen now fully in English
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ public/audio/phrases/story1.mp3 | Bin 51072 -> 32160 bytes
+ public/audio/phrases/story2.mp3 | Bin 65280 -> 37632 bytes
+ public/audio/phrases/story3.mp3 | Bin 41664 -> 20160 bytes
+ public/audio/phrases/story4.mp3 | Bin 64704 -> 33312 bytes
+ public/audio/phrases/story5.mp3 | Bin 60672 -> 36000 bytes
+ src/app/page.tsx                |  10 +++++-----
+ 6 files changed, 5 insertions(+), 5 deletions(-)
+COMMIT #
+
+Hash: 40dacf3
+Date: March 02, 2026 at 17:26
+Message: Make Globe ribbons subtler and spread across full sphere
+- Reduce ribbon width (3-8px → 1-2.5px) and opacity (~50% less)
+- Remove bright core line overlay on ribbons
+- Spread ribbon tilts wider (-1.2 to 1.2) for full sphere coverage
+- Increase ribbon count to 7 (more but thinner = subtle energy feel)
+- Reduce particle glow intensity for cleaner look
+- Boost eye/mouth glow so face features are clearly visible
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/components/character/ProfessorGlobe.tsx | 65 +++++++++++------------------
+ 1 file changed, 24 insertions(+), 41 deletions(-)
+COMMIT #
+
+Hash: 658fde2
+Date: March 02, 2026 at 17:30
+Message: Enable pull-to-refresh on splash screen, keep disabled on map
+- Remove global overscroll-behavior: none from globals.css
+- Add overscroll-behavior: none only on map page (3D scene)
+- Splash screen and game pages now support pull-to-refresh
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/globals.css  | 1 -
+ src/app/map/page.tsx | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+COMMIT #
+
+Hash: da3a9a1
+Date: March 02, 2026 at 17:40
+Message: Merge two Professor Globes into one on splash screen
+- Single Globe that bounces when idle, speaks during narration
+- Title/subtitle hidden during story, text bubble shown below Globe
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
+ src/app/page.tsx | 47 +++++++++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
