@@ -218,9 +218,34 @@ interface IslandMapProps {
   focusPosition?: [number, number, number] | null;
 }
 
+function SceneReady({ onReady }: { onReady: () => void }) {
+  const called = useRef(false);
+  useFrame(() => {
+    if (!called.current) {
+      called.current = true;
+      // Wait 2 frames for scene to actually render
+      requestAnimationFrame(() => requestAnimationFrame(onReady));
+    }
+  });
+  return null;
+}
+
 export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProps) {
   const [dpr, setDpr] = useState(1.5);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(true);
   const dn = useDayNightCycle();
+
+  const [overlayHidden, setOverlayHidden] = useState(false);
+
+  // Fade out overlay after scene is ready
+  useEffect(() => {
+    if (sceneReady) {
+      const t1 = setTimeout(() => setOverlayVisible(false), 100);
+      const t2 = setTimeout(() => setOverlayHidden(true), 700); // remove from DOM after fade
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [sceneReady]);
 
   const handleSelect = useCallback(
     (topic: Topic) => {
@@ -283,10 +308,24 @@ export function IslandMap({ onSelectTopic, focusPosition = null }: IslandMapProp
             color="#000033"
             frames={1}
           />
+          <SceneReady onReady={() => setSceneReady(true)} />
         </Suspense>
 
         <CameraAnimator targetPos={focusPosition} />
       </Canvas>
+
+      {/* Loading overlay — hides the flash while scene initializes */}
+      {!overlayHidden && (
+        <div
+          className="absolute inset-0 bg-[#0a1628] flex items-center justify-center z-10 pointer-events-none transition-opacity duration-500"
+          style={{ opacity: overlayVisible ? 1 : 0 }}
+        >
+          <div className="text-center">
+            <div className="text-4xl mb-3 animate-bounce">🌍</div>
+            <p className="text-slate-400 text-sm">Loading world...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
