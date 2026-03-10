@@ -7,6 +7,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { MemoryCard } from "./MemoryCard";
 import { MatchPopup } from "./MatchPopup";
 import { StarDisplay, GameRewardSummary } from "./StarDisplay";
+import { GhostScores } from "./GhostScores";
 import { TreasureChest } from "./TreasureChest";
 import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { GameHUD } from "./GameHUD";
@@ -310,6 +311,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
                 {moves} moves · {moves - totalPairs} mistakes
               </p>
             </div>
+            <GhostScores topicId={topic.id} gameType="memory-match" myScore={score} maxScore={difficulty.pairs * cfg.MATCH_POINTS + cfg.COMPLETION_BONUS} />
             <div className="flex gap-3 justify-center pt-4">
               <button
                 onClick={handleReplay}
