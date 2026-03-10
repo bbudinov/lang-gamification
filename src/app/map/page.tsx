@@ -7,6 +7,7 @@ import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
 import { MissionBoard } from "@/components/missions/MissionBoard";
+import { DailyChallengeButton } from "@/components/ui/DailyChallenge";
 import { useProgressStore } from "@/stores/progressStore";
 import { topics } from "@/data/words";
 import type { Topic } from "@/types";
@@ -133,6 +134,9 @@ export default function MapPage() {
       )}
 
       <HelpButton />
+
+      {/* Daily Challenge button */}
+      <DailyChallengeButton />
 
       {/* Mission button */}
       <button

@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Language, TopicId, GameResult, WordMastery, GameType, LevelNumber } from "@/types";
 import { LEVEL_GAMES, LEVEL_UNLOCK } from "@/lib/levels";
+import { getDailyChallenge } from "@/lib/dailyChallenge";
 
 interface ProgressState {
   totalPoints: number;
@@ -132,10 +133,22 @@ export const useProgressStore = create<ProgressState>()(
           const scorePct = result.maxScore > 0 ? result.score / result.maxScore : 0;
           const baseCoins = Math.round(5 + scorePct * 10); // 5-15 coins
           const streakBonus = newStreak >= 7 ? 5 : newStreak >= 3 ? 2 : 0;
-          const coinsEarned = baseCoins + streakBonus;
+          let coinsEarned = baseCoins + streakBonus;
+          let pointsBonus = 0;
+
+          // Daily challenge bonus — check if this game matches today's challenge
+          const challenge = getDailyChallenge();
+          const alreadyDone = s.gameResults.some(
+            (r) => r.topicId === challenge.topicId && r.gameType === challenge.gameType && r.completedAt.startsWith(challenge.date)
+          );
+          if (!alreadyDone && result.topicId === challenge.topicId && result.gameType === challenge.gameType) {
+            coinsEarned += challenge.bonusCoins;
+            pointsBonus = challenge.bonusXP;
+          }
 
           return {
             gameResults: [...s.gameResults, result],
+            totalPoints: s.totalPoints + pointsBonus,
             coins: s.coins + coinsEarned,
             dailyStreak: newStreak,
             lastPlayDate: today,
