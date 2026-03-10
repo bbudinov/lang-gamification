@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
+import { useAuthStore } from "@/stores/authStore";
 import { InstallPWA } from "./InstallPWA";
 import type { Language } from "@/types";
 
@@ -13,6 +14,33 @@ const LANG_LABELS: Record<Language, string> = {
 };
 
 const LANGUAGES: Language[] = ["en", "bg", "es"];
+
+function UserButton() {
+  const router = useRouter();
+  const { user, profile } = useAuthStore();
+
+  if (!user) {
+    return (
+      <button
+        onClick={() => router.push("/login")}
+        className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+        title="Log in"
+      >
+        <span className="text-sm">👤</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => router.push("/profile")}
+      className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+      title="Profile"
+    >
+      <span className="text-sm">{profile?.avatar_emoji ?? "👤"}</span>
+    </button>
+  );
+}
 
 export function TopBar() {
   const router = useRouter();
@@ -112,6 +140,7 @@ export function TopBar() {
             <span className="text-sm">🏆</span>
           </button>
           <InstallPWA />
+          <UserButton />
           <button
             onClick={cycleTarget}
             className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
