@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useAuthStore } from "@/stores/authStore";
-import { InstallPWA } from "./InstallPWA";
 import type { Language } from "@/types";
 
 const LANG_LABELS: Record<Language, string> = {
@@ -14,33 +13,6 @@ const LANG_LABELS: Record<Language, string> = {
 };
 
 const LANGUAGES: Language[] = ["en", "bg", "es"];
-
-function UserButton() {
-  const router = useRouter();
-  const { user, profile } = useAuthStore();
-
-  if (!user) {
-    return (
-      <button
-        onClick={() => router.push("/login")}
-        className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
-        title="Log in"
-      >
-        <span className="text-sm">👤</span>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => router.push("/profile")}
-      className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
-      title="Profile"
-    >
-      <span className="text-sm">{profile?.avatar_emoji ?? "👤"}</span>
-    </button>
-  );
-}
 
 export function TopBar() {
   const router = useRouter();
@@ -57,8 +29,9 @@ export function TopBar() {
     dailyGoalTarget,
     checkAndUpdateStreak,
   } = useProgressStore();
+  const { user, profile } = useAuthStore();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Check streak on mount
   useEffect(() => {
     checkAndUpdateStreak();
   }, [checkAndUpdateStreak]);
@@ -74,94 +47,92 @@ export function TopBar() {
   const energyColor = energyPercent > 60 ? "#22c55e" : energyPercent > 30 ? "#f59e0b" : "#ef4444";
   const goalComplete = todayGamesPlayed >= dailyGoalTarget;
 
+  const navigate = (path: string) => {
+    setMenuOpen(false);
+    router.push(path);
+  };
+
   return (
     <div className="absolute top-0 left-0 right-0 safe-area" style={{ zIndex: 9999 }}>
-      <div className="flex items-center justify-between px-4 py-3">
-        {/* Left: Points + Energy */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-            <span className="text-amber-400 text-sm">⭐</span>
-            <span className="text-white text-sm font-semibold">{totalPoints}</span>
+      <div className="flex items-center justify-between px-3 py-2.5">
+        {/* Left: Points + Coins + Energy */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+            <span className="text-amber-400 text-xs">⭐</span>
+            <span className="text-white text-xs font-semibold">{totalPoints}</span>
           </div>
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
-            <span className="text-yellow-300 text-sm">🪙</span>
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
+            <span className="text-yellow-300 text-xs">🪙</span>
             <span className="text-white text-xs font-semibold">{coins}</span>
           </div>
-
-          {/* Energy bar */}
-          <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
-            <span className="text-xs">⚡</span>
-            <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
+            <span className="text-[10px]">⚡</span>
+            <div className="w-10 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${energyPercent}%`,
                   backgroundColor: energyColor,
-                  boxShadow: energyPercent < 30 ? `0 0 6px ${energyColor}` : "none",
-                  animation: energyPercent < 30 ? "pulse 1.5s ease-in-out infinite" : "none",
                 }}
               />
             </div>
           </div>
         </div>
 
-        {/* Right: Streak + Language */}
-        <div className="flex items-center gap-2">
-          {/* Streak */}
+        {/* Right: Streak + Goal + Menu */}
+        <div className="flex items-center gap-1.5">
           {dailyStreak > 0 && (
-            <div className={`flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 ${
+            <div className={`flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 ${
               goalComplete ? "ring-1 ring-amber-400/50" : ""
             }`}>
-              <span className="text-sm" style={{ animation: "flame-flicker 1s ease-in-out infinite" }}>🔥</span>
-              <span className="text-white text-xs font-bold">{dailyStreak}</span>
+              <span className="text-xs" style={{ animation: "flame-flicker 1s ease-in-out infinite" }}>🔥</span>
+              <span className="text-white text-[10px] font-bold">{dailyStreak}</span>
             </div>
           )}
 
-          {/* Daily goal progress */}
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
-            <span className="text-xs">{goalComplete ? "✅" : "🎯"}</span>
-            <span className="text-white text-xs">
+          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
+            <span className="text-[10px]">{goalComplete ? "✅" : "🎯"}</span>
+            <span className="text-white text-[10px]">
               {todayGamesPlayed}/{dailyGoalTarget}
             </span>
           </div>
 
           <button
-            onClick={() => router.push("/leaderboard")}
-            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
-            title="Leaderboard"
-          >
-            <span className="text-sm">🏅</span>
-          </button>
-          <button
-            onClick={() => router.push("/collection")}
-            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
-            title="Word Book"
-          >
-            <span className="text-sm">📖</span>
-          </button>
-          <button
-            onClick={() => router.push("/achievements")}
-            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
-            title="Achievements"
-          >
-            <span className="text-sm">🏆</span>
-          </button>
-          <InstallPWA />
-          <UserButton />
-          <button
             onClick={cycleTarget}
-            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
+            className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 active:bg-white/20 transition-colors"
           >
-            <span className="text-xs text-slate-400">
-              {LANG_LABELS[nativeLanguage]}
-            </span>
-            <span className="text-white text-xs">→</span>
-            <span className="text-sm text-white font-semibold">
-              {LANG_LABELS[targetLanguage]}
-            </span>
+            <span className="text-[10px] text-slate-400">{LANG_LABELS[nativeLanguage]}</span>
+            <span className="text-white text-[10px]">→</span>
+            <span className="text-xs text-white font-semibold">{LANG_LABELS[targetLanguage]}</span>
+          </button>
+
+          {/* Menu button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+          >
+            <span className="text-sm">{user ? (profile?.avatar_emoji ?? "👤") : "☰"}</span>
           </button>
         </div>
       </div>
+
+      {/* Dropdown menu */}
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-3 top-14 bg-[#0f1d32] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[9999] min-w-[180px]">
+            <MenuItem emoji="🏅" label="Leaderboard" onClick={() => navigate("/leaderboard")} />
+            <MenuItem emoji="📖" label="Word Book" onClick={() => navigate("/collection")} />
+            <MenuItem emoji="🏆" label="Achievements" onClick={() => navigate("/achievements")} />
+            <div className="border-t border-white/5" />
+            {user ? (
+              <MenuItem emoji={profile?.avatar_emoji ?? "👤"} label="Profile" onClick={() => navigate("/profile")} />
+            ) : (
+              <MenuItem emoji="👤" label="Log In" onClick={() => navigate("/login")} />
+            )}
+          </div>
+        </>
+      )}
 
       <style jsx>{`
         @keyframes flame-flicker {
@@ -170,5 +141,17 @@ export function TopBar() {
         }
       `}</style>
     </div>
+  );
+}
+
+function MenuItem({ emoji, label, onClick }: { emoji: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-white/10 transition-colors"
+    >
+      <span className="text-lg">{emoji}</span>
+      <span className="text-white text-sm font-medium">{label}</span>
+    </button>
   );
 }
