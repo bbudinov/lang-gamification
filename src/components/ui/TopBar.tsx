@@ -110,6 +110,7 @@ export function TopBar() {
           <div className="fixed inset-0 z-[9998]" onClick={() => setMenuOpen(false)} />
           <div className="absolute right-3 top-14 bg-[#0f1d32] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[9999] min-w-[180px]">
             <MenuItem emoji="🏅" label="Leaderboard" onClick={() => navigate("/leaderboard")} />
+            <MenuItem emoji="🛍" label="Shop" onClick={() => navigate("/shop")} />
             <MenuItem emoji="📖" label="Word Book" onClick={() => navigate("/collection")} />
             <MenuItem emoji="🏆" label="Achievements" onClick={() => navigate("/achievements")} />
             <div className="border-t border-white/5" />

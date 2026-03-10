@@ -28,6 +28,19 @@ interface ProgressState {
   // Treasure chest
   lastChestGame: string; // ISO timestamp of last chest award
 
+  // Shop
+  ownedItems: string[]; // item IDs
+  equippedTitle: string; // currently equipped title badge ID
+
+  // Pet
+  pet: {
+    active: boolean;
+    stage: 0 | 1 | 2 | 3; // 0=egg, 1=baby, 2=teen, 3=adult
+    feedCount: number;
+    gamesSinceLastFeed: number;
+    lastFedAt: string; // ISO
+  } | null;
+
   // Actions
   addPoints: (points: number) => void;
   addCoins: (amount: number) => void;
@@ -40,6 +53,14 @@ interface ProgressState {
   addEnergy: (amount: number) => void;
   useEnergy: (amount: number) => boolean;
   checkAndUpdateStreak: () => void;
+
+  // Shop
+  buyItem: (itemId: string, cost: number) => boolean;
+  equipTitle: (itemId: string) => void;
+
+  // Pet
+  hatchPet: () => void;
+  feedPet: () => void;
 
   // Level system (computed from gameResults)
   getTopicLevelProgress: (topicId: TopicId, level: LevelNumber) => {
@@ -87,6 +108,13 @@ export const useProgressStore = create<ProgressState>()(
 
       // Treasure chest
       lastChestGame: "",
+
+      // Shop
+      ownedItems: [],
+      equippedTitle: "",
+
+      // Pet
+      pet: null,
 
       addPoints: (points) =>
         set((s) => ({ totalPoints: s.totalPoints + points })),
@@ -146,6 +174,22 @@ export const useProgressStore = create<ProgressState>()(
             pointsBonus = challenge.bonusXP;
           }
 
+          // Pet auto-feed: every 3 games
+          let updatedPet = s.pet;
+          if (s.pet && s.pet.active) {
+            const newGames = s.pet.gamesSinceLastFeed + 1;
+            if (newGames >= 3) {
+              const newFeedCount = s.pet.feedCount + 1;
+              let newStage = s.pet.stage;
+              if (newFeedCount >= 15) newStage = 3;
+              else if (newFeedCount >= 5) newStage = 2;
+              else if (newFeedCount >= 1) newStage = 1;
+              updatedPet = { ...s.pet, feedCount: newFeedCount, gamesSinceLastFeed: 0, lastFedAt: new Date().toISOString(), stage: newStage as 0 | 1 | 2 | 3 };
+            } else {
+              updatedPet = { ...s.pet, gamesSinceLastFeed: newGames };
+            }
+          }
+
           return {
             gameResults: [...s.gameResults, result],
             totalPoints: s.totalPoints + pointsBonus,
@@ -154,6 +198,7 @@ export const useProgressStore = create<ProgressState>()(
             lastPlayDate: today,
             todayGamesPlayed: newGamesPlayed,
             energy: newEnergy,
+            pet: updatedPet,
           };
         }),
 
@@ -187,6 +232,39 @@ export const useProgressStore = create<ProgressState>()(
         set({ energy: s.energy - amount });
         return true;
       },
+
+      buyItem: (itemId, cost) => {
+        const s = get();
+        if (s.coins < cost || s.ownedItems.includes(itemId)) return false;
+        set({ coins: s.coins - cost, ownedItems: [...s.ownedItems, itemId] });
+        return true;
+      },
+
+      equipTitle: (itemId) => set({ equippedTitle: itemId }),
+
+      hatchPet: () =>
+        set({
+          pet: { active: true, stage: 0, feedCount: 0, gamesSinceLastFeed: 0, lastFedAt: "" },
+        }),
+
+      feedPet: () =>
+        set((s) => {
+          if (!s.pet) return {};
+          const newFeedCount = s.pet.feedCount + 1;
+          let newStage = s.pet.stage;
+          if (newFeedCount >= 15) newStage = 3;
+          else if (newFeedCount >= 5) newStage = 2;
+          else if (newFeedCount >= 1) newStage = 1;
+          return {
+            pet: {
+              ...s.pet,
+              feedCount: newFeedCount,
+              gamesSinceLastFeed: 0,
+              lastFedAt: new Date().toISOString(),
+              stage: newStage as 0 | 1 | 2 | 3,
+            },
+          };
+        }),
 
       checkAndUpdateStreak: () => {
         const s = get();

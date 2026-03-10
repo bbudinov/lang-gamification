@@ -8,6 +8,7 @@ import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
 import { MissionBoard } from "@/components/missions/MissionBoard";
 import { DailyChallengeButton } from "@/components/ui/DailyChallenge";
+import { PetWidget } from "@/components/ui/PetWidget";
 import { useProgressStore } from "@/stores/progressStore";
 import { topics } from "@/data/words";
 import type { Topic } from "@/types";
@@ -137,6 +138,9 @@ export default function MapPage() {
 
       {/* Daily Challenge button */}
       <DailyChallengeButton />
+
+      {/* Pet widget */}
+      <PetWidget />
 
       {/* Mission button */}
       <button
