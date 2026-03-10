@@ -25,8 +25,6 @@ export function TopBar() {
     energy,
     maxEnergy,
     dailyStreak,
-    todayGamesPlayed,
-    dailyGoalTarget,
     checkAndUpdateStreak,
   } = useProgressStore();
   const { user, profile } = useAuthStore();
@@ -45,7 +43,6 @@ export function TopBar() {
 
   const energyPercent = (energy / maxEnergy) * 100;
   const energyColor = energyPercent > 60 ? "#22c55e" : energyPercent > 30 ? "#f59e0b" : "#ef4444";
-  const goalComplete = todayGamesPlayed >= dailyGoalTarget;
 
   const navigate = (path: string) => {
     setMenuOpen(false);
@@ -82,20 +79,11 @@ export function TopBar() {
         {/* Right: Streak + Goal + Menu */}
         <div className="flex items-center gap-1.5">
           {dailyStreak > 0 && (
-            <div className={`flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 ${
-              goalComplete ? "ring-1 ring-amber-400/50" : ""
-            }`}>
+            <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
               <span className="text-xs" style={{ animation: "flame-flicker 1s ease-in-out infinite" }}>🔥</span>
               <span className="text-white text-[10px] font-bold">{dailyStreak}</span>
             </div>
           )}
-
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
-            <span className="text-[10px]">{goalComplete ? "✅" : "🎯"}</span>
-            <span className="text-white text-[10px]">
-              {todayGamesPlayed}/{dailyGoalTarget}
-            </span>
-          </div>
 
           <button
             onClick={cycleTarget}

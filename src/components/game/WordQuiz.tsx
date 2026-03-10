@@ -9,7 +9,6 @@ import { GameOverScreen } from "./GameOverScreen";
 import { NPC_RESCUE_REACTIONS } from "./GameOverScreen";
 import { MatchPopup } from "./MatchPopup";
 import { StarDisplay, GameRewardSummary } from "./StarDisplay";
-import { GhostScores } from "./GhostScores";
 import { TreasureChest } from "./TreasureChest";
 import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { npcs } from "@/data/npcs";
@@ -284,7 +283,6 @@ export function WordQuiz({ topic }: WordQuizProps) {
                 {ROUNDS} questions · {mistakes} mistakes
               </p>
             </div>
-            <GhostScores topicId={topic.id} gameType="word-quiz" myScore={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
             <div className="flex gap-3 justify-center pt-4">
               <button
                 onClick={handleReplay}
