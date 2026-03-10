@@ -126,6 +126,13 @@ export function TopBar() {
           </div>
 
           <button
+            onClick={() => router.push("/leaderboard")}
+            className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
+            title="Leaderboard"
+          >
+            <span className="text-sm">🏅</span>
+          </button>
+          <button
             onClick={() => router.push("/collection")}
             className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
             title="Word Book"
