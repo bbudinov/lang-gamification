@@ -97,7 +97,7 @@ export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
       totalPoints: 0,
-      coins: 0,
+      coins: 50,
       unlockedTopics: ["animals"],
       gameResults: [],
       nativeLanguage: "bg",
