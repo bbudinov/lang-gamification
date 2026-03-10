@@ -11,69 +11,46 @@ interface LeaderboardEntry {
   avatar_emoji: string;
   total_points: number;
   daily_streak: number;
-  games_played: number;
 }
-
-type Tab = "xp" | "streak" | "games";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [tab, setTab] = useState<Tab>("xp");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadLeaderboard();
-  }, [tab]);
+  }, []);
 
   const loadLeaderboard = async () => {
     setLoading(true);
 
-    // Join profiles + progress
     const { data } = await supabase
       .from("progress")
-      .select("user_id, total_points, daily_streak, today_games_played, profiles(display_name, avatar_emoji)")
-      .order(
-        tab === "xp" ? "total_points" : tab === "streak" ? "daily_streak" : "total_points",
-        { ascending: false }
-      )
+      .select("user_id, total_points, daily_streak, profiles(display_name, avatar_emoji)")
+      .order("total_points", { ascending: false })
       .limit(50);
 
     if (data) {
-      const mapped: LeaderboardEntry[] = data.map((row: any) => ({
-        user_id: row.user_id,
-        display_name: row.profiles?.display_name || "Explorer",
-        avatar_emoji: row.profiles?.avatar_emoji || "🦊",
-        total_points: row.total_points,
-        daily_streak: row.daily_streak,
-        games_played: row.today_games_played,
-      }));
-
-      // Sort by selected tab
-      if (tab === "streak") {
-        mapped.sort((a, b) => b.daily_streak - a.daily_streak);
-      } else if (tab === "games") {
-        mapped.sort((a, b) => b.total_points - a.total_points);
-      }
-
-      setEntries(mapped);
+      setEntries(
+        data.map((row: any) => ({
+          user_id: row.user_id,
+          display_name: row.profiles?.display_name || "Explorer",
+          avatar_emoji: row.profiles?.avatar_emoji || "🦊",
+          total_points: row.total_points,
+          daily_streak: row.daily_streak,
+        }))
+      );
     }
 
     setLoading(false);
   };
 
-  const getValue = (entry: LeaderboardEntry) => {
-    if (tab === "xp") return `${entry.total_points} XP`;
-    if (tab === "streak") return `${entry.daily_streak} days`;
-    return `${entry.total_points} XP`;
-  };
-
   return (
     <div className="min-h-screen bg-[#0a1628]">
-      {/* Header */}
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
           <button
@@ -87,27 +64,6 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 px-4 pb-4">
-        {([
-          { id: "xp", label: "⭐ Top XP", },
-          { id: "streak", label: "🔥 Streaks" },
-        ] as { id: Tab; label: string }[]).map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-              tab === t.id
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                : "bg-white/5 text-slate-400 border border-white/5"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
       <div className="px-4 pb-8 space-y-2">
         {loading ? (
           <div className="text-center py-12">
@@ -135,7 +91,6 @@ export default function LeaderboardPage() {
                     : "bg-white/3 border-white/5"
                 }`}
               >
-                {/* Rank */}
                 <div className="w-8 text-center">
                   {rank <= 3 ? (
                     <span className="text-xl">{MEDALS[rank - 1]}</span>
@@ -144,20 +99,20 @@ export default function LeaderboardPage() {
                   )}
                 </div>
 
-                {/* Avatar */}
                 <span className="text-2xl">{entry.avatar_emoji}</span>
 
-                {/* Name */}
                 <div className="flex-1 min-w-0">
                   <p className={`font-semibold text-sm truncate ${isMe ? "text-amber-400" : "text-white"}`}>
                     {entry.display_name || "Explorer"}
                     {isMe && <span className="text-xs text-amber-400/60 ml-1">(you)</span>}
                   </p>
+                  {entry.daily_streak > 0 && (
+                    <p className="text-slate-500 text-xs">🔥 {entry.daily_streak} day streak</p>
+                  )}
                 </div>
 
-                {/* Value */}
                 <span className={`text-sm font-bold ${rank <= 3 ? "text-amber-400" : "text-slate-400"}`}>
-                  {getValue(entry)}
+                  {entry.total_points} XP
                 </span>
               </div>
             );

@@ -11,7 +11,7 @@ export function TreasureChest() {
   const groupRef = useRef<THREE.Group>(null);
   const [collected, setCollected] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
-  const { addPoints, addEnergy } = useProgressStore();
+  const { addPoints, addCoins } = useProgressStore();
 
   // Fixed position — floating between islands
   const position: [number, number, number] = [3, 0.3, 12];
@@ -38,10 +38,10 @@ export function TreasureChest() {
     if (collected) return;
     playDingSound();
     addPoints(15);
-    addEnergy(10);
+    addCoins(10);
     setShowSparkles(true);
     setTimeout(() => setCollected(true), 1500);
-  }, [collected, addPoints, addEnergy]);
+  }, [collected, addPoints, addCoins]);
 
   if (collected) return null;
 
@@ -100,7 +100,7 @@ export function TreasureChest() {
       {/* Label */}
       <Html center position={[0, 0.5, 0]} distanceFactor={8} zIndexRange={[1, 5]}>
         <div className="text-center pointer-events-none select-none animate-pulse">
-          <span className="text-xs text-amber-300 font-bold drop-shadow-lg">+15⭐ +10⚡</span>
+          <span className="text-xs text-amber-300 font-bold drop-shadow-lg">+15⭐ +10🪙</span>
         </div>
       </Html>
 

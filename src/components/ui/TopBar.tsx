@@ -22,8 +22,6 @@ export function TopBar() {
     nativeLanguage,
     targetLanguage,
     setLanguages,
-    energy,
-    maxEnergy,
     dailyStreak,
     checkAndUpdateStreak,
   } = useProgressStore();
@@ -41,9 +39,6 @@ export function TopBar() {
     setLanguages(nativeLanguage, next);
   };
 
-  const energyPercent = (energy / maxEnergy) * 100;
-  const energyColor = energyPercent > 60 ? "#22c55e" : energyPercent > 30 ? "#f59e0b" : "#ef4444";
-
   const navigate = (path: string) => {
     setMenuOpen(false);
     router.push(path);
@@ -52,7 +47,7 @@ export function TopBar() {
   return (
     <div className="absolute top-0 left-0 right-0 safe-area" style={{ zIndex: 9999 }}>
       <div className="flex items-center justify-between px-3 py-2.5">
-        {/* Left: Points + Coins + Energy */}
+        {/* Left: XP + Coins */}
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5">
             <span className="text-amber-400 text-xs">⭐</span>
@@ -62,21 +57,9 @@ export function TopBar() {
             <span className="text-yellow-300 text-xs">🪙</span>
             <span className="text-white text-xs font-semibold">{coins}</span>
           </div>
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
-            <span className="text-[10px]">⚡</span>
-            <div className="w-10 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${energyPercent}%`,
-                  backgroundColor: energyColor,
-                }}
-              />
-            </div>
-          </div>
         </div>
 
-        {/* Right: Streak + Goal + Menu */}
+        {/* Right: Streak + Language + Menu */}
         <div className="flex items-center gap-1.5">
           {dailyStreak > 0 && (
             <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
@@ -94,7 +77,6 @@ export function TopBar() {
             <span className="text-xs text-white font-semibold">{LANG_LABELS[targetLanguage]}</span>
           </button>
 
-          {/* Menu button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1.5 active:bg-white/20 transition-colors"
@@ -104,7 +86,6 @@ export function TopBar() {
         </div>
       </div>
 
-      {/* Dropdown menu */}
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setMenuOpen(false)} />

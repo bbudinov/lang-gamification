@@ -15,15 +15,10 @@ interface ProgressState {
   targetLanguage: Language;
   wordMastery: Record<string, WordMastery>;
 
-  // Energy system
-  energy: number;
-  maxEnergy: number;
-
   // Streak system
   dailyStreak: number;
   lastPlayDate: string; // YYYY-MM-DD
   todayGamesPlayed: number;
-  dailyGoalTarget: number; // games per day
 
   // Treasure chest
   lastChestGame: string; // ISO timestamp of last chest award
@@ -32,13 +27,11 @@ interface ProgressState {
   ownedItems: string[]; // item IDs
   equippedTitle: string; // currently equipped title badge ID
 
-  // Pet
+  // Pet — simple stage progression by total completed games
   pet: {
     active: boolean;
     stage: 0 | 1 | 2 | 3; // 0=egg, 1=baby, 2=teen, 3=adult
-    feedCount: number;
-    gamesSinceLastFeed: number;
-    lastFedAt: string; // ISO
+    gamesPlayed: number; // total games since pet was hatched
   } | null;
 
   // Actions
@@ -50,8 +43,6 @@ interface ProgressState {
   setLanguages: (native: Language, target: Language) => void;
   isTopicUnlocked: (topicId: TopicId) => boolean;
   updateWordMastery: (wordId: string, correct: boolean) => void;
-  addEnergy: (amount: number) => void;
-  useEnergy: (amount: number) => boolean;
   checkAndUpdateStreak: () => void;
 
   // Shop
@@ -60,7 +51,6 @@ interface ProgressState {
 
   // Pet
   hatchPet: () => void;
-  feedPet: () => void;
 
   // Level system (computed from gameResults)
   getTopicLevelProgress: (topicId: TopicId, level: LevelNumber) => {
@@ -85,6 +75,24 @@ function isYesterday(dateStr: string): boolean {
   return date.toISOString().split("T")[0] === yesterday.toISOString().split("T")[0];
 }
 
+/** XP earned from a game based on score percentage */
+function calcXpFromGame(score: number, maxScore: number): number {
+  if (maxScore <= 0) return 5;
+  const pct = (score / maxScore) * 100;
+  if (pct >= 90) return 20;
+  if (pct >= 70) return 15;
+  if (pct >= 50) return 10;
+  return 5;
+}
+
+/** Pet stage thresholds by total games played */
+function calcPetStage(gamesPlayed: number): 0 | 1 | 2 | 3 {
+  if (gamesPlayed >= 30) return 3;
+  if (gamesPlayed >= 10) return 2;
+  if (gamesPlayed >= 1) return 1;
+  return 0;
+}
+
 export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
@@ -96,15 +104,10 @@ export const useProgressStore = create<ProgressState>()(
       targetLanguage: "en",
       wordMastery: {},
 
-      // Energy: starts full, max 100
-      energy: 100,
-      maxEnergy: 100,
-
       // Streak
       dailyStreak: 0,
       lastPlayDate: "",
       todayGamesPlayed: 0,
-      dailyGoalTarget: 3,
 
       // Treasure chest
       lastChestGame: "",
@@ -153,51 +156,39 @@ export const useProgressStore = create<ProgressState>()(
 
           const newGamesPlayed = isNewDay ? 1 : s.todayGamesPlayed + 1;
 
-          // Energy bonus for completing games
-          const energyGain = Math.min(15, Math.max(5, Math.round(result.score / 10)));
-          const newEnergy = Math.min(s.maxEnergy, s.energy + energyGain);
+          // XP from game (score-based tiers)
+          let xpEarned = calcXpFromGame(result.score, result.maxScore);
 
           // Coins: base 5-15 based on score percentage + streak bonus
           const scorePct = result.maxScore > 0 ? result.score / result.maxScore : 0;
           const baseCoins = Math.round(5 + scorePct * 10); // 5-15 coins
           const streakBonus = newStreak >= 7 ? 5 : newStreak >= 3 ? 2 : 0;
           let coinsEarned = baseCoins + streakBonus;
-          let pointsBonus = 0;
 
-          // Daily challenge bonus — check if this game matches today's challenge
+          // Daily challenge bonus
           const challenge = getDailyChallenge();
           const alreadyDone = s.gameResults.some(
             (r) => r.topicId === challenge.topicId && r.gameType === challenge.gameType && r.completedAt.startsWith(challenge.date)
           );
           if (!alreadyDone && result.topicId === challenge.topicId && result.gameType === challenge.gameType) {
             coinsEarned += challenge.bonusCoins;
-            pointsBonus = challenge.bonusXP;
+            xpEarned += challenge.bonusXP;
           }
 
-          // Pet auto-feed: every 3 games
+          // Pet: increment games played, update stage
           let updatedPet = s.pet;
           if (s.pet && s.pet.active) {
-            const newGames = s.pet.gamesSinceLastFeed + 1;
-            if (newGames >= 3) {
-              const newFeedCount = s.pet.feedCount + 1;
-              let newStage = s.pet.stage;
-              if (newFeedCount >= 15) newStage = 3;
-              else if (newFeedCount >= 5) newStage = 2;
-              else if (newFeedCount >= 1) newStage = 1;
-              updatedPet = { ...s.pet, feedCount: newFeedCount, gamesSinceLastFeed: 0, lastFedAt: new Date().toISOString(), stage: newStage as 0 | 1 | 2 | 3 };
-            } else {
-              updatedPet = { ...s.pet, gamesSinceLastFeed: newGames };
-            }
+            const newPetGames = s.pet.gamesPlayed + 1;
+            updatedPet = { ...s.pet, gamesPlayed: newPetGames, stage: calcPetStage(newPetGames) };
           }
 
           return {
             gameResults: [...s.gameResults, result],
-            totalPoints: s.totalPoints + pointsBonus,
+            totalPoints: s.totalPoints + xpEarned,
             coins: s.coins + coinsEarned,
             dailyStreak: newStreak,
             lastPlayDate: today,
             todayGamesPlayed: newGamesPlayed,
-            energy: newEnergy,
             pet: updatedPet,
           };
         }),
@@ -223,16 +214,6 @@ export const useProgressStore = create<ProgressState>()(
           };
         }),
 
-      addEnergy: (amount) =>
-        set((s) => ({ energy: Math.min(s.maxEnergy, s.energy + amount) })),
-
-      useEnergy: (amount) => {
-        const s = get();
-        if (s.energy < amount) return false;
-        set({ energy: s.energy - amount });
-        return true;
-      },
-
       buyItem: (itemId, cost) => {
         const s = get();
         if (s.coins < cost || s.ownedItems.includes(itemId)) return false;
@@ -244,32 +225,13 @@ export const useProgressStore = create<ProgressState>()(
 
       hatchPet: () =>
         set({
-          pet: { active: true, stage: 0, feedCount: 0, gamesSinceLastFeed: 0, lastFedAt: "" },
-        }),
-
-      feedPet: () =>
-        set((s) => {
-          if (!s.pet) return {};
-          const newFeedCount = s.pet.feedCount + 1;
-          let newStage = s.pet.stage;
-          if (newFeedCount >= 15) newStage = 3;
-          else if (newFeedCount >= 5) newStage = 2;
-          else if (newFeedCount >= 1) newStage = 1;
-          return {
-            pet: {
-              ...s.pet,
-              feedCount: newFeedCount,
-              gamesSinceLastFeed: 0,
-              lastFedAt: new Date().toISOString(),
-              stage: newStage as 0 | 1 | 2 | 3,
-            },
-          };
+          pet: { active: true, stage: 0, gamesPlayed: 0 },
         }),
 
       checkAndUpdateStreak: () => {
         const s = get();
         const today = getToday();
-        if (s.lastPlayDate === today) return; // Already played today
+        if (s.lastPlayDate === today) return;
 
         if (isYesterday(s.lastPlayDate)) {
           // Streak continues — don't increment yet, wait for game completion
@@ -284,7 +246,6 @@ export const useProgressStore = create<ProgressState>()(
         const s = get();
         const levelGames = LEVEL_GAMES[level];
 
-        // Best result per game type for this topic
         const bestResults: Record<string, GameResult> = {};
         for (const result of s.gameResults) {
           if (result.topicId !== topicId) continue;
@@ -306,7 +267,6 @@ export const useProgressStore = create<ProgressState>()(
         const avgScorePercent = scores.length > 0
           ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 
-        // Level 1 unlocked when island is unlocked, others when prev level completed
         let unlocked = false;
         if (level === 1) {
           unlocked = s.unlockedTopics.includes(topicId);

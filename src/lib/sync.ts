@@ -16,12 +16,9 @@ export async function syncToCloud(userId: string): Promise<void> {
     user_id: userId,
     total_points: state.totalPoints,
     coins: state.coins,
-    energy: state.energy,
-    max_energy: state.maxEnergy,
     daily_streak: state.dailyStreak,
     last_play_date: state.lastPlayDate,
     today_games_played: state.todayGamesPlayed,
-    daily_goal_target: state.dailyGoalTarget,
     unlocked_topics: state.unlockedTopics,
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });
@@ -94,7 +91,7 @@ export async function syncFromCloud(userId: string): Promise<void> {
 
   const state = useProgressStore.getState();
 
-  // Merge: take the higher value for points/coins/streak (cloud might be ahead from another device)
+  // Merge: take the higher value for points/coins/streak
   const mergedPoints = Math.max(state.totalPoints, progress.total_points);
   const mergedCoins = Math.max(state.coins, progress.coins);
   const mergedStreak = Math.max(state.dailyStreak, progress.daily_streak);
@@ -134,9 +131,7 @@ export async function syncFromCloud(userId: string): Promise<void> {
     dailyStreak: mergedStreak,
     lastPlayDate: progress.last_play_date || state.lastPlayDate,
     todayGamesPlayed: Math.max(state.todayGamesPlayed, progress.today_games_played),
-    dailyGoalTarget: progress.daily_goal_target,
-    unlocked_topics: [...new Set([...state.unlockedTopics, ...(progress.unlocked_topics ?? [])])],
-    energy: Math.max(state.energy, progress.energy),
+    unlockedTopics: [...new Set([...state.unlockedTopics, ...(progress.unlocked_topics ?? [])])],
     gameResults: mergedResults,
     wordMastery: mergedMastery,
   } as any);

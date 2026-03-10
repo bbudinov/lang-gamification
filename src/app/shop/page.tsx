@@ -239,6 +239,7 @@ function MysteryBoxCard({
 
 const PET_STAGES = ["🥚", "🐣", "🐲", "🐉"] as const;
 const PET_STAGE_NAMES = ["Egg", "Baby Dragon", "Young Dragon", "Dragon"] as const;
+const NEXT_STAGE_AT = [1, 10, 30] as const;
 
 function PetEggCard({
   item,
@@ -248,18 +249,13 @@ function PetEggCard({
 }: {
   item: ShopItem;
   coins: number;
-  pet: { active: boolean; stage: 0 | 1 | 2 | 3; feedCount: number; gamesSinceLastFeed: number; lastFedAt: string } | null;
+  pet: { active: boolean; stage: 0 | 1 | 2 | 3; gamesPlayed: number } | null;
   onBuy: (item: ShopItem) => void;
 }) {
   const canAfford = coins >= item.price;
 
   if (pet) {
-    // Show current pet status
-    const gamesUntilFeed = 3 - pet.gamesSinceLastFeed;
-    const hoursSinceFed = pet.lastFedAt
-      ? (Date.now() - new Date(pet.lastFedAt).getTime()) / (1000 * 60 * 60)
-      : 999;
-    const mood = hoursSinceFed < 24 ? "Happy 😊" : hoursSinceFed < 48 ? "Okay 😐" : hoursSinceFed < 72 ? "Sleepy 😴" : "Sad 😢";
+    const nextThreshold = pet.stage < 3 ? NEXT_STAGE_AT[pet.stage as 0 | 1 | 2] : null;
 
     return (
       <div className="bg-gradient-to-b from-green-900/30 to-green-900/10 border border-green-500/20 rounded-2xl p-6 text-center space-y-4">
@@ -267,16 +263,14 @@ function PetEggCard({
           {PET_STAGES[pet.stage]}
         </div>
         <h3 className="text-white text-lg font-bold">{PET_STAGE_NAMES[pet.stage]}</h3>
-        <p className="text-slate-400 text-sm">Mood: {mood}</p>
-        <div className="flex justify-center gap-4 text-xs text-slate-400">
-          <span>Fed {pet.feedCount} times</span>
-          <span>·</span>
-          <span>{gamesUntilFeed > 0 ? `${gamesUntilFeed} games until next feed` : "Ready to feed!"}</span>
-        </div>
-        {pet.stage < 3 && (
+        <p className="text-slate-400 text-sm">{pet.gamesPlayed} games played</p>
+        {nextThreshold && (
           <p className="text-blue-400 text-xs">
-            Next evolution: {PET_STAGE_NAMES[pet.stage + 1]} at {[1, 5, 15][pet.stage]} feeds
+            Next evolution: {PET_STAGE_NAMES[pet.stage + 1]} at {nextThreshold} games
           </p>
+        )}
+        {pet.stage === 3 && (
+          <p className="text-green-400 text-xs font-medium">Fully evolved!</p>
         )}
 
         <style jsx>{`
@@ -296,9 +290,9 @@ function PetEggCard({
       </div>
       <h3 className="text-white text-lg font-bold">Pet Egg</h3>
       <p className="text-slate-400 text-sm">
-        Adopt a pet! Play games to feed it and watch it evolve.
+        Adopt a pet! Play games and watch it evolve.
       </p>
-      <p className="text-slate-500 text-xs">🥚 → 🐣 → 🐲 → 🐉</p>
+      <p className="text-slate-500 text-xs">🥚 → 🐣 (1 game) → 🐲 (10 games) → 🐉 (30 games)</p>
       <button
         onClick={() => onBuy(item)}
         disabled={!canAfford}

@@ -53,7 +53,7 @@ export function getDailyChallenge(): DailyChallenge {
     gameEmoji: info.emoji,
     date: dateStr,
     bonusCoins: 25,
-    bonusXP: 50,
+    bonusXP: 25,
   };
 }
 
