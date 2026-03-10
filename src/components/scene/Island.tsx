@@ -8,6 +8,7 @@ import type { Group } from "three";
 import type { Topic, Language, LevelNumber } from "@/types";
 import { useProgressStore } from "@/stores/progressStore";
 import { playPopSound, playDingSound } from "@/lib/speech";
+import { AnimalIslandBody } from "./islands/AnimalIslandBody";
 
 // ─── Visual config per topic ────────────────────────────────────
 
@@ -639,27 +640,39 @@ export function Island({ topic, onSelect }: IslandProps) {
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
         >
-          {/* Organic island body */}
-          <IslandBody
-            visual={visual}
-            unlocked={unlocked}
-            hovered={hovered}
-            unlockEffect={unlockEffect}
-            topicColor={topic.color}
-            completedLevels={completedLevels}
-          />
-
-          {/* Category-specific decorations */}
-          <Decorations type={visual.decoration} color={decoColor} />
+          {/* Island body — unique per topic or generic */}
+          {topic.id === "animals" ? (
+            <AnimalIslandBody
+              unlocked={unlocked}
+              hovered={hovered}
+              unlockEffect={unlockEffect}
+              topicColor={topic.color}
+              completedLevels={completedLevels}
+            />
+          ) : (
+            <>
+              <IslandBody
+                visual={visual}
+                unlocked={unlocked}
+                hovered={hovered}
+                unlockEffect={unlockEffect}
+                topicColor={topic.color}
+                completedLevels={completedLevels}
+              />
+              <Decorations type={visual.decoration} color={decoColor} />
+            </>
+          )}
         </group>
 
-        {/* Organic satellite mini-islands */}
-        <SatelliteIslands
-          count={visual.satellites}
-          color={unlocked ? visual.groundColor : "#6b7280"}
-          cliffColor={unlocked ? visual.cliffColor : "#4b5563"}
-          beachColor={unlocked ? visual.beachColor : "#9ca3af"}
-        />
+        {/* Organic satellite mini-islands (skip for animals — it has its own) */}
+        {topic.id !== "animals" && (
+          <SatelliteIslands
+            count={visual.satellites}
+            color={unlocked ? visual.groundColor : "#6b7280"}
+            cliffColor={unlocked ? visual.cliffColor : "#4b5563"}
+            beachColor={unlocked ? visual.beachColor : "#9ca3af"}
+          />
+        )}
 
         {/* Ambient effects for unlocked islands */}
         {unlocked && !unlockEffect && (
