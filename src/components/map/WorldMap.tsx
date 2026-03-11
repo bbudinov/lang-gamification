@@ -3,7 +3,7 @@
 import { Suspense, useState, useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Html, PerformanceMonitor, Sky } from "@react-three/drei";
-import { EffectComposer, N8AO, Bloom, Vignette, TiltShift2 } from "@react-three/postprocessing";
+// import { EffectComposer, N8AO, Bloom, Vignette, TiltShift2 } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { TOUCH, MOUSE } from "three";
 import { CITIES, type City } from "@/data/cities";
@@ -1010,13 +1010,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
 
         <CameraControls />
 
-        {/* Post-processing — ambient occlusion, bloom, tilt-shift, vignette */}
-        <EffectComposer>
-          <N8AO aoRadius={1.5} intensity={2.5} distanceFalloff={0.8} />
-          <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.5} intensity={0.2} mipmapBlur />
-          <TiltShift2 blur={0.08} />
-          <Vignette eskil={false} offset={0.2} darkness={0.4} />
-        </EffectComposer>
+        {/* Post-processing disabled — causes hook error with React 19 */}
       </Canvas>
 
       {!overlayHidden && (
