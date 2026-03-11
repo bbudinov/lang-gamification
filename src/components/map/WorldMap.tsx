@@ -115,75 +115,118 @@ function Ground() {
 function Streets() {
   const meshes = useMemo(() => {
     const result: THREE.Mesh[] = [];
-    // Main avenues — dark asphalt with sidewalks and center line
+    // Shared wet asphalt material — low roughness for subtle reflections
+    const asphaltMain = new THREE.MeshStandardMaterial({ color: "#3a3a3e", roughness: 0.55, metalness: 0.15 });
+    const asphaltSec = new THREE.MeshStandardMaterial({ color: "#444448", roughness: 0.6, metalness: 0.1 });
+    const sidewalkMat = new THREE.MeshStandardMaterial({ color: "#8a8a85", roughness: 0.8 });
+    const curbMat = new THREE.MeshStandardMaterial({ color: "#9a9a95", roughness: 0.75 });
+    const yellowLine = new THREE.MeshStandardMaterial({ color: "#d4b830", roughness: 0.9 });
+    const whiteLine = new THREE.MeshStandardMaterial({ color: "#d8d8d8", roughness: 0.9 });
+
+    // Main avenues — dark wet asphalt with curbs and sidewalks
     for (const ave of MAIN_AVENUES) {
       const len = ave.x2 - ave.x1;
       const cx = (ave.x1 + ave.x2) / 2;
-      // Asphalt
-      const geo = new THREE.PlaneGeometry(len, 5);
-      const mat = new THREE.MeshStandardMaterial({ color: "#5a5a5a", roughness: 0.95 });
-      const m = new THREE.Mesh(geo, mat);
+      // Asphalt road surface
+      const geo = new THREE.PlaneGeometry(len, 5.5);
+      const m = new THREE.Mesh(geo, asphaltMain);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(cx, -0.04, ave.z);
+      m.position.set(cx, -0.03, ave.z);
       result.push(m);
       // Center dashed line (yellow)
       for (let x = ave.x1 + 2; x < ave.x2 - 2; x += 5) {
-        const dGeo = new THREE.PlaneGeometry(2.5, 0.15);
-        const dMat = new THREE.MeshStandardMaterial({ color: "#d4c040", roughness: 1 });
-        const dm = new THREE.Mesh(dGeo, dMat);
+        const dGeo = new THREE.PlaneGeometry(2.5, 0.18);
+        const dm = new THREE.Mesh(dGeo, yellowLine);
         dm.rotation.x = -Math.PI / 2;
-        dm.position.set(x, -0.035, ave.z);
+        dm.position.set(x, -0.025, ave.z);
         result.push(dm);
       }
-      // Sidewalks
+      // Edge lines (white, continuous)
       for (const side of [-1, 1]) {
-        const sGeo = new THREE.PlaneGeometry(len, 1.2);
-        const sMat = new THREE.MeshStandardMaterial({ color: "#9a9a90", roughness: 0.95 });
-        const sm = new THREE.Mesh(sGeo, sMat);
-        sm.rotation.x = -Math.PI / 2;
-        sm.position.set(cx, -0.035, ave.z + side * 3.3);
+        const eGeo = new THREE.PlaneGeometry(len, 0.1);
+        const em = new THREE.Mesh(eGeo, whiteLine);
+        em.rotation.x = -Math.PI / 2;
+        em.position.set(cx, -0.025, ave.z + side * 2.5);
+        result.push(em);
+      }
+      // Raised sidewalks with curbs
+      for (const side of [-1, 1]) {
+        // Curb — small raised edge
+        const cGeo = new THREE.BoxGeometry(len, 0.15, 0.2);
+        const cm = new THREE.Mesh(cGeo, curbMat);
+        cm.position.set(cx, 0.075, ave.z + side * 2.9);
+        result.push(cm);
+        // Sidewalk surface (raised)
+        const sGeo = new THREE.BoxGeometry(len, 0.1, 1.8);
+        const sm = new THREE.Mesh(sGeo, sidewalkMat);
+        sm.position.set(cx, 0.05, ave.z + side * 3.8);
         result.push(sm);
       }
     }
-    // Secondary vertical streets — lighter grey
+    // Secondary vertical streets — lighter wet asphalt
     for (const st of SECONDARY_STREETS_V) {
       const len = st.z2 - st.z1;
       const cz = (st.z1 + st.z2) / 2;
-      const geo = new THREE.PlaneGeometry(3.5, len);
-      const mat = new THREE.MeshStandardMaterial({ color: "#6a6a6a", roughness: 0.95 });
-      const m = new THREE.Mesh(geo, mat);
+      const geo = new THREE.PlaneGeometry(3.8, len);
+      const m = new THREE.Mesh(geo, asphaltSec);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(st.x, -0.04, cz);
+      m.position.set(st.x, -0.03, cz);
       result.push(m);
       // Center dashed line (white)
       for (let z = st.z1 + 2; z < st.z2 - 2; z += 5) {
         const dGeo = new THREE.PlaneGeometry(0.12, 2.5);
-        const dMat = new THREE.MeshStandardMaterial({ color: "#e0e0e0", roughness: 1 });
-        const dm = new THREE.Mesh(dGeo, dMat);
+        const dm = new THREE.Mesh(dGeo, whiteLine);
         dm.rotation.x = -Math.PI / 2;
-        dm.position.set(st.x, -0.035, z);
+        dm.position.set(st.x, -0.025, z);
         result.push(dm);
+      }
+      // Curbs on both sides
+      for (const side of [-1, 1]) {
+        const cGeo = new THREE.BoxGeometry(0.15, 0.12, len);
+        const cm = new THREE.Mesh(cGeo, curbMat);
+        cm.position.set(st.x + side * 2.0, 0.06, cz);
+        result.push(cm);
       }
     }
     // Secondary horizontal streets
     for (const st of SECONDARY_STREETS_H) {
       const len = st.x2 - st.x1;
       const cx = (st.x1 + st.x2) / 2;
-      const geo = new THREE.PlaneGeometry(len, 3.5);
-      const mat = new THREE.MeshStandardMaterial({ color: "#6a6a6a", roughness: 0.95 });
-      const m = new THREE.Mesh(geo, mat);
+      const geo = new THREE.PlaneGeometry(len, 3.8);
+      const m = new THREE.Mesh(geo, asphaltSec);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(cx, -0.04, st.z);
+      m.position.set(cx, -0.03, st.z);
       result.push(m);
       for (let x = st.x1 + 2; x < st.x2 - 2; x += 5) {
         const dGeo = new THREE.PlaneGeometry(2.5, 0.12);
-        const dMat = new THREE.MeshStandardMaterial({ color: "#e0e0e0", roughness: 1 });
-        const dm = new THREE.Mesh(dGeo, dMat);
+        const dm = new THREE.Mesh(dGeo, whiteLine);
         dm.rotation.x = -Math.PI / 2;
-        dm.position.set(x, -0.035, st.z);
+        dm.position.set(x, -0.025, st.z);
         result.push(dm);
       }
+      // Curbs
+      for (const side of [-1, 1]) {
+        const cGeo = new THREE.BoxGeometry(len, 0.12, 0.15);
+        const cm = new THREE.Mesh(cGeo, curbMat);
+        cm.position.set(cx, 0.06, st.z + side * 2.0);
+        result.push(cm);
+      }
     }
+    // Crosswalks (zebra stripes) at avenue-street intersections
+    const crosswalkMat = new THREE.MeshStandardMaterial({ color: "#e0e0e0", roughness: 0.85 });
+    for (const ave of MAIN_AVENUES) {
+      for (const st of SECONDARY_STREETS_V) {
+        // Horizontal zebra across the avenue at intersection
+        for (let stripe = -2; stripe <= 2; stripe += 0.6) {
+          const sGeo = new THREE.PlaneGeometry(3.0, 0.25);
+          const sm = new THREE.Mesh(sGeo, crosswalkMat);
+          sm.rotation.x = -Math.PI / 2;
+          sm.position.set(st.x, -0.02, ave.z + stripe);
+          result.push(sm);
+        }
+      }
+    }
+
     return result;
   }, []);
   return <group>{meshes.map((m, i) => <primitive key={i} object={m} />)}</group>;
@@ -225,11 +268,21 @@ function CityRoads({ unlockedIds }: { unlockedIds: Set<string> }) {
 
 // ─── Procedural city blocks — varied building types ──────────────
 
+type SignData = {
+  face: "front" | "side";
+  y: number; // height on building
+  w: number; h: number;
+  color: string;
+  emissive: string;
+  intensity: number;
+};
+
 type BuildingData = {
   x: number; z: number; w: number; h: number; d: number;
   wallColor: string; roofColor: string; accentColor: string;
   type: "house" | "apartment" | "office" | "tower";
   rot: number;
+  signs: SignData[];
 };
 
 function CityBlocks() {
@@ -276,6 +329,16 @@ function CityBlocks() {
       market: ["#5a6060", "#4a5454", "#606868", "#525a5a", "#686e6e"],
     };
     const ACCENT_COLORS = ["#3070b8", "#c83838", "#2a8a48", "#d4a020", "#8840a8", "#2898a0", "#e06828", "#c06088", "#4090d0", "#38a878"];
+    const SIGN_COLORS = [
+      { color: "#ff3030", emissive: "#ff2020" },
+      { color: "#3080ff", emissive: "#2060ff" },
+      { color: "#30ff60", emissive: "#20e050" },
+      { color: "#ff8020", emissive: "#e07010" },
+      { color: "#ff30a0", emissive: "#e02090" },
+      { color: "#40e0e0", emissive: "#30c8c8" },
+      { color: "#ffe040", emissive: "#e0c830" },
+      { color: "#a050ff", emissive: "#8040e0" },
+    ];
 
     for (const block of blockAreas) {
       const bw = block.x2 - block.x1;
@@ -313,6 +376,24 @@ function CityBlocks() {
           else { type = "house"; w = 1.2 + rng() * 1.5; h = 1.5 + rng() * 2; d = 1.2 + rng() * 1.5; }
         }
 
+        // Generate signs for taller buildings
+        const signs: SignData[] = [];
+        if ((type === "office" || type === "tower" || type === "apartment") && h > 3) {
+          const numSigns = type === "tower" ? 2 + Math.floor(rng() * 2) : rng() < 0.6 ? 1 : 0;
+          for (let s = 0; s < numSigns; s++) {
+            const sc = SIGN_COLORS[Math.floor(rng() * SIGN_COLORS.length)];
+            signs.push({
+              face: rng() < 0.6 ? "front" : "side",
+              y: 1.5 + rng() * (h - 2),
+              w: 0.4 + rng() * (w * 0.5),
+              h: 0.3 + rng() * 0.4,
+              color: sc.color,
+              emissive: sc.emissive,
+              intensity: 0.3 + rng() * 0.5,
+            });
+          }
+        }
+
         buildings.push({
           x: bx, z: bz, w, h, d,
           wallColor: walls[Math.floor(rng() * walls.length)],
@@ -320,6 +401,7 @@ function CityBlocks() {
           accentColor: ACCENT_COLORS[Math.floor(rng() * ACCENT_COLORS.length)],
           type,
           rot: Math.floor(rng() * 4) * Math.PI / 2,
+          signs,
         });
       }
     }
@@ -519,6 +601,37 @@ function CityBlocks() {
             </group>
           )}
 
+          {/* Neon signs / billboards */}
+          {b.signs.map((sign, si) => (
+            <group key={`sign${si}`}>
+              {sign.face === "front" ? (
+                <group>
+                  {/* Sign backing panel */}
+                  <mesh position={[0, sign.y, b.d / 2 + 0.03]}>
+                    <planeGeometry args={[sign.w + 0.08, sign.h + 0.08]} />
+                    <meshStandardMaterial color="#1a1a1a" />
+                  </mesh>
+                  {/* Glowing sign */}
+                  <mesh position={[0, sign.y, b.d / 2 + 0.04]}>
+                    <planeGeometry args={[sign.w, sign.h]} />
+                    <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
+                  </mesh>
+                </group>
+              ) : (
+                <group>
+                  <mesh position={[b.w / 2 + 0.03, sign.y, 0]} rotation={[0, Math.PI / 2, 0]}>
+                    <planeGeometry args={[sign.w + 0.08, sign.h + 0.08]} />
+                    <meshStandardMaterial color="#1a1a1a" />
+                  </mesh>
+                  <mesh position={[b.w / 2 + 0.04, sign.y, 0]} rotation={[0, Math.PI / 2, 0]}>
+                    <planeGeometry args={[sign.w, sign.h]} />
+                    <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
+                  </mesh>
+                </group>
+              )}
+            </group>
+          ))}
+
           {/* Building shadow on ground */}
           <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[b.w + 0.5, b.d + 0.5]} />
@@ -593,14 +706,66 @@ function Parks() {
     return result;
   }, []);
 
+  // Street trees along main avenues
+  const streetTrees = useMemo(() => {
+    const result: { x: number; z: number }[] = [];
+    for (const ave of MAIN_AVENUES) {
+      for (let x = ave.x1 + 8; x < ave.x2 - 5; x += 12) {
+        result.push({ x, z: ave.z + 5.2 });
+        result.push({ x: x + 6, z: ave.z - 5.2 });
+      }
+    }
+    return result;
+  }, []);
+
   return (
     <group>
-      {trees.map((t, i) => <ParkTree key={i} position={[t.x, 0, t.z]} scale={t.s} />)}
-      {[[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
-        <mesh key={`bench${i}`} position={[x, 0.2, z]} castShadow>
-          <boxGeometry args={[1.0, 0.08, 0.3]} />
-          <meshStandardMaterial color="#6a5a40" />
+      {/* Green grass patches under parks */}
+      {[
+        { cx: -8, cz: 8, r: 7 }, { cx: -40, cz: 40, r: 6 }, { cx: 48, cz: -20, r: 6 },
+        { cx: 20, cz: 42, r: 6 }, { cx: -56, cz: -28, r: 5 }, { cx: 56, cz: 10, r: 5 },
+      ].map((p, i) => (
+        <mesh key={`grass${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[p.cx, -0.04, p.cz]}>
+          <circleGeometry args={[p.r, 16]} />
+          <meshStandardMaterial color="#3a8a30" roughness={0.9} />
         </mesh>
+      ))}
+
+      {trees.map((t, i) => <ParkTree key={i} position={[t.x, 0, t.z]} scale={t.s} />)}
+
+      {/* Street trees along avenues */}
+      {streetTrees.map((st, i) => (
+        <group key={`st${i}`}>
+          {/* Tree pit (small green square) */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[st.x, -0.02, st.z]}>
+            <planeGeometry args={[1.2, 1.2]} />
+            <meshStandardMaterial color="#3a7a30" roughness={0.9} />
+          </mesh>
+          <ParkTree position={[st.x, 0, st.z]} scale={0.55} />
+        </group>
+      ))}
+
+      {/* Park benches */}
+      {[[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
+        <group key={`bench${i}`} position={[x, 0, z]}>
+          {/* Seat */}
+          <mesh position={[0, 0.25, 0]} castShadow>
+            <boxGeometry args={[1.0, 0.06, 0.35]} />
+            <meshStandardMaterial color="#6a5030" roughness={0.85} />
+          </mesh>
+          {/* Back rest */}
+          <mesh position={[0, 0.4, -0.15]} rotation={[0.15, 0, 0]} castShadow>
+            <boxGeometry args={[1.0, 0.3, 0.04]} />
+            <meshStandardMaterial color="#6a5030" roughness={0.85} />
+          </mesh>
+          {/* Legs */}
+          {[-0.35, 0.35].map((lx, li) => (
+            <mesh key={li} position={[lx, 0.12, 0]}>
+              <boxGeometry args={[0.04, 0.24, 0.3]} />
+              <meshStandardMaterial color="#404040" metalness={0.3} />
+            </mesh>
+          ))}
+        </group>
       ))}
       <group position={[-8, 0, 8]}>
         <mesh position={[0, 0.15, 0]}>
