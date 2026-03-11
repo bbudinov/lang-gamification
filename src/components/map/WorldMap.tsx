@@ -290,113 +290,138 @@ function CityBlocks() {
     const rng = seededRng(42);
     const buildings: BuildingData[] = [];
 
-    // Civic/center = taller, residential = shorter, market = mixed
+    // Dense urban layout — many more buildings, taller, closer together
     const blockAreas = [
-      // Residential west — mostly houses + some apartments
-      { x1: -70, x2: -54, z1: -16, z2: -2, density: 0.7, zone: "res" as const },
-      { x1: -54, x2: -20, z1: -16, z2: -2, density: 0.6, zone: "res" as const },
-      { x1: -54, x2: -20, z1: 2, z2: 16, density: 0.6, zone: "res" as const },
-      // School quarter — houses
-      { x1: -70, x2: -54, z1: 20, z2: 34, density: 0.5, zone: "res" as const },
-      { x1: -54, x2: -20, z1: 20, z2: 34, density: 0.5, zone: "res" as const },
-      // Civic center — offices + towers
-      { x1: -18, x2: 10, z1: -16, z2: -2, density: 0.55, zone: "civic" as const },
-      { x1: 10, x2: 36, z1: -16, z2: -2, density: 0.5, zone: "civic" as const },
-      { x1: -18, x2: 10, z1: 2, z2: 16, density: 0.5, zone: "civic" as const },
-      { x1: 10, x2: 36, z1: 2, z2: 16, density: 0.5, zone: "civic" as const },
-      // Market east — mixed
-      { x1: 40, x2: 58, z1: 2, z2: 16, density: 0.5, zone: "market" as const },
-      { x1: 40, x2: 58, z1: 18, z2: 34, density: 0.6, zone: "market" as const },
-      // Hospital area — offices
-      { x1: -54, x2: -20, z1: -50, z2: -38, density: 0.4, zone: "civic" as const },
+      // Residential west
+      { x1: -72, x2: -54, z1: -16, z2: -2, density: 1.2, zone: "res" as const },
+      { x1: -54, x2: -22, z1: -16, z2: -2, density: 1.0, zone: "res" as const },
+      { x1: -54, x2: -22, z1: 2, z2: 16, density: 1.0, zone: "res" as const },
+      { x1: -72, x2: -54, z1: 2, z2: 16, density: 0.9, zone: "res" as const },
+      // School quarter
+      { x1: -72, x2: -54, z1: 20, z2: 34, density: 0.8, zone: "res" as const },
+      { x1: -54, x2: -22, z1: 20, z2: 34, density: 0.9, zone: "market" as const },
+      // Civic center — dense tall buildings
+      { x1: -18, x2: 10, z1: -16, z2: -2, density: 1.3, zone: "civic" as const },
+      { x1: 10, x2: 36, z1: -16, z2: -2, density: 1.2, zone: "civic" as const },
+      { x1: -18, x2: 10, z1: 2, z2: 16, density: 1.2, zone: "civic" as const },
+      { x1: 10, x2: 36, z1: 2, z2: 16, density: 1.1, zone: "civic" as const },
+      // Market east — mixed dense
+      { x1: 40, x2: 62, z1: 2, z2: 16, density: 1.1, zone: "market" as const },
+      { x1: 40, x2: 62, z1: 18, z2: 34, density: 1.0, zone: "market" as const },
+      // Hospital area
+      { x1: -54, x2: -22, z1: -50, z2: -38, density: 0.8, zone: "civic" as const },
       // Zoo area
-      { x1: 22, x2: 50, z1: -44, z2: -38, density: 0.3, zone: "res" as const },
+      { x1: 22, x2: 54, z1: -44, z2: -38, density: 0.6, zone: "market" as const },
       // Weather station
-      { x1: -8, x2: 24, z1: -54, z2: -44, density: 0.25, zone: "civic" as const },
-      // South
-      { x1: -68, x2: -20, z1: 38, z2: 48, density: 0.35, zone: "res" as const },
-      { x1: -18, x2: 36, z1: 38, z2: 48, density: 0.3, zone: "market" as const },
+      { x1: -8, x2: 26, z1: -54, z2: -44, density: 0.7, zone: "civic" as const },
+      // South strips
+      { x1: -68, x2: -22, z1: 38, z2: 50, density: 0.7, zone: "res" as const },
+      { x1: -18, x2: 38, z1: 38, z2: 50, density: 0.8, zone: "market" as const },
+      // Fill edges with more buildings
+      { x1: -72, x2: -56, z1: -50, z2: -20, density: 0.6, zone: "res" as const },
+      { x1: 56, x2: 72, z1: -30, z2: 30, density: 0.7, zone: "market" as const },
+      { x1: -18, x2: 38, z1: -38, z2: -20, density: 0.9, zone: "civic" as const },
     ];
 
+    // More varied wall colors — including some colored facades like in Japanese cities
     const WALL_PALETTES = {
-      res: ["#e0ddd6", "#d4cfc6", "#c8c4ba", "#dcd8d0", "#e8e4dc", "#c0b8a8", "#d8d0c4"],
-      civic: ["#d8dce0", "#c8ccd4", "#e0e4e8", "#b8c0c8", "#ccd0d8", "#e4e8ec", "#d0d4dc"],
-      market: ["#e2d8c8", "#d0c4b0", "#dcd0bc", "#c8bca8", "#e8dcc8", "#c4b89c", "#d8ccb4"],
+      res: ["#e0ddd6", "#d4cfc6", "#c8c4ba", "#e8e4dc", "#d8d0c4", "#c4b8a0", "#e0d8cc", "#d0c8b8", "#dcd4c8"],
+      civic: ["#d8dce0", "#c8ccd4", "#e0e4e8", "#b8c0c8", "#e4e8ec", "#c0c8d0", "#d4d8e0", "#b0b8c4", "#dce0e4"],
+      market: ["#e2d8c8", "#d0c4b0", "#dcd0bc", "#c8bca8", "#e8dcc8", "#d8c8b0", "#c4b8a0", "#dcd4c0", "#d0c0a8"],
     };
+    // Some buildings get colored facades (Japanese city style)
+    const COLORED_FACADES = [
+      "#c8a070", "#8a6848", "#b85838", "#4868a0", "#386848", "#a04868",
+      "#c0a050", "#607898", "#886848", "#987858", "#6080a0", "#a86848",
+    ];
     const ROOF_PALETTES = {
-      res: ["#606868", "#505858", "#586060", "#4a5050", "#687070"],
-      civic: ["#485058", "#404850", "#505860", "#585e68", "#3a4248"],
-      market: ["#5a6060", "#4a5454", "#606868", "#525a5a", "#686e6e"],
+      res: ["#b86830", "#a85828", "#c07038", "#986020", "#b06028", "#c87840"],
+      civic: ["#404850", "#383e48", "#4a5058", "#505860", "#343a42", "#485058"],
+      market: ["#a86030", "#b06828", "#986020", "#4a5050", "#585e5e", "#c07038"],
     };
     const ACCENT_COLORS = ["#3070b8", "#c83838", "#2a8a48", "#d4a020", "#8840a8", "#2898a0", "#e06828", "#c06088", "#4090d0", "#38a878"];
+    // Bigger, bolder sign colors
     const SIGN_COLORS = [
-      { color: "#ff3030", emissive: "#ff2020" },
-      { color: "#3080ff", emissive: "#2060ff" },
-      { color: "#30ff60", emissive: "#20e050" },
-      { color: "#ff8020", emissive: "#e07010" },
-      { color: "#ff30a0", emissive: "#e02090" },
-      { color: "#40e0e0", emissive: "#30c8c8" },
-      { color: "#ffe040", emissive: "#e0c830" },
-      { color: "#a050ff", emissive: "#8040e0" },
+      { color: "#ff2020", emissive: "#ff1818" },
+      { color: "#2070ff", emissive: "#1858ff" },
+      { color: "#20ff50", emissive: "#18e040" },
+      { color: "#ff6010", emissive: "#e05008" },
+      { color: "#ff20a0", emissive: "#e01888" },
+      { color: "#30e0e0", emissive: "#28c8c8" },
+      { color: "#ffe030", emissive: "#e0c020" },
+      { color: "#a040ff", emissive: "#8830e0" },
+      { color: "#ff4060", emissive: "#e03050" },
+      { color: "#40a0ff", emissive: "#3088e0" },
     ];
+    // Ground floor storefront colors
+    const STOREFRONT_COLORS = ["#2858a0", "#a03838", "#2a6838", "#8a6030", "#683868", "#286868", "#a06028", "#3868a0"];
 
     for (const block of blockAreas) {
       const bw = block.x2 - block.x1;
       const bh = block.z2 - block.z1;
-      const count = Math.floor((bw * bh * block.density) / 40);
+      const count = Math.floor((bw * bh * block.density) / 28); // denser: /28 instead of /40
       const walls = WALL_PALETTES[block.zone];
       const roofs = ROOF_PALETTES[block.zone];
 
       for (let i = 0; i < count; i++) {
-        const bx = block.x1 + 2 + rng() * (bw - 4);
-        const bz = block.z1 + 2 + rng() * (bh - 4);
+        const bx = block.x1 + 1.5 + rng() * (bw - 3);
+        const bz = block.z1 + 1.5 + rng() * (bh - 3);
         let tooClose = false;
         for (const pos of ALL_NODE_POSITIONS) {
           const dx = bx - pos[0];
           const dz = bz - pos[1];
-          if (dx * dx + dz * dz < 64) { tooClose = true; break; }
+          if (dx * dx + dz * dz < 42) { tooClose = true; break; } // reduced from 64
         }
         if (tooClose) continue;
 
-        // Building type based on zone + random
         const r = rng();
         let type: BuildingData["type"];
         let w: number, h: number, d: number;
 
         if (block.zone === "civic") {
-          if (r < 0.2) { type = "tower"; w = 1.8 + rng() * 1.5; h = 8 + rng() * 7; d = 1.8 + rng() * 1.5; }
-          else if (r < 0.6) { type = "office"; w = 2 + rng() * 2; h = 4 + rng() * 4; d = 2 + rng() * 2; }
-          else { type = "apartment"; w = 1.5 + rng() * 2; h = 3 + rng() * 3; d = 1.5 + rng() * 1.5; }
+          if (r < 0.3) { type = "tower"; w = 2 + rng() * 2; h = 10 + rng() * 10; d = 2 + rng() * 2; }
+          else if (r < 0.65) { type = "office"; w = 2.5 + rng() * 2.5; h = 5 + rng() * 6; d = 2.5 + rng() * 2; }
+          else { type = "apartment"; w = 2 + rng() * 2.5; h = 4 + rng() * 4; d = 2 + rng() * 2; }
         } else if (block.zone === "market") {
-          if (r < 0.15) { type = "office"; w = 2 + rng() * 1.5; h = 4 + rng() * 3; d = 2 + rng() * 1.5; }
-          else if (r < 0.5) { type = "apartment"; w = 1.5 + rng() * 1.5; h = 2.5 + rng() * 2.5; d = 1.5 + rng() * 1.5; }
-          else { type = "house"; w = 1.2 + rng() * 1.2; h = 1.5 + rng() * 1.5; d = 1.2 + rng() * 1.2; }
+          if (r < 0.2) { type = "office"; w = 2 + rng() * 2; h = 5 + rng() * 5; d = 2 + rng() * 2; }
+          else if (r < 0.6) { type = "apartment"; w = 2 + rng() * 2; h = 3 + rng() * 4; d = 2 + rng() * 1.5; }
+          else { type = "house"; w = 1.5 + rng() * 1.5; h = 2 + rng() * 2; d = 1.5 + rng() * 1.5; }
         } else {
-          if (r < 0.1) { type = "apartment"; w = 1.8 + rng() * 1.5; h = 3 + rng() * 2; d = 1.5 + rng() * 1; }
-          else { type = "house"; w = 1.2 + rng() * 1.5; h = 1.5 + rng() * 2; d = 1.2 + rng() * 1.5; }
+          if (r < 0.2) { type = "apartment"; w = 2 + rng() * 2; h = 3.5 + rng() * 3; d = 2 + rng() * 1.5; }
+          else if (r < 0.05 + 0.2) { type = "office"; w = 2 + rng() * 1.5; h = 4 + rng() * 3; d = 2 + rng() * 1.5; }
+          else { type = "house"; w = 1.5 + rng() * 1.8; h = 2 + rng() * 2.5; d = 1.5 + rng() * 1.8; }
         }
 
-        // Generate signs for taller buildings
+        // Generate signs — MUCH bigger and more frequent (Shibuya style)
         const signs: SignData[] = [];
-        if ((type === "office" || type === "tower" || type === "apartment") && h > 3) {
-          const numSigns = type === "tower" ? 2 + Math.floor(rng() * 2) : rng() < 0.6 ? 1 : 0;
-          for (let s = 0; s < numSigns; s++) {
+        if (type !== "house" && h > 3) {
+          // More signs on taller buildings
+          const maxSigns = type === "tower" ? 3 + Math.floor(rng() * 3) : type === "office" ? 2 + Math.floor(rng() * 2) : rng() < 0.7 ? 1 + Math.floor(rng() * 2) : 0;
+          for (let s = 0; s < maxSigns; s++) {
             const sc = SIGN_COLORS[Math.floor(rng() * SIGN_COLORS.length)];
+            const signW = 0.6 + rng() * (w * 0.8); // much wider signs
+            const signH = 0.4 + rng() * 1.2; // taller signs
             signs.push({
-              face: rng() < 0.6 ? "front" : "side",
-              y: 1.5 + rng() * (h - 2),
-              w: 0.4 + rng() * (w * 0.5),
-              h: 0.3 + rng() * 0.4,
+              face: rng() < 0.55 ? "front" : "side",
+              y: 1.8 + rng() * (h - 2.5),
+              w: signW,
+              h: signH,
               color: sc.color,
               emissive: sc.emissive,
-              intensity: 0.3 + rng() * 0.5,
+              intensity: 0.4 + rng() * 0.6,
             });
           }
         }
 
+        // Some buildings get colored facades
+        const useColoredFacade = rng() < 0.2;
+        const wallColor = useColoredFacade
+          ? COLORED_FACADES[Math.floor(rng() * COLORED_FACADES.length)]
+          : walls[Math.floor(rng() * walls.length)];
+
         buildings.push({
           x: bx, z: bz, w, h, d,
-          wallColor: walls[Math.floor(rng() * walls.length)],
+          wallColor,
           roofColor: roofs[Math.floor(rng() * roofs.length)],
           accentColor: ACCENT_COLORS[Math.floor(rng() * ACCENT_COLORS.length)],
           type,
@@ -648,29 +673,25 @@ function CityBlocks() {
 function ParkTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
   return (
     <group position={position} scale={scale}>
-      {/* Trunk */}
-      <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.08, 0.14, 1.0, 6]} />
-        <meshStandardMaterial color="#4a3020" roughness={0.9} />
+      {/* Trunk — thin dark */}
+      <mesh position={[0, 0.6, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.1, 1.2, 6]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.9} />
       </mesh>
-      {/* Main foliage */}
-      <mesh position={[0, 1.35, 0]} castShadow>
-        <sphereGeometry args={[0.6, 8, 6]} />
-        <meshStandardMaterial color="#2a7a2a" roughness={0.85} />
+      {/* Big round lollipop crown */}
+      <mesh position={[0, 1.6, 0]} castShadow>
+        <sphereGeometry args={[0.8, 12, 8]} />
+        <meshStandardMaterial color="#3da03a" roughness={0.75} />
       </mesh>
-      {/* Secondary foliage cluster */}
-      <mesh position={[0.25, 1.15, 0.15]} castShadow>
-        <sphereGeometry args={[0.4, 7, 5]} />
-        <meshStandardMaterial color="#3a8a30" roughness={0.85} />
-      </mesh>
-      <mesh position={[-0.2, 1.2, -0.1]} castShadow>
-        <sphereGeometry args={[0.35, 6, 5]} />
-        <meshStandardMaterial color="#348a28" roughness={0.85} />
+      {/* Highlight sphere (lighter green on top) */}
+      <mesh position={[0.1, 1.9, 0.1]}>
+        <sphereGeometry args={[0.45, 8, 6]} />
+        <meshStandardMaterial color="#58c048" roughness={0.7} />
       </mesh>
       {/* Shadow on ground */}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.5, 8]} />
-        <meshBasicMaterial color="#000" transparent opacity={0.1} />
+        <circleGeometry args={[0.7, 10]} />
+        <meshBasicMaterial color="#1a3a18" transparent opacity={0.2} />
       </mesh>
     </group>
   );
@@ -681,16 +702,21 @@ function Parks() {
     const rng = seededRng(123);
     const result: { x: number; z: number; s: number }[] = [];
     const parkZones = [
-      { cx: -8, cz: 8, r: 6, count: 6 },
-      { cx: -40, cz: 40, r: 5, count: 5 },
-      { cx: 48, cz: -20, r: 5, count: 5 },
-      { cx: 20, cz: 42, r: 5, count: 4 },
-      { cx: -56, cz: -28, r: 4, count: 3 },
-      { cx: 56, cz: 10, r: 4, count: 3 },
-      { cx: -75, cz: 0, r: 10, count: 6 },
-      { cx: 72, cz: -10, r: 8, count: 4 },
-      { cx: 0, cz: -60, r: 12, count: 5 },
-      { cx: 0, cz: 55, r: 10, count: 4 },
+      { cx: -8, cz: 8, r: 7, count: 10 },
+      { cx: -40, cz: 40, r: 6, count: 8 },
+      { cx: 48, cz: -20, r: 5, count: 6 },
+      { cx: 20, cz: 42, r: 6, count: 7 },
+      { cx: -56, cz: -28, r: 5, count: 5 },
+      { cx: 56, cz: 10, r: 5, count: 5 },
+      { cx: -75, cz: 0, r: 12, count: 10 },
+      { cx: 72, cz: -10, r: 8, count: 6 },
+      { cx: 0, cz: -60, r: 12, count: 8 },
+      { cx: 0, cz: 55, r: 10, count: 7 },
+      // Extra green strips between blocks
+      { cx: -44, cz: -8, r: 3, count: 4 },
+      { cx: 30, cz: -10, r: 3, count: 4 },
+      { cx: -20, cz: 8, r: 3, count: 3 },
+      { cx: 50, cz: 26, r: 3, count: 3 },
     ];
     for (const park of parkZones) {
       for (let i = 0; i < park.count; i++) {
@@ -775,6 +801,289 @@ function Parks() {
         <mesh position={[0, 0.5, 0]}>
           <cylinderGeometry args={[0.15, 0.2, 0.6, 8]} />
           <meshStandardMaterial color="#7a8a90" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// ─── Lake / pond (large, central-east) ──────────────────────────
+
+function Lake() {
+  const rng = seededRng(999);
+  const cx = 62, cz = -8;
+  const lakeW = 22, lakeH = 16;
+  const shoreTrees: { x: number; z: number; s: number }[] = [];
+  for (let i = 0; i < 30; i++) {
+    const angle = rng() * Math.PI * 2;
+    const dist = 10 + rng() * 5;
+    shoreTrees.push({
+      x: cx + Math.cos(angle) * dist,
+      z: cz + Math.sin(angle) * dist * 0.75,
+      s: 0.5 + rng() * 0.5,
+    });
+  }
+
+  return (
+    <group>
+      {/* Large green park area around lake */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[cx, -0.05, cz]}>
+        <planeGeometry args={[lakeW + 16, lakeH + 14]} />
+        <meshStandardMaterial color="#388828" roughness={0.85} />
+      </mesh>
+      {/* Sandy bank */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[cx, -0.03, cz]}>
+        <planeGeometry args={[lakeW + 3, lakeH + 2]} />
+        <meshStandardMaterial color="#7a8868" roughness={0.85} />
+      </mesh>
+      {/* Water — deep blue with reflections */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[cx, 0.01, cz]}>
+        <planeGeometry args={[lakeW, lakeH]} />
+        <meshStandardMaterial color="#2868a0" metalness={0.65} roughness={0.12} transparent opacity={0.88} />
+      </mesh>
+      {/* Water highlight */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[cx - 3, 0.015, cz + 2]}>
+        <planeGeometry args={[lakeW * 0.4, lakeH * 0.35]} />
+        <meshStandardMaterial color="#4890c0" metalness={0.5} roughness={0.15} transparent opacity={0.35} />
+      </mesh>
+      {/* Shore trees */}
+      {shoreTrees.map((t, i) => <ParkTree key={`lt${i}`} position={[t.x, 0, t.z]} scale={t.s} />)}
+      {/* Wooden bridge */}
+      <mesh position={[cx - 7, 0.15, cz]} castShadow>
+        <boxGeometry args={[1.5, 0.1, lakeH * 0.5]} />
+        <meshStandardMaterial color="#6a5030" roughness={0.85} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={`br${side}`} position={[cx - 7 + side * 0.65, 0.3, cz]}>
+          <boxGeometry args={[0.06, 0.25, lakeH * 0.5]} />
+          <meshStandardMaterial color="#5a4428" roughness={0.8} />
+        </mesh>
+      ))}
+      {[-3, -1.5, 0, 1.5, 3].map((offset) => [-1, 1].map((side) => (
+        <mesh key={`bp${offset}${side}`} position={[cx - 7 + side * 0.65, 0.22, cz + offset * 1.3]}>
+          <boxGeometry args={[0.08, 0.4, 0.08]} />
+          <meshStandardMaterial color="#5a4428" />
+        </mesh>
+      )))}
+      {/* Park benches near lake */}
+      {[[cx - 12, cz - 3], [cx - 12, cz + 4], [cx + 10, cz - 2], [cx + 10, cz + 3]].map(([bx, bz], bi) => (
+        <group key={`lb${bi}`} position={[bx, 0, bz]} rotation={[0, bi < 2 ? 0.3 : -0.3, 0]}>
+          <mesh position={[0, 0.25, 0]}><boxGeometry args={[1.0, 0.06, 0.35]} /><meshStandardMaterial color="#6a5030" /></mesh>
+          <mesh position={[0, 0.4, -0.15]} rotation={[0.15, 0, 0]}><boxGeometry args={[1.0, 0.3, 0.04]} /><meshStandardMaterial color="#6a5030" /></mesh>
+        </group>
+      ))}
+      {/* People around lake */}
+      <AmbientPerson position={[cx - 13, 0, cz - 1]} color="#4080b0" rot={0.8} />
+      <AmbientPerson position={[cx - 11, 0, cz + 5]} color="#b05040" rot={2.2} />
+      <AmbientPerson position={[cx + 11, 0, cz]} color="#50a060" rot={4.0} />
+      <AmbientPerson position={[cx + 9, 0, cz + 4]} color="#8060a0" rot={1.5} />
+      <AmbientDog position={[cx - 10, 0, cz + 2]} color="#c09050" rot={3.0} />
+    </group>
+  );
+}
+
+// ─── Landmarks (unique big structures) ──────────────────────────
+
+function Landmarks() {
+  return (
+    <group>
+      {/* ═══ SHOPPING MALL — large building near Farmstead ═══ */}
+      <group position={[38, 0, 40]}>
+        {/* Mall base — wide low building */}
+        <mesh position={[0, 2, 0]} castShadow>
+          <boxGeometry args={[12, 4, 8]} />
+          <meshStandardMaterial color="#d0d4d8" roughness={0.7} />
+        </mesh>
+        {/* Glass facade front */}
+        <mesh position={[0, 2.5, 4.02]}>
+          <planeGeometry args={[11, 3.5]} />
+          <meshStandardMaterial color="#5098c0" metalness={0.5} roughness={0.15} transparent opacity={0.7} />
+        </mesh>
+        {/* Glass facade side */}
+        <mesh position={[6.02, 2.5, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[7, 3.5]} />
+          <meshStandardMaterial color="#4888b0" metalness={0.5} roughness={0.15} transparent opacity={0.65} />
+        </mesh>
+        {/* Entrance canopy */}
+        <mesh position={[0, 3.8, 4.8]} castShadow>
+          <boxGeometry args={[5, 0.15, 2]} />
+          <meshStandardMaterial color="#e0e4e8" metalness={0.3} />
+        </mesh>
+        {/* Entrance columns */}
+        {[-2, 0, 2].map((col) => (
+          <mesh key={col} position={[col, 2, 5.6]}>
+            <cylinderGeometry args={[0.12, 0.12, 3.6, 6]} />
+            <meshStandardMaterial color="#c0c4c8" metalness={0.2} />
+          </mesh>
+        ))}
+        {/* Roof parking level */}
+        <mesh position={[0, 4.1, 0]} castShadow>
+          <boxGeometry args={[12.3, 0.2, 8.3]} />
+          <meshStandardMaterial color="#505858" roughness={0.85} />
+        </mesh>
+        {/* Rooftop structures (AC, stairs) */}
+        <mesh position={[-3, 4.8, -1]} castShadow>
+          <boxGeometry args={[2, 1.2, 1.5]} />
+          <meshStandardMaterial color="#708090" metalness={0.3} />
+        </mesh>
+        <mesh position={[4, 4.5, 2]} castShadow>
+          <boxGeometry args={[1, 0.6, 1]} />
+          <meshStandardMaterial color="#808888" metalness={0.2} />
+        </mesh>
+        {/* Big mall sign */}
+        <mesh position={[0, 3.2, 4.05]}>
+          <planeGeometry args={[6, 1]} />
+          <meshStandardMaterial color="#ff3030" emissive="#e02020" emissiveIntensity={0.5} />
+        </mesh>
+        {/* Mall parking lot in front */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 9]}>
+          <planeGeometry args={[14, 6]} />
+          <meshStandardMaterial color="#3a3a3e" roughness={0.6} metalness={0.1} />
+        </mesh>
+        {/* Parking lines */}
+        {[-4, -2, 0, 2, 4].map((px) => (
+          <mesh key={px} rotation={[-Math.PI / 2, 0, 0]} position={[px, -0.015, 9]}>
+            <planeGeometry args={[0.08, 3]} />
+            <meshStandardMaterial color="#d8d8d0" />
+          </mesh>
+        ))}
+        {/* Parked cars */}
+        <Car position={[-3, 0, 8]} color="#c04040" rot={Math.PI / 2} />
+        <Car position={[-1, 0, 8]} color="#4080c0" rot={Math.PI / 2} />
+        <Car position={[1, 0, 10]} color="#50a050" rot={Math.PI / 2} />
+        <Car position={[3, 0, 10]} color="#808080" rot={Math.PI / 2} />
+        {/* Shoppers */}
+        <AmbientPerson position={[-1, 0, 5.5]} color="#c06060" rot={0} />
+        <AmbientPerson position={[1, 0, 6]} color="#4080a0" rot={0.5} />
+        <AmbientPerson position={[2.5, 0, 5.8]} color="#60a060" rot={3.0} />
+      </group>
+
+      {/* ═══ UNIVERSITY — with botanical garden in front ═══ */}
+      <group position={[-62, 0, -20]}>
+        {/* Main university building — L-shape */}
+        <mesh position={[0, 3, 0]} castShadow>
+          <boxGeometry args={[10, 6, 7]} />
+          <meshStandardMaterial color="#c8c0b0" roughness={0.8} />
+        </mesh>
+        {/* Wing */}
+        <mesh position={[7, 2.5, -1]} castShadow>
+          <boxGeometry args={[5, 5, 5]} />
+          <meshStandardMaterial color="#c0b8a8" roughness={0.8} />
+        </mesh>
+        {/* Windows — front */}
+        {Array.from({ length: 3 }, (_, row) =>
+          Array.from({ length: 5 }, (_, col) => (
+            <mesh key={`uw${row}${col}`} position={[(col - 2) * 1.8, 1.5 + row * 1.6, 3.52]}>
+              <planeGeometry args={[0.8, 1.0]} />
+              <meshStandardMaterial color="#5898b8" metalness={0.4} roughness={0.2} />
+            </mesh>
+          ))
+        )}
+        {/* Entrance — grand columns */}
+        {[-1.2, 0, 1.2].map((col) => (
+          <mesh key={`uc${col}`} position={[col, 2.5, 3.8]}>
+            <cylinderGeometry args={[0.15, 0.18, 4.5, 8]} />
+            <meshStandardMaterial color="#d8d0c0" />
+          </mesh>
+        ))}
+        {/* Pediment (triangle above entrance) */}
+        <mesh position={[0, 5.2, 3.6]} rotation={[0, 0, 0]} castShadow>
+          <coneGeometry args={[2.5, 1.2, 3]} />
+          <meshStandardMaterial color="#c8c0b0" roughness={0.8} />
+        </mesh>
+        {/* Roof */}
+        <mesh position={[0, 6.1, 0]} castShadow>
+          <boxGeometry args={[10.4, 0.2, 7.4]} />
+          <meshStandardMaterial color="#505858" />
+        </mesh>
+        {/* University sign */}
+        <mesh position={[0, 4.8, 3.53]}>
+          <planeGeometry args={[5, 0.5]} />
+          <meshStandardMaterial color="#2858a0" emissive="#1848a0" emissiveIntensity={0.3} />
+        </mesh>
+
+        {/* ── Botanical Garden in front ── */}
+        {/* Green lawn */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 10]}>
+          <planeGeometry args={[16, 10]} />
+          <meshStandardMaterial color="#2a7a22" roughness={0.85} />
+        </mesh>
+        {/* Flower beds (colorful patches) */}
+        {[[-3, 8, "#c04060"], [2, 9, "#d0a030"], [-1, 12, "#6040c0"], [4, 11, "#e06030"]].map(([x, z, color], fi) => (
+          <mesh key={`fb${fi}`} rotation={[-Math.PI / 2, 0, 0]} position={[x as number, -0.02, z as number]}>
+            <circleGeometry args={[1.2, 8]} />
+            <meshStandardMaterial color={color as string} roughness={0.9} />
+          </mesh>
+        ))}
+        {/* Garden trees — larger and denser */}
+        {[[-5, 8], [-2, 11], [1, 8], [4, 12], [-4, 13], [3, 9], [6, 11], [-6, 10]].map(([x, z], ti) => (
+          <ParkTree key={`gt${ti}`} position={[x, 0, z]} scale={0.7 + (ti % 3) * 0.15} />
+        ))}
+        {/* Garden path */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 10]}>
+          <planeGeometry args={[1, 9]} />
+          <meshStandardMaterial color="#8a8880" roughness={0.9} />
+        </mesh>
+        {/* Garden fountain */}
+        <group position={[0, 0, 10]}>
+          <mesh position={[0, 0.2, 0]}>
+            <cylinderGeometry args={[1.5, 1.8, 0.4, 16]} />
+            <meshStandardMaterial color="#808880" roughness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.1, 0]}>
+            <cylinderGeometry args={[1.2, 1.3, 0.15, 16]} />
+            <meshStandardMaterial color="#3868a0" metalness={0.5} roughness={0.15} transparent opacity={0.8} />
+          </mesh>
+          <mesh position={[0, 0.6, 0]}>
+            <cylinderGeometry args={[0.12, 0.15, 0.5, 8]} />
+            <meshStandardMaterial color="#909890" />
+          </mesh>
+        </group>
+        {/* Students */}
+        <AmbientPerson position={[-3, 0, 7]} color="#4070b0" rot={1.2} />
+        <AmbientPerson position={[2, 0, 7.5]} color="#b04050" rot={2.5} />
+        <AmbientPerson position={[0, 0, 12]} color="#50a060" rot={0.8} />
+        <AmbientPerson position={[-5, 0, 11]} color="#a06080" rot={4.0} />
+      </group>
+
+      {/* ═══ CLOCK TOWER — city center landmark ═══ */}
+      <group position={[0, 0, -8]}>
+        <mesh position={[0, 4, 0]} castShadow>
+          <boxGeometry args={[2, 8, 2]} />
+          <meshStandardMaterial color="#c8b898" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 8.5, 0]} castShadow>
+          <coneGeometry args={[1.8, 2.5, 4]} />
+          <meshStandardMaterial color="#505858" roughness={0.8} />
+        </mesh>
+        {/* Clock face */}
+        <mesh position={[0, 6.5, 1.02]}>
+          <circleGeometry args={[0.6, 16]} />
+          <meshStandardMaterial color="#f0f0e8" />
+        </mesh>
+        <mesh position={[0, 6.5, 1.03]}>
+          <circleGeometry args={[0.65, 16]} />
+          <meshStandardMaterial color="#404040" />
+        </mesh>
+      </group>
+
+      {/* ═══ WATER TOWER — industrial area near Stormridge ═══ */}
+      <group position={[24, 0, -52]}>
+        {/* Legs */}
+        {[-1, 1].map((x) => [-1, 1].map((z) => (
+          <mesh key={`wt${x}${z}`} position={[x * 1.2, 3, z * 1.2]} castShadow>
+            <cylinderGeometry args={[0.15, 0.2, 6, 6]} />
+            <meshStandardMaterial color="#606868" metalness={0.3} />
+          </mesh>
+        )))}
+        {/* Tank */}
+        <mesh position={[0, 6.5, 0]} castShadow>
+          <cylinderGeometry args={[2.5, 2, 3, 16]} />
+          <meshStandardMaterial color="#708090" metalness={0.4} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 8.1, 0]} castShadow>
+          <coneGeometry args={[2.5, 1, 16]} />
+          <meshStandardMaterial color="#606870" metalness={0.3} />
         </mesh>
       </group>
     </group>
@@ -1075,67 +1384,86 @@ function AmbientBird({ position, rot = 0 }: { position: [number, number, number]
 }
 
 function AmbientLife() {
+  // Procedurally place many people along streets
+  const people = useMemo(() => {
+    const rng = seededRng(555);
+    const colors = ["#4070b0", "#b04050", "#50a060", "#8060a0", "#c0a030", "#6060c0", "#c06060",
+      "#a06080", "#508080", "#6080a0", "#a08050", "#609060", "#c07050", "#5080b0", "#b06040",
+      "#706080", "#80a0b0", "#4090a0", "#a07050", "#907040", "#608090", "#a060a0", "#60b060"];
+    const result: { x: number; z: number; color: string; rot: number }[] = [];
+
+    // Scatter along main avenues
+    for (const ave of MAIN_AVENUES) {
+      for (let x = ave.x1 + 5; x < ave.x2 - 5; x += 6 + rng() * 6) {
+        const side = rng() < 0.5 ? 4.5 : -4.5;
+        result.push({ x, z: ave.z + side + (rng() - 0.5) * 1.5, color: colors[Math.floor(rng() * colors.length)], rot: rng() * Math.PI * 2 });
+      }
+    }
+    // Scatter in districts
+    const hubs = [
+      { cx: 30, cz: 26, r: 8, count: 6 },  // market
+      { cx: -50, cz: 36, r: 6, count: 5 },  // school
+      { cx: 20, cz: -4, r: 10, count: 8 },  // civic
+      { cx: -20, cz: -18, r: 6, count: 4 },  // homes
+      { cx: 42, cz: -30, r: 6, count: 4 },  // zoo
+      { cx: -34, cz: -38, r: 5, count: 3 },  // hospital
+      { cx: -36, cz: 4, r: 6, count: 4 },   // colortown
+      { cx: 10, cz: -50, r: 5, count: 3 },  // stormridge
+      { cx: 0, cz: 8, r: 5, count: 4 },     // central park
+      { cx: -10, cz: 36, r: 6, count: 3 },  // near school/mall
+    ];
+    for (const hub of hubs) {
+      for (let i = 0; i < hub.count; i++) {
+        const angle = rng() * Math.PI * 2;
+        const dist = rng() * hub.r;
+        result.push({
+          x: hub.cx + Math.cos(angle) * dist,
+          z: hub.cz + Math.sin(angle) * dist,
+          color: colors[Math.floor(rng() * colors.length)],
+          rot: rng() * Math.PI * 2,
+        });
+      }
+    }
+    return result;
+  }, []);
+
   return (
     <group>
-      {/* People — market area */}
-      <AmbientPerson position={[34, 0, 24]} color="#4070b0" rot={1.2} />
-      <AmbientPerson position={[38, 0, 28]} color="#b04050" rot={2.8} />
-      <AmbientPerson position={[28, 0, 30]} color="#50a060" rot={0.5} />
-      <AmbientPerson position={[44, 0, 22]} color="#8060a0" rot={3.8} />
-      {/* People — school area */}
-      <AmbientPerson position={[-48, 0, 34]} color="#c0a030" rot={1.8} />
-      <AmbientPerson position={[-52, 0, 38]} color="#6060c0" rot={0.3} />
-      <AmbientPerson position={[-46, 0, 40]} color="#c06060" rot={5.2} />
-      {/* People — civic center */}
-      <AmbientPerson position={[18, 0, -2]} color="#a06080" rot={4.2} />
-      <AmbientPerson position={[24, 0, 2]} color="#508080" rot={2.1} />
-      <AmbientPerson position={[14, 0, -8]} color="#6080a0" rot={0.8} />
-      {/* People — houses */}
-      <AmbientPerson position={[-18, 0, -16]} color="#a08050" rot={3.5} />
-      <AmbientPerson position={[-24, 0, -20]} color="#609060" rot={1.4} />
-      {/* People — central park */}
-      <AmbientPerson position={[-6, 0, 10]} color="#607090" rot={1.0} />
-      <AmbientPerson position={[-10, 0, 6]} color="#906060" rot={5.0} />
-      {/* People — zoo */}
-      <AmbientPerson position={[44, 0, -28]} color="#4090a0" rot={2.5} />
-      <AmbientPerson position={[38, 0, -32]} color="#a07050" rot={4.0} />
-      {/* People — hospital */}
-      <AmbientPerson position={[-32, 0, -36]} color="#f0f0f0" rot={1.6} />
-      {/* More people — along streets */}
-      <AmbientPerson position={[0, 0, 1.5]} color="#508090" rot={0.6} />
-      <AmbientPerson position={[-30, 0, -1]} color="#905050" rot={2.4} />
-      <AmbientPerson position={[55, 0, 1]} color="#a080c0" rot={4.5} />
-      <AmbientPerson position={[-62, 0, -0.5]} color="#60a060" rot={1.1} />
-      <AmbientPerson position={[10, 0, 37.5]} color="#c07050" rot={3.3} />
-      <AmbientPerson position={[-45, 0, -35]} color="#4070a0" rot={0.2} />
-      <AmbientPerson position={[30, 0, -35]} color="#a0a050" rot={5.5} />
-      <AmbientPerson position={[-10, 0, 18.5]} color="#706080" rot={2.0} />
-      <AmbientPerson position={[45, 0, -1]} color="#b06040" rot={3.8} />
-      <AmbientPerson position={[-55, 0, 18]} color="#5080b0" rot={1.9} />
-      <AmbientPerson position={[12, 0, -18.5]} color="#a08070" rot={4.2} />
-      <AmbientPerson position={[-35, 0, 18]} color="#80a0b0" rot={0.7} />
+      {/* Procedural people */}
+      {people.map((p, i) => (
+        <AmbientPerson key={`p${i}`} position={[p.x, 0, p.z]} color={p.color} rot={p.rot} />
+      ))}
 
-      {/* Dogs */}
+      {/* Dogs — scattered around */}
       <AmbientDog position={[-22, 0, -14]} color="#a07040" rot={2.0} />
       <AmbientDog position={[36, 0, 22]} color="#c09050" rot={0.7} />
       <AmbientDog position={[-46, 0, 36]} color="#806030" rot={4.5} />
       <AmbientDog position={[16, 0, 8]} color="#e0c080" rot={3.2} />
       <AmbientDog position={[-14, 0, -22]} color="#505050" rot={1.1} />
+      <AmbientDog position={[8, 0, 38]} color="#a08040" rot={0.5} />
+      <AmbientDog position={[-40, 0, -2]} color="#c0a060" rot={3.8} />
+      <AmbientDog position={[50, 0, -28]} color="#806040" rot={1.8} />
 
       {/* Cats */}
       <AmbientCat position={[-38, 0, 6]} color="#404040" rot={1.5} />
       <AmbientCat position={[48, 0, -18]} color="#c08040" rot={3.2} />
       <AmbientCat position={[-60, 0, 20]} color="#303030" rot={0.4} />
+      <AmbientCat position={[12, 0, -12]} color="#e0a040" rot={2.8} />
+      <AmbientCat position={[-28, 0, 40]} color="#606060" rot={5.2} />
 
-      {/* Birds — around market/square */}
-      <AmbientBird position={[32, 0.01, 28]} rot={0.8} />
-      <AmbientBird position={[33, 0.01, 29]} rot={2.1} />
-      <AmbientBird position={[31, 0.01, 27.5]} rot={4.5} />
-      <AmbientBird position={[-7, 0.01, 9]} rot={1.3} />
-      <AmbientBird position={[-8.5, 0.01, 7.5]} rot={3.7} />
+      {/* Birds — scattered groups */}
+      {[
+        [32, 28], [33, 29], [31, 27.5], [-7, 9], [-8.5, 7.5],
+        [-48, 35], [-47, 36], [15, -5], [16, -4], [-30, -1],
+        [42, -29], [43, -28], [-34, -37], [25, 42], [26, 43],
+      ].map(([x, z], i) => (
+        <AmbientBird key={`b${i}`} position={[x, 0.01, z]} rot={i * 1.3} />
+      ))}
       {/* Birds on rooftops */}
-      <AmbientBird position={[20, 3.5, -6]} rot={2.0} />
-      <AmbientBird position={[-30, 3.0, 2]} rot={5.0} />
+      <AmbientBird position={[20, 5, -6]} rot={2.0} />
+      <AmbientBird position={[-30, 4, 2]} rot={5.0} />
+      <AmbientBird position={[5, 6, -3]} rot={1.2} />
+      <AmbientBird position={[-15, 4, -10]} rot={3.5} />
     </group>
   );
 }
@@ -1534,6 +1862,8 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
           <CityRoads unlockedIds={unlockedIds} />
           <Plazas />
           <CityBlocks />
+          <Lake />
+          <Landmarks />
           <Parks />
           <MarketStalls />
           <Lamps />
