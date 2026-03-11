@@ -120,9 +120,12 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     const greeting = npc.greeting[targetLanguage];
     setMessages([{ role: "npc", text: greeting }]);
 
-    // Speak greeting then generate options
-    speakNPC(greeting);
-    generateOptions(greeting);
+    // Speak greeting THEN generate options (sequential, not parallel)
+    const init = async () => {
+      await speakNPC(greeting);
+      generateOptions(greeting);
+    };
+    init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom
@@ -162,7 +165,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }, [npc, targetLanguage, topic.words, getRecentFacts]);
 
   const handlePlayerChoice = useCallback(async (choice: string) => {
-    if (loading || !npc) return;
+    if (loading || !npc || npcSpeaking || speakingRef.current) return;
 
     playPopSound();
     setLoading(true);
@@ -238,13 +241,17 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setOptions(parsed.options);
       setLoading(false);
     }
-  }, [loading, npc, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
+  }, [loading, npc, npcSpeaking, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
 
   // Process speech recognition result
   const processedTranscriptRef = useRef("");
   useEffect(() => {
     if (!transcript || loading || gameCompleted) return;
     if (transcript === processedTranscriptRef.current) return;
+    // Ignore transcripts that are too short (likely noise or echo from speaker)
+    if (transcript.trim().length < 2) return;
+    // Don't process if NPC is still speaking (mic picked up speaker audio)
+    if (speakingRef.current || npcSpeaking) return;
     processedTranscriptRef.current = transcript;
     handlePlayerChoice(transcript);
   }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -253,6 +260,16 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     if (isListening) {
       stopMic();
     } else {
+      // Don't allow mic while NPC is speaking — it picks up the speaker audio
+      if (speakingRef.current || npcSpeaking) {
+        stopAudio();
+        // Wait a moment for audio to stop before starting mic
+        setTimeout(() => {
+          processedTranscriptRef.current = "";
+          startMic();
+        }, 300);
+        return;
+      }
       processedTranscriptRef.current = "";
       startMic();
     }
@@ -423,7 +440,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       </div>
 
       {/* Options + Mic */}
-      {options.length > 0 && !loading && (
+      {options.length > 0 && !loading && !npcSpeaking && (
         <div className="px-4 pb-6 space-y-2">
           {options.map((option, i) => (
             <button
