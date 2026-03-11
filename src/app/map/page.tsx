@@ -44,7 +44,7 @@ export default function MapPage() {
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden bg-[#a8c0d0] relative"
+      className="h-screen w-screen overflow-hidden bg-[#7a9ab0] relative"
       style={{ overscrollBehavior: "none" }}
     >
       <TopBar />

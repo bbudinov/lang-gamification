@@ -75,13 +75,13 @@ const SECONDARY_STREETS_H = [
 ];
 
 const DISTRICTS = [
-  { x: -44, z: 36, w: 48, h: 28, tint: "#7a9a6e" },
-  { x: -38, z: 0, w: 52, h: 32, tint: "#6f9a69" },
-  { x: 14, z: -2, w: 44, h: 34, tint: "#8a9a82" },
-  { x: 38, z: 24, w: 40, h: 28, tint: "#a08a63" },
-  { x: -34, z: -38, w: 44, h: 24, tint: "#7a8878" },
-  { x: 38, z: -32, w: 40, h: 24, tint: "#6a9090" },
-  { x: 10, z: -50, w: 36, h: 20, tint: "#6a7a68" },
+  { x: -44, z: 36, w: 48, h: 28, tint: "#4a8a3a" },
+  { x: -38, z: 0, w: 52, h: 32, tint: "#3a7a34" },
+  { x: 14, z: -2, w: 44, h: 34, tint: "#5a8a5a" },
+  { x: 38, z: 24, w: 40, h: 28, tint: "#4a8040" },
+  { x: -34, z: -38, w: 44, h: 24, tint: "#508058" },
+  { x: 38, z: -32, w: 40, h: 24, tint: "#3a7a6a" },
+  { x: 10, z: -50, w: 36, h: 20, tint: "#4a7a48" },
 ];
 
 // ─── Ground ──────────────────────────────────────────────────────
@@ -89,20 +89,21 @@ const DISTRICTS = [
 function Ground() {
   return (
     <group>
-      {/* Huge base so edges are never visible */}
+      {/* Huge base — dark grey so edges blend */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.12, 0]}>
         <planeGeometry args={[600, 600]} />
-        <meshStandardMaterial color="#b8aa8a" roughness={1} />
+        <meshStandardMaterial color="#4a5a4a" roughness={1} />
       </mesh>
-      {/* City area */}
+      {/* City area — grey-green urban ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
         <planeGeometry args={[WORLD_W, WORLD_H]} />
-        <meshStandardMaterial color="#b8aa8a" roughness={1} />
+        <meshStandardMaterial color="#6a7a6a" roughness={0.95} />
       </mesh>
+      {/* Green district patches */}
       {DISTRICTS.map((d, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[d.x, -0.06, d.z]}>
           <planeGeometry args={[d.w, d.h]} />
-          <meshStandardMaterial color={d.tint} roughness={1} transparent opacity={0.25} />
+          <meshStandardMaterial color={d.tint} roughness={1} transparent opacity={0.35} />
         </mesh>
       ))}
     </group>
@@ -137,7 +138,7 @@ function Streets() {
       // Sidewalks
       for (const side of [-1, 1]) {
         const sGeo = new THREE.PlaneGeometry(len, 1.2);
-        const sMat = new THREE.MeshStandardMaterial({ color: "#c0b898", roughness: 1 });
+        const sMat = new THREE.MeshStandardMaterial({ color: "#9a9a90", roughness: 0.95 });
         const sm = new THREE.Mesh(sGeo, sMat);
         sm.rotation.x = -Math.PI / 2;
         sm.position.set(cx, -0.035, ave.z + side * 3.3);
@@ -209,7 +210,7 @@ function CityRoads({ unlockedIds }: { unlockedIds: Set<string> }) {
         );
         const geo = new THREE.TubeGeometry(curve, 20, unlocked ? 0.6 : 0.35, 6, false);
         const mat = new THREE.MeshStandardMaterial({
-          color: unlocked ? "#d4b87a" : "#7a7a6a",
+          color: unlocked ? "#8a8a80" : "#5a5a50",
           transparent: true,
           opacity: unlocked ? 0.8 : 0.3,
           roughness: 1,
@@ -265,16 +266,16 @@ function CityBlocks() {
     ];
 
     const WALL_PALETTES = {
-      res: ["#e8dcc8", "#d8c8a8", "#c8b898", "#e0d0b0", "#d0c4a0"],
-      civic: ["#d0d4d8", "#c0c4cc", "#b8bcc8", "#d8dce0", "#c8d0d8"],
-      market: ["#e0c8a0", "#d0b888", "#c8a878", "#dcc498", "#d4bc90"],
+      res: ["#e0ddd6", "#d4cfc6", "#c8c4ba", "#dcd8d0", "#e8e4dc", "#c0b8a8", "#d8d0c4"],
+      civic: ["#d8dce0", "#c8ccd4", "#e0e4e8", "#b8c0c8", "#ccd0d8", "#e4e8ec", "#d0d4dc"],
+      market: ["#e2d8c8", "#d0c4b0", "#dcd0bc", "#c8bca8", "#e8dcc8", "#c4b89c", "#d8ccb4"],
     };
     const ROOF_PALETTES = {
-      res: ["#a05530", "#906838", "#8a6a40", "#b06030", "#985028"],
-      civic: ["#505860", "#404850", "#586068", "#485058", "#606870"],
-      market: ["#a05530", "#985028", "#906838", "#b06838", "#8a5830"],
+      res: ["#606868", "#505858", "#586060", "#4a5050", "#687070"],
+      civic: ["#485058", "#404850", "#505860", "#585e68", "#3a4248"],
+      market: ["#5a6060", "#4a5454", "#606868", "#525a5a", "#686e6e"],
     };
-    const ACCENT_COLORS = ["#4080c0", "#c04040", "#40a060", "#c0a040", "#a040a0", "#40a0a0", "#e07030"];
+    const ACCENT_COLORS = ["#3070b8", "#c83838", "#2a8a48", "#d4a020", "#8840a8", "#2898a0", "#e06828", "#c06088", "#4090d0", "#38a878"];
 
     for (const block of blockAreas) {
       const bw = block.x2 - block.x1;
@@ -332,7 +333,7 @@ function CityBlocks() {
           {/* Foundation / base */}
           <mesh position={[0, 0.04, 0]} castShadow>
             <boxGeometry args={[b.w + 0.1, 0.08, b.d + 0.1]} />
-            <meshStandardMaterial color="#8a8878" roughness={0.9} />
+            <meshStandardMaterial color="#707068" roughness={0.9} />
           </mesh>
 
           {/* Main body */}
@@ -344,13 +345,13 @@ function CityBlocks() {
           {/* Ground floor distinction — slightly darker */}
           <mesh position={[0, 0.55, 0]}>
             <boxGeometry args={[b.w + 0.02, 1.02, b.d + 0.02]} />
-            <meshStandardMaterial color={b.type === "house" ? b.wallColor : "#a09880"} roughness={0.9} />
+            <meshStandardMaterial color={b.type === "house" ? b.wallColor : "#8a8a82"} roughness={0.9} />
           </mesh>
 
           {/* Door on front face */}
           <mesh position={[0, 0.5, b.d / 2 + 0.015]}>
             <planeGeometry args={[b.type === "house" ? 0.35 : 0.5, 0.7]} />
-            <meshStandardMaterial color="#5a3a20" />
+            <meshStandardMaterial color="#4a3828" />
           </mesh>
           {/* Door frame */}
           <mesh position={[0, 0.86, b.d / 2 + 0.016]}>
@@ -377,16 +378,16 @@ function CityBlocks() {
                     {/* Window frame */}
                     <mesh position={[wx, wy, b.d / 2 + 0.014]}>
                       <planeGeometry args={[wSize + 0.06, wSize * 1.3 + 0.06]} />
-                      <meshStandardMaterial color="#e0dcd0" />
+                      <meshStandardMaterial color="#d8d8d4" />
                     </mesh>
                     {/* Window cross */}
                     <mesh position={[wx, wy, b.d / 2 + 0.016]}>
                       <planeGeometry args={[0.02, wSize * 1.3]} />
-                      <meshStandardMaterial color="#c0bca8" />
+                      <meshStandardMaterial color="#c0c0bc" />
                     </mesh>
                     <mesh position={[wx, wy, b.d / 2 + 0.016]}>
                       <planeGeometry args={[wSize, 0.02]} />
-                      <meshStandardMaterial color="#c0bca8" />
+                      <meshStandardMaterial color="#c0c0bc" />
                     </mesh>
                     {/* Side window */}
                     <mesh position={[b.w / 2 + 0.012, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
@@ -418,7 +419,7 @@ function CityBlocks() {
                   </mesh>
                   <mesh position={[wx * b.w, b.h * 0.55, b.d / 2 + 0.014]}>
                     <planeGeometry args={[0.34, 0.38]} />
-                    <meshStandardMaterial color="#f0ece0" />
+                    <meshStandardMaterial color="#e8e8e4" />
                   </mesh>
                   {/* Shutters */}
                   <mesh position={[wx * b.w - 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
@@ -467,7 +468,7 @@ function CityBlocks() {
               {/* Chimney */}
               <mesh position={[b.w * 0.25, b.h + 0.7, -b.d * 0.15]} castShadow>
                 <boxGeometry args={[0.15, 0.4, 0.15]} />
-                <meshStandardMaterial color="#8a4a30" />
+                <meshStandardMaterial color="#706060" />
               </mesh>
             </group>
           )}
@@ -537,7 +538,7 @@ function ParkTree({ position, scale = 1 }: { position: [number, number, number];
       {/* Trunk */}
       <mesh position={[0, 0.5, 0]} castShadow>
         <cylinderGeometry args={[0.08, 0.14, 1.0, 6]} />
-        <meshStandardMaterial color="#5a3818" roughness={0.9} />
+        <meshStandardMaterial color="#4a3020" roughness={0.9} />
       </mesh>
       {/* Main foliage */}
       <mesh position={[0, 1.35, 0]} castShadow>
@@ -598,7 +599,7 @@ function Parks() {
       {[[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
         <mesh key={`bench${i}`} position={[x, 0.2, z]} castShadow>
           <boxGeometry args={[1.0, 0.08, 0.3]} />
-          <meshStandardMaterial color="#8a6a40" />
+          <meshStandardMaterial color="#6a5a40" />
         </mesh>
       ))}
       <group position={[-8, 0, 8]}>
@@ -623,7 +624,7 @@ function Plazas() {
       {ALL_NODE_POSITIONS.map((pos, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[pos[0], -0.03, pos[1]]}>
           <circleGeometry args={[5, 20]} />
-          <meshStandardMaterial color="#9a9a80" roughness={1} transparent opacity={0.35} />
+          <meshStandardMaterial color="#8a8a88" roughness={0.95} transparent opacity={0.4} />
         </mesh>
       ))}
     </group>
@@ -647,9 +648,9 @@ function MarketStalls() {
     <group>
       {stalls.map((s, i) => (
         <group key={i} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}>
-          <mesh position={[0, 0.5, 0]}><boxGeometry args={[1.6, 0.06, 0.9]} /><meshStandardMaterial color="#c8a050" /></mesh>
-          <mesh position={[-0.65, 0.25, 0]}><boxGeometry args={[0.06, 0.5, 0.06]} /><meshStandardMaterial color="#8a6a40" /></mesh>
-          <mesh position={[0.65, 0.25, 0]}><boxGeometry args={[0.06, 0.5, 0.06]} /><meshStandardMaterial color="#8a6a40" /></mesh>
+          <mesh position={[0, 0.5, 0]}><boxGeometry args={[1.6, 0.06, 0.9]} /><meshStandardMaterial color="#888" /></mesh>
+          <mesh position={[-0.65, 0.25, 0]}><boxGeometry args={[0.06, 0.5, 0.06]} /><meshStandardMaterial color="#606060" /></mesh>
+          <mesh position={[0.65, 0.25, 0]}><boxGeometry args={[0.06, 0.5, 0.06]} /><meshStandardMaterial color="#606060" /></mesh>
           <mesh position={[0, 1.0, 0]} castShadow><boxGeometry args={[1.8, 0.04, 1.1]} /><meshStandardMaterial color={["#c04040", "#4080c0", "#c0a040", "#40a060", "#a040a0"][i % 5]} /></mesh>
         </group>
       ))}
@@ -1157,7 +1158,7 @@ function CityMarker({ city, lang, unlocked, completedLevels, isNext, onSelect }:
             style={{
               width: size, height: size, borderRadius: "50%",
               background: unlocked
-                ? "radial-gradient(circle at 35% 35%, #f5f0e8, #d4c8a8)"
+                ? "radial-gradient(circle at 35% 35%, #f0f0ee, #d0d0cc)"
                 : "radial-gradient(circle at 35% 35%, #6a6a60, #4a4a42)",
               border: `${unlocked ? 5 : 3}px solid ${unlocked ? ringColor : "#555"}`,
               boxShadow: unlocked
@@ -1188,7 +1189,7 @@ function CityMarker({ city, lang, unlocked, completedLevels, isNext, onSelect }:
           </div>
           <p style={{ fontSize: 11, color: unlocked ? "#90b878" : "#666", fontWeight: 600, marginTop: 2 }}>{city.name[lang]}</p>
           {!unlocked && city.requiredXP > 0 && (
-            <span style={{ fontSize: 10, color: "#c8a050", fontWeight: 700 }}>⭐ {city.requiredXP}</span>
+            <span style={{ fontSize: 10, color: "#a0a0a0", fontWeight: 700 }}>⭐ {city.requiredXP}</span>
           )}
         </button>
       </Html>
@@ -1340,7 +1341,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
 
         {/* Sky gradient instead of flat color */}
         <Sky sunPosition={[80, 40, 30]} turbidity={2} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
-        <fog attach="fog" args={["#c8dbe8", 80, 180]} />
+        <fog attach="fog" args={["#8aa8c0", 80, 180]} />
 
         {/* Lighting — warm sun + cool fill + bounce */}
         <ambientLight intensity={0.5} color="#e8e0d8" />
@@ -1399,12 +1400,12 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
 
       {!overlayHidden && (
         <div
-          className="absolute inset-0 bg-[#a8c0d0] flex items-center justify-center z-10 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 bg-[#7a9ab0] flex items-center justify-center z-10 pointer-events-none transition-opacity duration-500"
           style={{ opacity: overlayVisible ? 1 : 0 }}
         >
           <div className="text-center">
             <div className="text-4xl mb-3 animate-bounce">🏙️</div>
-            <p className="text-amber-800/50 text-sm">Loading city...</p>
+            <p className="text-slate-600/60 text-sm">Loading city...</p>
           </div>
         </div>
       )}
