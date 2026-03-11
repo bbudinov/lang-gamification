@@ -329,73 +329,200 @@ function CityBlocks() {
     <group>
       {blocks.map((b, i) => (
         <group key={i} position={[b.x, 0, b.z]} rotation={[0, b.rot, 0]}>
+          {/* Foundation / base */}
+          <mesh position={[0, 0.04, 0]} castShadow>
+            <boxGeometry args={[b.w + 0.1, 0.08, b.d + 0.1]} />
+            <meshStandardMaterial color="#8a8878" roughness={0.9} />
+          </mesh>
+
           {/* Main body */}
-          <mesh position={[0, b.h / 2, 0]} castShadow>
+          <mesh position={[0, b.h / 2, 0]} castShadow receiveShadow>
             <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color={b.wallColor} />
+            <meshStandardMaterial color={b.wallColor} roughness={0.85} />
+          </mesh>
+
+          {/* Ground floor distinction — slightly darker */}
+          <mesh position={[0, 0.55, 0]}>
+            <boxGeometry args={[b.w + 0.02, 1.02, b.d + 0.02]} />
+            <meshStandardMaterial color={b.type === "house" ? b.wallColor : "#a09880"} roughness={0.9} />
+          </mesh>
+
+          {/* Door on front face */}
+          <mesh position={[0, 0.5, b.d / 2 + 0.015]}>
+            <planeGeometry args={[b.type === "house" ? 0.35 : 0.5, 0.7]} />
+            <meshStandardMaterial color="#5a3a20" />
+          </mesh>
+          {/* Door frame */}
+          <mesh position={[0, 0.86, b.d / 2 + 0.016]}>
+            <planeGeometry args={[b.type === "house" ? 0.42 : 0.56, 0.04]} />
+            <meshStandardMaterial color="#4a3018" />
           </mesh>
 
           {/* Windows — front + side, spaced grid */}
           {(b.type !== "house") && (() => {
             const rows = Math.max(1, Math.floor(b.h / 1.4));
             const cols = Math.max(1, Math.floor(b.w / 1.0));
-            const wSize = b.type === "tower" ? 0.4 : 0.3;
+            const wSize = b.type === "tower" ? 0.42 : 0.32;
             return Array.from({ length: rows }, (_, row) =>
               Array.from({ length: cols }, (_, col) => {
                 const wx = (col - (cols - 1) / 2) * (b.w * 0.7 / Math.max(cols, 1));
-                const wy = 0.8 + row * ((b.h - 1) / Math.max(rows, 1));
+                const wy = 1.3 + row * ((b.h - 1.5) / Math.max(rows, 1));
                 return (
                   <group key={`w${row}${col}`}>
-                    {/* Front */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.01]}>
-                      <planeGeometry args={[wSize, wSize * 1.2]} />
-                      <meshStandardMaterial color="#80c8e0" emissive="#305060" emissiveIntensity={0.15} />
+                    {/* Front window */}
+                    <mesh position={[wx, wy, b.d / 2 + 0.012]}>
+                      <planeGeometry args={[wSize, wSize * 1.3]} />
+                      <meshStandardMaterial color="#6ab8d8" metalness={0.4} roughness={0.2} />
                     </mesh>
-                    {/* Side */}
-                    <mesh position={[b.w / 2 + 0.01, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
-                      <planeGeometry args={[wSize, wSize * 1.2]} />
-                      <meshStandardMaterial color="#70b0c8" emissive="#304858" emissiveIntensity={0.1} />
+                    {/* Window frame */}
+                    <mesh position={[wx, wy, b.d / 2 + 0.014]}>
+                      <planeGeometry args={[wSize + 0.06, wSize * 1.3 + 0.06]} />
+                      <meshStandardMaterial color="#e0dcd0" />
                     </mesh>
+                    {/* Window cross */}
+                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
+                      <planeGeometry args={[0.02, wSize * 1.3]} />
+                      <meshStandardMaterial color="#c0bca8" />
+                    </mesh>
+                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
+                      <planeGeometry args={[wSize, 0.02]} />
+                      <meshStandardMaterial color="#c0bca8" />
+                    </mesh>
+                    {/* Side window */}
+                    <mesh position={[b.w / 2 + 0.012, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
+                      <planeGeometry args={[wSize, wSize * 1.3]} />
+                      <meshStandardMaterial color="#5aa8c0" metalness={0.4} roughness={0.2} />
+                    </mesh>
+                    {/* Balcony on apartments (every other window, front only) */}
+                    {b.type === "apartment" && row > 0 && col % 2 === 0 && (
+                      <group position={[wx, wy - wSize * 0.65, b.d / 2 + 0.15]}>
+                        <mesh><boxGeometry args={[wSize + 0.15, 0.04, 0.25]} /><meshStandardMaterial color="#888" metalness={0.3} /></mesh>
+                        {/* Railing */}
+                        <mesh position={[0, 0.1, 0.12]}><boxGeometry args={[wSize + 0.15, 0.18, 0.02]} /><meshStandardMaterial color="#666" metalness={0.4} transparent opacity={0.6} /></mesh>
+                      </group>
+                    )}
                   </group>
                 );
               })
             );
           })()}
 
-          {/* Roof varies by type */}
+          {/* House windows (2 on front) */}
           {b.type === "house" && (
-            <mesh position={[0, b.h + 0.3, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-              <coneGeometry args={[Math.max(b.w, b.d) * 0.65, 1.0, 4]} />
-              <meshStandardMaterial color={b.roofColor} />
+            <>
+              {[-0.22, 0.22].map((wx, wi) => (
+                <group key={wi}>
+                  <mesh position={[wx * b.w, b.h * 0.55, b.d / 2 + 0.012]}>
+                    <planeGeometry args={[0.28, 0.32]} />
+                    <meshStandardMaterial color="#80c0d8" metalness={0.3} roughness={0.2} />
+                  </mesh>
+                  <mesh position={[wx * b.w, b.h * 0.55, b.d / 2 + 0.014]}>
+                    <planeGeometry args={[0.34, 0.38]} />
+                    <meshStandardMaterial color="#f0ece0" />
+                  </mesh>
+                  {/* Shutters */}
+                  <mesh position={[wx * b.w - 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
+                    <planeGeometry args={[0.06, 0.36]} />
+                    <meshStandardMaterial color={b.accentColor} />
+                  </mesh>
+                  <mesh position={[wx * b.w + 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
+                    <planeGeometry args={[0.06, 0.36]} />
+                    <meshStandardMaterial color={b.accentColor} />
+                  </mesh>
+                </group>
+              ))}
+            </>
+          )}
+
+          {/* Awning / shop canopy on ground floor for market/civic */}
+          {(b.type === "office" || b.type === "apartment") && (
+            <mesh position={[0, 1.1, b.d / 2 + 0.25]} rotation={[0.2, 0, 0]} castShadow>
+              <boxGeometry args={[b.w * 0.6, 0.03, 0.5]} />
+              <meshStandardMaterial color={b.accentColor} />
             </mesh>
           )}
+
+          {/* AC units on side (offices/towers) */}
+          {(b.type === "office" || b.type === "tower") && b.h > 5 && (
+            <>
+              <mesh position={[b.w / 2 + 0.15, b.h * 0.4, 0]}>
+                <boxGeometry args={[0.2, 0.15, 0.3]} />
+                <meshStandardMaterial color="#d0d0d0" roughness={0.7} />
+              </mesh>
+              <mesh position={[b.w / 2 + 0.15, b.h * 0.7, 0]}>
+                <boxGeometry args={[0.2, 0.15, 0.3]} />
+                <meshStandardMaterial color="#c8c8c8" roughness={0.7} />
+              </mesh>
+            </>
+          )}
+
+          {/* Roof varies by type */}
+          {b.type === "house" && (
+            <group>
+              {/* Pitched roof */}
+              <mesh position={[0, b.h + 0.35, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+                <coneGeometry args={[Math.max(b.w, b.d) * 0.7, 1.1, 4]} />
+                <meshStandardMaterial color={b.roofColor} roughness={0.8} />
+              </mesh>
+              {/* Chimney */}
+              <mesh position={[b.w * 0.25, b.h + 0.7, -b.d * 0.15]} castShadow>
+                <boxGeometry args={[0.15, 0.4, 0.15]} />
+                <meshStandardMaterial color="#8a4a30" />
+              </mesh>
+            </group>
+          )}
           {b.type === "apartment" && (
-            <mesh position={[0, b.h + 0.05, 0]} castShadow>
-              <boxGeometry args={[b.w + 0.2, 0.1, b.d + 0.2]} />
-              <meshStandardMaterial color={b.roofColor} />
-            </mesh>
+            <group>
+              <mesh position={[0, b.h + 0.06, 0]} castShadow>
+                <boxGeometry args={[b.w + 0.2, 0.12, b.d + 0.2]} />
+                <meshStandardMaterial color={b.roofColor} roughness={0.85} />
+              </mesh>
+              {/* Rooftop railing */}
+              <mesh position={[0, b.h + 0.2, b.d / 2 + 0.1]}>
+                <boxGeometry args={[b.w, 0.15, 0.02]} />
+                <meshStandardMaterial color="#888" metalness={0.3} transparent opacity={0.5} />
+              </mesh>
+            </group>
           )}
           {(b.type === "office" || b.type === "tower") && (
             <group>
-              {/* Flat roof with edge */}
+              {/* Flat roof with parapet */}
               <mesh position={[0, b.h + 0.08, 0]} castShadow>
                 <boxGeometry args={[b.w + 0.3, 0.15, b.d + 0.3]} />
-                <meshStandardMaterial color={b.roofColor} />
+                <meshStandardMaterial color={b.roofColor} roughness={0.8} />
               </mesh>
               {/* Accent stripe near top */}
-              <mesh position={[0, b.h * 0.85, b.d / 2 + 0.02]}>
-                <planeGeometry args={[b.w * 0.9, 0.15]} />
+              <mesh position={[0, b.h - 0.15, b.d / 2 + 0.02]}>
+                <planeGeometry args={[b.w * 0.95, 0.2]} />
                 <meshStandardMaterial color={b.accentColor} />
+              </mesh>
+              {/* Rooftop equipment */}
+              <mesh position={[b.w * 0.2, b.h + 0.3, 0]}>
+                <boxGeometry args={[0.4, 0.3, 0.3]} />
+                <meshStandardMaterial color="#708090" metalness={0.3} />
               </mesh>
             </group>
           )}
           {b.type === "tower" && (
-            /* Antenna/spire on top */
-            <mesh position={[0, b.h + 0.8, 0]} castShadow>
-              <cylinderGeometry args={[0.05, 0.08, 1.2, 4]} />
-              <meshStandardMaterial color="#666" />
-            </mesh>
+            <group>
+              {/* Antenna */}
+              <mesh position={[0, b.h + 0.9, 0]} castShadow>
+                <cylinderGeometry args={[0.03, 0.06, 1.4, 6]} />
+                <meshStandardMaterial color="#666" metalness={0.5} />
+              </mesh>
+              {/* Beacon light */}
+              <mesh position={[0, b.h + 1.6, 0]}>
+                <sphereGeometry args={[0.06, 6, 4]} />
+                <meshStandardMaterial color="#ff3030" emissive="#ff2020" emissiveIntensity={0.5} />
+              </mesh>
+            </group>
           )}
+
+          {/* Building shadow on ground */}
+          <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[b.w + 0.5, b.d + 0.5]} />
+            <meshBasicMaterial color="#000" transparent opacity={0.08} />
+          </mesh>
         </group>
       ))}
     </group>
@@ -407,13 +534,29 @@ function CityBlocks() {
 function ParkTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
   return (
     <group position={position} scale={scale}>
+      {/* Trunk */}
       <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.1, 0.15, 1.0, 5]} />
-        <meshStandardMaterial color="#6b4420" />
+        <cylinderGeometry args={[0.08, 0.14, 1.0, 6]} />
+        <meshStandardMaterial color="#5a3818" roughness={0.9} />
       </mesh>
-      <mesh position={[0, 1.3, 0]} castShadow>
-        <sphereGeometry args={[0.65, 8, 6]} />
-        <meshStandardMaterial color="#3a8a3a" />
+      {/* Main foliage */}
+      <mesh position={[0, 1.35, 0]} castShadow>
+        <sphereGeometry args={[0.6, 8, 6]} />
+        <meshStandardMaterial color="#2a7a2a" roughness={0.85} />
+      </mesh>
+      {/* Secondary foliage cluster */}
+      <mesh position={[0.25, 1.15, 0.15]} castShadow>
+        <sphereGeometry args={[0.4, 7, 5]} />
+        <meshStandardMaterial color="#3a8a30" roughness={0.85} />
+      </mesh>
+      <mesh position={[-0.2, 1.2, -0.1]} castShadow>
+        <sphereGeometry args={[0.35, 6, 5]} />
+        <meshStandardMaterial color="#348a28" roughness={0.85} />
+      </mesh>
+      {/* Shadow on ground */}
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.5, 8]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.1} />
       </mesh>
     </group>
   );
@@ -532,8 +675,31 @@ function Lamps() {
     <group>
       {positions.map(([x, z], i) => (
         <group key={i} position={[x, 0, z]}>
-          <mesh position={[0, 1.2, 0]} castShadow><cylinderGeometry args={[0.06, 0.08, 2.4, 5]} /><meshStandardMaterial color="#505050" /></mesh>
-          <mesh position={[0, 2.5, 0]}><sphereGeometry args={[0.18, 6, 4]} /><meshStandardMaterial color="#f0e8c0" emissive="#f0e0a0" emissiveIntensity={0.3} /></mesh>
+          {/* Pole */}
+          <mesh position={[0, 1.2, 0]} castShadow>
+            <cylinderGeometry args={[0.05, 0.08, 2.4, 6]} />
+            <meshStandardMaterial color="#404040" metalness={0.5} roughness={0.5} />
+          </mesh>
+          {/* Arm extending out */}
+          <mesh position={[0.3, 2.35, 0]} rotation={[0, 0, Math.PI / 6]}>
+            <cylinderGeometry args={[0.03, 0.035, 0.7, 5]} />
+            <meshStandardMaterial color="#404040" metalness={0.5} roughness={0.5} />
+          </mesh>
+          {/* Lamp housing */}
+          <mesh position={[0.5, 2.45, 0]}>
+            <boxGeometry args={[0.25, 0.08, 0.12]} />
+            <meshStandardMaterial color="#606060" metalness={0.3} />
+          </mesh>
+          {/* Light bulb */}
+          <mesh position={[0.5, 2.4, 0]}>
+            <sphereGeometry args={[0.1, 6, 4]} />
+            <meshStandardMaterial color="#fff8d0" emissive="#f0e0a0" emissiveIntensity={0.4} />
+          </mesh>
+          {/* Base */}
+          <mesh position={[0, 0.03, 0]}>
+            <cylinderGeometry args={[0.12, 0.14, 0.06, 6]} />
+            <meshStandardMaterial color="#404040" metalness={0.4} />
+          </mesh>
         </group>
       ))}
     </group>
@@ -543,23 +709,128 @@ function Lamps() {
 // ─── Ambient life ────────────────────────────────────────────────
 
 function AmbientPerson({ position, color, rot = 0 }: { position: [number, number, number]; color: string; rot?: number }) {
+  const skinColor = "#e8c8a0";
+  const shoeColor = "#3a3028";
+  const pantsColor = "#404858";
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.5}>
-      <mesh position={[0, 0.6, 0]} castShadow><capsuleGeometry args={[0.2, 0.55, 4, 6]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0, 1.2, 0]}><sphereGeometry args={[0.18, 6, 5]} /><meshStandardMaterial color="#e8c8a0" /></mesh>
+      {/* Torso */}
+      <mesh position={[0, 0.65, 0]} castShadow>
+        <capsuleGeometry args={[0.16, 0.35, 4, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Neck */}
+      <mesh position={[0, 0.95, 0]}>
+        <cylinderGeometry args={[0.06, 0.07, 0.1, 6]} />
+        <meshStandardMaterial color={skinColor} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 1.15, 0]}>
+        <sphereGeometry args={[0.16, 8, 6]} />
+        <meshStandardMaterial color={skinColor} />
+      </mesh>
+      {/* Hair */}
+      <mesh position={[0, 1.25, -0.02]}>
+        <sphereGeometry args={[0.14, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#3a2818" />
+      </mesh>
+      {/* Arms */}
+      <mesh position={[-0.22, 0.7, 0]} rotation={[0, 0, 0.15]} castShadow>
+        <capsuleGeometry args={[0.055, 0.3, 4, 5]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      <mesh position={[0.22, 0.7, 0]} rotation={[0, 0, -0.15]} castShadow>
+        <capsuleGeometry args={[0.055, 0.3, 4, 5]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Hands */}
+      <mesh position={[-0.26, 0.44, 0]}>
+        <sphereGeometry args={[0.04, 5, 4]} />
+        <meshStandardMaterial color={skinColor} />
+      </mesh>
+      <mesh position={[0.26, 0.44, 0]}>
+        <sphereGeometry args={[0.04, 5, 4]} />
+        <meshStandardMaterial color={skinColor} />
+      </mesh>
+      {/* Legs / pants */}
+      <mesh position={[-0.08, 0.28, 0]} castShadow>
+        <capsuleGeometry args={[0.065, 0.25, 4, 5]} />
+        <meshStandardMaterial color={pantsColor} />
+      </mesh>
+      <mesh position={[0.08, 0.28, 0]} castShadow>
+        <capsuleGeometry args={[0.065, 0.25, 4, 5]} />
+        <meshStandardMaterial color={pantsColor} />
+      </mesh>
+      {/* Shoes */}
+      <mesh position={[-0.08, 0.06, 0.03]}>
+        <boxGeometry args={[0.1, 0.07, 0.16]} />
+        <meshStandardMaterial color={shoeColor} />
+      </mesh>
+      <mesh position={[0.08, 0.06, 0.03]}>
+        <boxGeometry args={[0.1, 0.07, 0.16]} />
+        <meshStandardMaterial color={shoeColor} />
+      </mesh>
     </group>
   );
 }
 
 function AmbientDog({ position, color = "#a07040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
+  const darkerColor = "#704820";
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 4, 5]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.35, 0.32, 0]}><sphereGeometry args={[0.14, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
-      {[[-0.14, 0.12], [0.14, 0.12], [-0.14, -0.12], [0.14, -0.12]].map(([ox, oz], i) => (
-        <mesh key={i} position={[ox, 0.07, oz]}><cylinderGeometry args={[0.035, 0.035, 0.14, 4]} /><meshStandardMaterial color={color} /></mesh>
+      {/* Body */}
+      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+        <capsuleGeometry args={[0.14, 0.4, 4, 6]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Chest (slightly larger front) */}
+      <mesh position={[0.15, 0.27, 0]}>
+        <sphereGeometry args={[0.15, 6, 5]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0.38, 0.35, 0]}>
+        <sphereGeometry args={[0.13, 6, 5]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Snout */}
+      <mesh position={[0.48, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <capsuleGeometry args={[0.05, 0.08, 4, 4]} />
+        <meshStandardMaterial color={darkerColor} />
+      </mesh>
+      {/* Nose */}
+      <mesh position={[0.53, 0.33, 0]}>
+        <sphereGeometry args={[0.025, 4, 3]} />
+        <meshStandardMaterial color="#1a1a1a" />
+      </mesh>
+      {/* Ears (floppy) */}
+      <mesh position={[0.35, 0.44, 0.1]} rotation={[0.3, 0, 0.5]}>
+        <capsuleGeometry args={[0.035, 0.08, 3, 4]} />
+        <meshStandardMaterial color={darkerColor} />
+      </mesh>
+      <mesh position={[0.35, 0.44, -0.1]} rotation={[-0.3, 0, 0.5]}>
+        <capsuleGeometry args={[0.035, 0.08, 3, 4]} />
+        <meshStandardMaterial color={darkerColor} />
+      </mesh>
+      {/* Legs */}
+      {[[-0.16, 0.1], [0.16, 0.1], [-0.16, -0.1], [0.16, -0.1]].map(([ox, oz], i) => (
+        <mesh key={i} position={[ox, 0.08, oz]}>
+          <capsuleGeometry args={[0.04, 0.1, 4, 4]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
       ))}
-      <mesh position={[-0.35, 0.35, 0]} rotation={[0, 0, -0.6]}><cylinderGeometry args={[0.02, 0.015, 0.2, 4]} /><meshStandardMaterial color={color} /></mesh>
+      {/* Paws */}
+      {[[-0.16, 0.1], [0.16, 0.1], [-0.16, -0.1], [0.16, -0.1]].map(([ox, oz], i) => (
+        <mesh key={`p${i}`} position={[ox, 0.01, oz + 0.02]}>
+          <sphereGeometry args={[0.04, 4, 3]} />
+          <meshStandardMaterial color={darkerColor} />
+        </mesh>
+      ))}
+      {/* Tail (curvy up) */}
+      <mesh position={[-0.32, 0.38, 0]} rotation={[0, 0, -0.8]}>
+        <capsuleGeometry args={[0.02, 0.16, 4, 4]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
     </group>
   );
 }
@@ -567,11 +838,62 @@ function AmbientDog({ position, color = "#a07040", rot = 0 }: { position: [numbe
 function AmbientCat({ position, color = "#404040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-      <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.09, 0.25, 4, 5]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.22, 0.22, 0]}><sphereGeometry args={[0.1, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.26, 0.33, 0.04]} rotation={[0, 0, 0.3]}><coneGeometry args={[0.035, 0.07, 3]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.26, 0.33, -0.04]} rotation={[0, 0, 0.3]}><coneGeometry args={[0.035, 0.07, 3]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[-0.25, 0.25, 0]} rotation={[0, 0, 0.8]}><cylinderGeometry args={[0.015, 0.02, 0.22, 4]} /><meshStandardMaterial color={color} /></mesh>
+      {/* Body */}
+      <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+        <capsuleGeometry args={[0.09, 0.22, 4, 6]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0.22, 0.24, 0]}>
+        <sphereGeometry args={[0.1, 6, 5]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[0.28, 0.26, 0.04]}>
+        <sphereGeometry args={[0.02, 4, 3]} />
+        <meshStandardMaterial color="#a0e040" emissive="#80c030" emissiveIntensity={0.2} />
+      </mesh>
+      <mesh position={[0.28, 0.26, -0.04]}>
+        <sphereGeometry args={[0.02, 4, 3]} />
+        <meshStandardMaterial color="#a0e040" emissive="#80c030" emissiveIntensity={0.2} />
+      </mesh>
+      {/* Ears (pointed triangles) */}
+      <mesh position={[0.22, 0.35, 0.06]} rotation={[0.3, 0, 0.2]}>
+        <coneGeometry args={[0.035, 0.08, 3]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      <mesh position={[0.22, 0.35, -0.06]} rotation={[-0.3, 0, 0.2]}>
+        <coneGeometry args={[0.035, 0.08, 3]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      {/* Nose */}
+      <mesh position={[0.31, 0.23, 0]}>
+        <sphereGeometry args={[0.015, 3, 3]} />
+        <meshStandardMaterial color="#e08080" />
+      </mesh>
+      {/* Whiskers (tiny lines on each side) */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[0.3, 0.22, side * 0.06]} rotation={[0, side * 0.5, 0]}>
+          <boxGeometry args={[0.08, 0.003, 0.003]} />
+          <meshStandardMaterial color="#888" />
+        </mesh>
+      ))}
+      {/* Legs */}
+      {[[-0.1, 0.06], [0.1, 0.06], [-0.1, -0.06], [0.1, -0.06]].map(([ox, oz], i) => (
+        <mesh key={i} position={[ox, 0.05, oz]}>
+          <capsuleGeometry args={[0.03, 0.06, 3, 4]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+      ))}
+      {/* Tail (curved up) */}
+      <mesh position={[-0.22, 0.28, 0]} rotation={[0, 0, 0.9]}>
+        <capsuleGeometry args={[0.015, 0.18, 4, 4]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+      <mesh position={[-0.28, 0.38, 0]} rotation={[0, 0, 1.5]}>
+        <capsuleGeometry args={[0.013, 0.06, 3, 3]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
     </group>
   );
 }
@@ -657,32 +979,94 @@ function AmbientLife() {
 function Car({ position, color, rot = 0 }: { position: [number, number, number]; color: string; rot?: number }) {
   return (
     <group position={position} rotation={[0, rot, 0]}>
-      {/* Body */}
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <boxGeometry args={[2.2, 0.5, 1.1]} />
-        <meshStandardMaterial color={color} />
+      {/* Main body — lower chassis */}
+      <mesh position={[0, 0.22, 0]} castShadow>
+        <boxGeometry args={[2.4, 0.28, 1.15]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.5} />
       </mesh>
-      {/* Cabin */}
-      <mesh position={[0.1, 0.7, 0]} castShadow>
-        <boxGeometry args={[1.2, 0.4, 0.95]} />
-        <meshStandardMaterial color={color} />
+      {/* Body curve — slightly wider at bottom */}
+      <mesh position={[0, 0.38, 0]} castShadow>
+        <boxGeometry args={[2.2, 0.12, 1.1]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.5} />
       </mesh>
-      {/* Windows */}
-      <mesh position={[0.1, 0.72, 0.48]}>
-        <boxGeometry args={[1.0, 0.3, 0.02]} />
-        <meshStandardMaterial color="#80c8e0" />
+      {/* Cabin — tapered windshield shape */}
+      <mesh position={[0.05, 0.58, 0]} castShadow>
+        <boxGeometry args={[1.15, 0.35, 1.0]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.5} />
       </mesh>
-      <mesh position={[0.1, 0.72, -0.48]}>
-        <boxGeometry args={[1.0, 0.3, 0.02]} />
-        <meshStandardMaterial color="#80c8e0" />
+      {/* Windshield front (angled) */}
+      <mesh position={[0.66, 0.58, 0]} rotation={[0, 0, 0.25]}>
+        <boxGeometry args={[0.4, 0.32, 0.92]} />
+        <meshStandardMaterial color="#6ab8d8" metalness={0.5} roughness={0.1} transparent opacity={0.7} />
       </mesh>
-      {/* Wheels */}
-      {[[-0.6, 0.55], [-0.6, -0.55], [0.6, 0.55], [0.6, -0.55]].map(([ox, oz], i) => (
-        <mesh key={i} position={[ox, 0.12, oz]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.14, 0.14, 0.08, 8]} />
-          <meshStandardMaterial color="#222" />
+      {/* Rear windshield */}
+      <mesh position={[-0.58, 0.58, 0]} rotation={[0, 0, -0.2]}>
+        <boxGeometry args={[0.3, 0.3, 0.9]} />
+        <meshStandardMaterial color="#6ab8d8" metalness={0.5} roughness={0.1} transparent opacity={0.7} />
+      </mesh>
+      {/* Side windows */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[0.05, 0.6, side * 0.505]}>
+          <boxGeometry args={[1.0, 0.25, 0.02]} />
+          <meshStandardMaterial color="#6ab8d8" metalness={0.5} roughness={0.1} transparent opacity={0.65} />
         </mesh>
       ))}
+      {/* Roof */}
+      <mesh position={[0.05, 0.78, 0]}>
+        <boxGeometry args={[1.1, 0.04, 0.98]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.5} />
+      </mesh>
+      {/* Front bumper */}
+      <mesh position={[1.22, 0.2, 0]}>
+        <boxGeometry args={[0.08, 0.14, 1.05]} />
+        <meshStandardMaterial color="#333" metalness={0.4} roughness={0.6} />
+      </mesh>
+      {/* Rear bumper */}
+      <mesh position={[-1.22, 0.20, 0]}>
+        <boxGeometry args={[0.08, 0.14, 1.05]} />
+        <meshStandardMaterial color="#333" metalness={0.4} roughness={0.6} />
+      </mesh>
+      {/* Headlights */}
+      {[-1, 1].map((side) => (
+        <mesh key={`hl${side}`} position={[1.2, 0.3, side * 0.4]}>
+          <boxGeometry args={[0.06, 0.08, 0.2]} />
+          <meshStandardMaterial color="#f0e8a0" emissive="#f0e080" emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+      {/* Tail lights */}
+      {[-1, 1].map((side) => (
+        <mesh key={`tl${side}`} position={[-1.2, 0.3, side * 0.4]}>
+          <boxGeometry args={[0.06, 0.08, 0.16]} />
+          <meshStandardMaterial color="#c03030" emissive="#a02020" emissiveIntensity={0.2} />
+        </mesh>
+      ))}
+      {/* Side mirrors */}
+      {[-1, 1].map((side) => (
+        <mesh key={`sm${side}`} position={[0.5, 0.52, side * 0.62]}>
+          <boxGeometry args={[0.08, 0.06, 0.05]} />
+          <meshStandardMaterial color="#333" />
+        </mesh>
+      ))}
+      {/* Wheels with hubs */}
+      {[[-0.7, 0.6], [-0.7, -0.6], [0.7, 0.6], [0.7, -0.6]].map(([ox, oz], i) => (
+        <group key={i} position={[ox, 0.1, oz]}>
+          {/* Tire */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.16, 0.16, 0.1, 12]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
+          </mesh>
+          {/* Hub cap */}
+          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, oz > 0 ? 0.052 : -0.052]}>
+            <cylinderGeometry args={[0.09, 0.09, 0.02, 8]} />
+            <meshStandardMaterial color="#c0c0c0" metalness={0.7} roughness={0.3} />
+          </mesh>
+        </group>
+      ))}
+      {/* Undercarriage shadow */}
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[2.2, 1.0]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.15} />
+      </mesh>
     </group>
   );
 }
