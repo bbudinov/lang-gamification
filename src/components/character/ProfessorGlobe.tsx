@@ -51,16 +51,25 @@ function preloadImages() {
   });
 }
 
+function seededRng(seed: number) {
+  let s = seed;
+  return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+}
+
 function HologramParticles({ count = 20 }: { count?: number }) {
+  // Use seeded RNG to avoid hydration mismatch (Math.random differs server vs client)
   const particles = useRef(
-    Array.from({ length: count }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 5,
-      duration: 3 + Math.random() * 4,
-      size: 1 + Math.random() * 3,
-      opacity: 0.2 + Math.random() * 0.5,
-    }))
+    (() => {
+      const rng = seededRng(12345);
+      return Array.from({ length: count }, (_, i) => ({
+        id: i,
+        left: rng() * 100,
+        delay: rng() * 5,
+        duration: 3 + rng() * 4,
+        size: 1 + rng() * 3,
+        opacity: 0.2 + rng() * 0.5,
+      }));
+    })()
   ).current;
 
   return (
