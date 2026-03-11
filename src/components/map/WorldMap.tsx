@@ -95,20 +95,20 @@ function Ground() {
   return (
     <group>
       {/* Huge base — dark grey so edges blend */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.12, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[600, 600]} />
         <meshStandardMaterial color="#4a5a4a" roughness={1} />
       </mesh>
       {/* City area — grey-green urban ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]} receiveShadow={!IS_MOBILE}>
         <planeGeometry args={[WORLD_W, WORLD_H]} />
         <meshStandardMaterial color="#6a7a6a" roughness={0.95} />
       </mesh>
-      {/* Green district patches */}
+      {/* Green district patches — use polygonOffset to prevent z-fighting */}
       {DISTRICTS.map((d, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[d.x, -0.06, d.z]}>
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[d.x, -0.19, d.z]}>
           <planeGeometry args={[d.w, d.h]} />
-          <meshStandardMaterial color={d.tint} roughness={1} transparent opacity={0.35} />
+          <meshStandardMaterial color={d.tint} roughness={1} transparent opacity={0.35} polygonOffset polygonOffsetFactor={-1} />
         </mesh>
       ))}
     </group>
@@ -121,8 +121,8 @@ function Streets() {
   const meshes = useMemo(() => {
     const result: THREE.Mesh[] = [];
     // Shared wet asphalt material — low roughness for subtle reflections
-    const asphaltMain = new THREE.MeshStandardMaterial({ color: "#3a3a3e", roughness: 0.55, metalness: 0.15 });
-    const asphaltSec = new THREE.MeshStandardMaterial({ color: "#444448", roughness: 0.6, metalness: 0.1 });
+    const asphaltMain = new THREE.MeshStandardMaterial({ color: "#3a3a3e", roughness: 0.55, metalness: 0.15, polygonOffset: true, polygonOffsetFactor: -2 });
+    const asphaltSec = new THREE.MeshStandardMaterial({ color: "#444448", roughness: 0.6, metalness: 0.1, polygonOffset: true, polygonOffsetFactor: -2 });
     const sidewalkMat = new THREE.MeshStandardMaterial({ color: "#8a8a85", roughness: 0.8 });
     const curbMat = new THREE.MeshStandardMaterial({ color: "#9a9a95", roughness: 0.75 });
     const yellowLine = new THREE.MeshStandardMaterial({ color: "#d4b830", roughness: 0.9 });
@@ -132,11 +132,11 @@ function Streets() {
     for (const ave of MAIN_AVENUES) {
       const len = ave.x2 - ave.x1;
       const cx = (ave.x1 + ave.x2) / 2;
-      // Asphalt road surface
+      // Asphalt road surface — raised above ground to avoid z-fighting
       const geo = new THREE.PlaneGeometry(len, 5.5);
       const m = new THREE.Mesh(geo, asphaltMain);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(cx, -0.03, ave.z);
+      m.position.set(cx, -0.12, ave.z);
       result.push(m);
       if (!IS_MOBILE) {
         // Center dashed line (yellow)
@@ -144,7 +144,7 @@ function Streets() {
           const dGeo = new THREE.PlaneGeometry(2.5, 0.18);
           const dm = new THREE.Mesh(dGeo, yellowLine);
           dm.rotation.x = -Math.PI / 2;
-          dm.position.set(x, -0.025, ave.z);
+          dm.position.set(x, -0.11, ave.z);
           result.push(dm);
         }
         // Edge lines (white, continuous)
@@ -152,7 +152,7 @@ function Streets() {
           const eGeo = new THREE.PlaneGeometry(len, 0.1);
           const em = new THREE.Mesh(eGeo, whiteLine);
           em.rotation.x = -Math.PI / 2;
-          em.position.set(cx, -0.025, ave.z + side * 2.5);
+          em.position.set(cx, -0.11, ave.z + side * 2.5);
           result.push(em);
         }
       }
@@ -179,14 +179,14 @@ function Streets() {
       const geo = new THREE.PlaneGeometry(3.8, len);
       const m = new THREE.Mesh(geo, asphaltSec);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(st.x, -0.03, cz);
+      m.position.set(st.x, -0.13, cz);
       result.push(m);
       if (!IS_MOBILE) {
         for (let z = st.z1 + 2; z < st.z2 - 2; z += 5) {
           const dGeo = new THREE.PlaneGeometry(0.12, 2.5);
           const dm = new THREE.Mesh(dGeo, whiteLine);
           dm.rotation.x = -Math.PI / 2;
-          dm.position.set(st.x, -0.025, z);
+          dm.position.set(st.x, -0.12, z);
           result.push(dm);
         }
         for (const side of [-1, 1]) {
@@ -204,14 +204,14 @@ function Streets() {
       const geo = new THREE.PlaneGeometry(len, 3.8);
       const m = new THREE.Mesh(geo, asphaltSec);
       m.rotation.x = -Math.PI / 2;
-      m.position.set(cx, -0.03, st.z);
+      m.position.set(cx, -0.13, st.z);
       result.push(m);
       if (!IS_MOBILE) {
         for (let x = st.x1 + 2; x < st.x2 - 2; x += 5) {
           const dGeo = new THREE.PlaneGeometry(2.5, 0.12);
           const dm = new THREE.Mesh(dGeo, whiteLine);
           dm.rotation.x = -Math.PI / 2;
-          dm.position.set(x, -0.025, st.z);
+          dm.position.set(x, -0.12, st.z);
           result.push(dm);
         }
         for (const side of [-1, 1]) {
@@ -231,7 +231,7 @@ function Streets() {
             const sGeo = new THREE.PlaneGeometry(3.0, 0.25);
             const sm = new THREE.Mesh(sGeo, crosswalkMat);
             sm.rotation.x = -Math.PI / 2;
-            sm.position.set(st.x, -0.02, ave.z + stripe);
+            sm.position.set(st.x, -0.11, ave.z + stripe);
             result.push(sm);
           }
         }
@@ -444,15 +444,30 @@ function CityBlocks() {
     return buildings;
   }, []);
 
-  // Mobile: ultra-simplified — just colored boxes, 1 mesh per building
+  // Mobile: simplified — box + roof (2-3 meshes per building)
   if (IS_MOBILE) {
     return (
       <group>
         {blocks.map((b, i) => (
-          <mesh key={i} position={[b.x, b.h / 2, b.z]} rotation={[0, b.rot, 0]}>
-            <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color={b.wallColor} />
-          </mesh>
+          <group key={i} position={[b.x, 0, b.z]} rotation={[0, b.rot, 0]}>
+            {/* Building body */}
+            <mesh position={[0, b.h / 2, 0]}>
+              <boxGeometry args={[b.w, b.h, b.d]} />
+              <meshStandardMaterial color={b.wallColor} />
+            </mesh>
+            {/* Roof — pitched for houses, flat slab for others */}
+            {b.type === "house" ? (
+              <mesh position={[0, b.h + 0.35, 0]} rotation={[0, Math.PI / 4, 0]}>
+                <coneGeometry args={[Math.max(b.w, b.d) * 0.7, 1.1, 4]} />
+                <meshStandardMaterial color={b.roofColor} />
+              </mesh>
+            ) : (
+              <mesh position={[0, b.h + 0.06, 0]}>
+                <boxGeometry args={[b.w + 0.2, 0.12, b.d + 0.2]} />
+                <meshStandardMaterial color={b.roofColor} />
+              </mesh>
+            )}
+          </group>
         ))}
       </group>
     );
@@ -688,6 +703,73 @@ function CityBlocks() {
           </mesh>
         </group>
       ))}
+    </group>
+  );
+}
+
+// ─── Mobile-only simple trees & greenery ─────────────────────────
+
+function SimpleMobileTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
+  return (
+    <group position={position} scale={scale}>
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.06, 0.1, 1.0, 4]} />
+        <meshStandardMaterial color="#3a2818" />
+      </mesh>
+      <mesh position={[0, 1.4, 0]}>
+        <sphereGeometry args={[0.7, 6, 4]} />
+        <meshStandardMaterial color="#3da03a" />
+      </mesh>
+    </group>
+  );
+}
+
+function MobileGreenery() {
+  const trees = useMemo(() => {
+    const rng = seededRng(321);
+    const result: { x: number; z: number; s: number }[] = [];
+    // Fewer park zones, fewer trees per zone
+    const zones = [
+      { cx: -8, cz: 8, r: 7, count: 4 },
+      { cx: -40, cz: 40, r: 6, count: 3 },
+      { cx: 48, cz: -20, r: 5, count: 3 },
+      { cx: 20, cz: 42, r: 6, count: 3 },
+      { cx: -56, cz: -28, r: 5, count: 2 },
+      { cx: 56, cz: 10, r: 5, count: 2 },
+      { cx: -75, cz: 0, r: 10, count: 4 },
+      { cx: 0, cz: -60, r: 10, count: 3 },
+      { cx: 0, cz: 55, r: 8, count: 3 },
+      // Lake area
+      { cx: 62, cz: -8, r: 12, count: 5 },
+    ];
+    for (const z of zones) {
+      for (let i = 0; i < z.count; i++) {
+        const angle = rng() * Math.PI * 2;
+        const dist = rng() * z.r;
+        result.push({ x: z.cx + Math.cos(angle) * dist, z: z.cz + Math.sin(angle) * dist, s: 0.6 + rng() * 0.5 });
+      }
+    }
+    return result;
+  }, []);
+
+  return (
+    <group>
+      {/* Green grass patches */}
+      {[
+        { cx: -8, cz: 8, r: 6 }, { cx: -40, cz: 40, r: 5 }, { cx: 48, cz: -20, r: 5 },
+        { cx: 20, cz: 42, r: 5 }, { cx: 62, cz: -8, r: 10 },
+      ].map((p, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[p.cx, -0.17, p.cz]}>
+          <circleGeometry args={[p.r, 8]} />
+          <meshStandardMaterial color="#3a8a30" polygonOffset polygonOffsetFactor={-1} />
+        </mesh>
+      ))}
+      {/* Simple lake */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[62, -0.14, -8]}>
+        <planeGeometry args={[20, 14]} />
+        <meshStandardMaterial color="#2868a0" metalness={0.5} roughness={0.2} polygonOffset polygonOffsetFactor={-2} />
+      </mesh>
+      {trees.map((t, i) => <SimpleMobileTree key={i} position={[t.x, 0, t.z]} scale={t.s} />)}
     </group>
   );
 }
@@ -1120,9 +1202,9 @@ function Plazas() {
   return (
     <group>
       {ALL_NODE_POSITIONS.map((pos, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[pos[0], -0.03, pos[1]]}>
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[pos[0], -0.15, pos[1]]}>
           <circleGeometry args={[5, 20]} />
-          <meshStandardMaterial color="#8a8a88" roughness={0.95} transparent opacity={0.4} />
+          <meshStandardMaterial color="#8a8a88" roughness={0.95} transparent opacity={0.4} polygonOffset polygonOffsetFactor={-2} />
         </mesh>
       ))}
     </group>
@@ -1832,6 +1914,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
           <CityRoads unlockedIds={unlockedIds} />
           <Plazas />
           <CityBlocks />
+          {IS_MOBILE && <MobileGreenery />}
           {!IS_MOBILE && <>
             <Lake />
             <Landmarks />
