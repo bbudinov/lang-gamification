@@ -10,6 +10,11 @@ import { CITIES, type City } from "@/data/cities";
 import { useProgressStore } from "@/stores/progressStore";
 import type { Language } from "@/types";
 
+// ─── Mobile detection (static — no hooks) ────────────────────────
+const IS_MOBILE = typeof window !== "undefined" && (
+  "ontouchstart" in window || navigator.maxTouchPoints > 0 || window.innerWidth < 800
+);
+
 // ─── City grid layout ────────────────────────────────────────────
 const WORLD_W = 180;
 const WORLD_H = 140;
@@ -133,29 +138,33 @@ function Streets() {
       m.rotation.x = -Math.PI / 2;
       m.position.set(cx, -0.03, ave.z);
       result.push(m);
-      // Center dashed line (yellow)
-      for (let x = ave.x1 + 2; x < ave.x2 - 2; x += 5) {
-        const dGeo = new THREE.PlaneGeometry(2.5, 0.18);
-        const dm = new THREE.Mesh(dGeo, yellowLine);
-        dm.rotation.x = -Math.PI / 2;
-        dm.position.set(x, -0.025, ave.z);
-        result.push(dm);
-      }
-      // Edge lines (white, continuous)
-      for (const side of [-1, 1]) {
-        const eGeo = new THREE.PlaneGeometry(len, 0.1);
-        const em = new THREE.Mesh(eGeo, whiteLine);
-        em.rotation.x = -Math.PI / 2;
-        em.position.set(cx, -0.025, ave.z + side * 2.5);
-        result.push(em);
+      if (!IS_MOBILE) {
+        // Center dashed line (yellow)
+        for (let x = ave.x1 + 2; x < ave.x2 - 2; x += 5) {
+          const dGeo = new THREE.PlaneGeometry(2.5, 0.18);
+          const dm = new THREE.Mesh(dGeo, yellowLine);
+          dm.rotation.x = -Math.PI / 2;
+          dm.position.set(x, -0.025, ave.z);
+          result.push(dm);
+        }
+        // Edge lines (white, continuous)
+        for (const side of [-1, 1]) {
+          const eGeo = new THREE.PlaneGeometry(len, 0.1);
+          const em = new THREE.Mesh(eGeo, whiteLine);
+          em.rotation.x = -Math.PI / 2;
+          em.position.set(cx, -0.025, ave.z + side * 2.5);
+          result.push(em);
+        }
       }
       // Raised sidewalks with curbs
       for (const side of [-1, 1]) {
-        // Curb — small raised edge
-        const cGeo = new THREE.BoxGeometry(len, 0.15, 0.2);
-        const cm = new THREE.Mesh(cGeo, curbMat);
-        cm.position.set(cx, 0.075, ave.z + side * 2.9);
-        result.push(cm);
+        if (!IS_MOBILE) {
+          // Curb — small raised edge
+          const cGeo = new THREE.BoxGeometry(len, 0.15, 0.2);
+          const cm = new THREE.Mesh(cGeo, curbMat);
+          cm.position.set(cx, 0.075, ave.z + side * 2.9);
+          result.push(cm);
+        }
         // Sidewalk surface (raised)
         const sGeo = new THREE.BoxGeometry(len, 0.1, 1.8);
         const sm = new THREE.Mesh(sGeo, sidewalkMat);
@@ -172,20 +181,20 @@ function Streets() {
       m.rotation.x = -Math.PI / 2;
       m.position.set(st.x, -0.03, cz);
       result.push(m);
-      // Center dashed line (white)
-      for (let z = st.z1 + 2; z < st.z2 - 2; z += 5) {
-        const dGeo = new THREE.PlaneGeometry(0.12, 2.5);
-        const dm = new THREE.Mesh(dGeo, whiteLine);
-        dm.rotation.x = -Math.PI / 2;
-        dm.position.set(st.x, -0.025, z);
-        result.push(dm);
-      }
-      // Curbs on both sides
-      for (const side of [-1, 1]) {
-        const cGeo = new THREE.BoxGeometry(0.15, 0.12, len);
-        const cm = new THREE.Mesh(cGeo, curbMat);
-        cm.position.set(st.x + side * 2.0, 0.06, cz);
-        result.push(cm);
+      if (!IS_MOBILE) {
+        for (let z = st.z1 + 2; z < st.z2 - 2; z += 5) {
+          const dGeo = new THREE.PlaneGeometry(0.12, 2.5);
+          const dm = new THREE.Mesh(dGeo, whiteLine);
+          dm.rotation.x = -Math.PI / 2;
+          dm.position.set(st.x, -0.025, z);
+          result.push(dm);
+        }
+        for (const side of [-1, 1]) {
+          const cGeo = new THREE.BoxGeometry(0.15, 0.12, len);
+          const cm = new THREE.Mesh(cGeo, curbMat);
+          cm.position.set(st.x + side * 2.0, 0.06, cz);
+          result.push(cm);
+        }
       }
     }
     // Secondary horizontal streets
@@ -197,32 +206,34 @@ function Streets() {
       m.rotation.x = -Math.PI / 2;
       m.position.set(cx, -0.03, st.z);
       result.push(m);
-      for (let x = st.x1 + 2; x < st.x2 - 2; x += 5) {
-        const dGeo = new THREE.PlaneGeometry(2.5, 0.12);
-        const dm = new THREE.Mesh(dGeo, whiteLine);
-        dm.rotation.x = -Math.PI / 2;
-        dm.position.set(x, -0.025, st.z);
-        result.push(dm);
-      }
-      // Curbs
-      for (const side of [-1, 1]) {
-        const cGeo = new THREE.BoxGeometry(len, 0.12, 0.15);
-        const cm = new THREE.Mesh(cGeo, curbMat);
-        cm.position.set(cx, 0.06, st.z + side * 2.0);
-        result.push(cm);
+      if (!IS_MOBILE) {
+        for (let x = st.x1 + 2; x < st.x2 - 2; x += 5) {
+          const dGeo = new THREE.PlaneGeometry(2.5, 0.12);
+          const dm = new THREE.Mesh(dGeo, whiteLine);
+          dm.rotation.x = -Math.PI / 2;
+          dm.position.set(x, -0.025, st.z);
+          result.push(dm);
+        }
+        for (const side of [-1, 1]) {
+          const cGeo = new THREE.BoxGeometry(len, 0.12, 0.15);
+          const cm = new THREE.Mesh(cGeo, curbMat);
+          cm.position.set(cx, 0.06, st.z + side * 2.0);
+          result.push(cm);
+        }
       }
     }
-    // Crosswalks (zebra stripes) at avenue-street intersections
-    const crosswalkMat = new THREE.MeshStandardMaterial({ color: "#e0e0e0", roughness: 0.85 });
-    for (const ave of MAIN_AVENUES) {
-      for (const st of SECONDARY_STREETS_V) {
-        // Horizontal zebra across the avenue at intersection
-        for (let stripe = -2; stripe <= 2; stripe += 0.6) {
-          const sGeo = new THREE.PlaneGeometry(3.0, 0.25);
-          const sm = new THREE.Mesh(sGeo, crosswalkMat);
-          sm.rotation.x = -Math.PI / 2;
-          sm.position.set(st.x, -0.02, ave.z + stripe);
-          result.push(sm);
+    // Crosswalks (zebra stripes) at avenue-street intersections — skip on mobile
+    if (!IS_MOBILE) {
+      const crosswalkMat = new THREE.MeshStandardMaterial({ color: "#e0e0e0", roughness: 0.85 });
+      for (const ave of MAIN_AVENUES) {
+        for (const st of SECONDARY_STREETS_V) {
+          for (let stripe = -2; stripe <= 2; stripe += 0.6) {
+            const sGeo = new THREE.PlaneGeometry(3.0, 0.25);
+            const sm = new THREE.Mesh(sGeo, crosswalkMat);
+            sm.rotation.x = -Math.PI / 2;
+            sm.position.set(st.x, -0.02, ave.z + stripe);
+            result.push(sm);
+          }
         }
       }
     }
@@ -359,7 +370,7 @@ function CityBlocks() {
     for (const block of blockAreas) {
       const bw = block.x2 - block.x1;
       const bh = block.z2 - block.z1;
-      const count = Math.floor((bw * bh * block.density) / 28); // denser: /28 instead of /40
+      const count = Math.floor((bw * bh * block.density) / (IS_MOBILE ? 60 : 28)); // fewer buildings on mobile
       const walls = WALL_PALETTES[block.zone];
       const roofs = ROOF_PALETTES[block.zone];
 
@@ -437,11 +448,11 @@ function CityBlocks() {
     <group>
       {blocks.map((b, i) => (
         <group key={i} position={[b.x, 0, b.z]} rotation={[0, b.rot, 0]}>
-          {/* Foundation / base */}
-          <mesh position={[0, 0.04, 0]} castShadow>
+          {/* Foundation / base — skip on mobile */}
+          {!IS_MOBILE && <mesh position={[0, 0.04, 0]} castShadow>
             <boxGeometry args={[b.w + 0.1, 0.08, b.d + 0.1]} />
             <meshStandardMaterial color="#707068" roughness={0.9} />
-          </mesh>
+          </mesh>}
 
           {/* Main body */}
           <mesh position={[0, b.h / 2, 0]} castShadow receiveShadow>
@@ -449,27 +460,29 @@ function CityBlocks() {
             <meshStandardMaterial color={b.wallColor} roughness={0.85} />
           </mesh>
 
-          {/* Ground floor distinction — slightly darker */}
-          <mesh position={[0, 0.55, 0]}>
+          {/* Ground floor distinction — skip on mobile */}
+          {!IS_MOBILE && <mesh position={[0, 0.55, 0]}>
             <boxGeometry args={[b.w + 0.02, 1.02, b.d + 0.02]} />
             <meshStandardMaterial color={b.type === "house" ? b.wallColor : "#8a8a82"} roughness={0.9} />
-          </mesh>
+          </mesh>}
 
           {/* Door on front face */}
           <mesh position={[0, 0.5, b.d / 2 + 0.015]}>
             <planeGeometry args={[b.type === "house" ? 0.35 : 0.5, 0.7]} />
             <meshStandardMaterial color="#4a3828" />
           </mesh>
-          {/* Door frame */}
-          <mesh position={[0, 0.86, b.d / 2 + 0.016]}>
-            <planeGeometry args={[b.type === "house" ? 0.42 : 0.56, 0.04]} />
-            <meshStandardMaterial color="#4a3018" />
-          </mesh>
+          {/* Door frame — skip on mobile */}
+          {!IS_MOBILE && (
+            <mesh position={[0, 0.86, b.d / 2 + 0.016]}>
+              <planeGeometry args={[b.type === "house" ? 0.42 : 0.56, 0.04]} />
+              <meshStandardMaterial color="#4a3018" />
+            </mesh>
+          )}
 
           {/* Windows — front + side, spaced grid */}
           {(b.type !== "house") && (() => {
-            const rows = Math.max(1, Math.floor(b.h / 1.4));
-            const cols = Math.max(1, Math.floor(b.w / 1.0));
+            const rows = IS_MOBILE ? Math.max(1, Math.floor(b.h / 2.5)) : Math.max(1, Math.floor(b.h / 1.4));
+            const cols = IS_MOBILE ? Math.max(1, Math.floor(b.w / 1.8)) : Math.max(1, Math.floor(b.w / 1.0));
             const wSize = b.type === "tower" ? 0.42 : 0.32;
             return Array.from({ length: rows }, (_, row) =>
               Array.from({ length: cols }, (_, col) => {
@@ -482,33 +495,34 @@ function CityBlocks() {
                       <planeGeometry args={[wSize, wSize * 1.3]} />
                       <meshStandardMaterial color="#6ab8d8" metalness={0.4} roughness={0.2} />
                     </mesh>
-                    {/* Window frame */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.014]}>
-                      <planeGeometry args={[wSize + 0.06, wSize * 1.3 + 0.06]} />
-                      <meshStandardMaterial color="#d8d8d4" />
-                    </mesh>
-                    {/* Window cross */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
-                      <planeGeometry args={[0.02, wSize * 1.3]} />
-                      <meshStandardMaterial color="#c0c0bc" />
-                    </mesh>
-                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
-                      <planeGeometry args={[wSize, 0.02]} />
-                      <meshStandardMaterial color="#c0c0bc" />
-                    </mesh>
-                    {/* Side window */}
-                    <mesh position={[b.w / 2 + 0.012, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
-                      <planeGeometry args={[wSize, wSize * 1.3]} />
-                      <meshStandardMaterial color="#5aa8c0" metalness={0.4} roughness={0.2} />
-                    </mesh>
-                    {/* Balcony on apartments (every other window, front only) */}
-                    {b.type === "apartment" && row > 0 && col % 2 === 0 && (
-                      <group position={[wx, wy - wSize * 0.65, b.d / 2 + 0.15]}>
-                        <mesh><boxGeometry args={[wSize + 0.15, 0.04, 0.25]} /><meshStandardMaterial color="#888" metalness={0.3} /></mesh>
-                        {/* Railing */}
-                        <mesh position={[0, 0.1, 0.12]}><boxGeometry args={[wSize + 0.15, 0.18, 0.02]} /><meshStandardMaterial color="#666" metalness={0.4} transparent opacity={0.6} /></mesh>
-                      </group>
-                    )}
+                    {!IS_MOBILE && <>
+                      {/* Window frame */}
+                      <mesh position={[wx, wy, b.d / 2 + 0.014]}>
+                        <planeGeometry args={[wSize + 0.06, wSize * 1.3 + 0.06]} />
+                        <meshStandardMaterial color="#d8d8d4" />
+                      </mesh>
+                      {/* Window cross */}
+                      <mesh position={[wx, wy, b.d / 2 + 0.016]}>
+                        <planeGeometry args={[0.02, wSize * 1.3]} />
+                        <meshStandardMaterial color="#c0c0bc" />
+                      </mesh>
+                      <mesh position={[wx, wy, b.d / 2 + 0.016]}>
+                        <planeGeometry args={[wSize, 0.02]} />
+                        <meshStandardMaterial color="#c0c0bc" />
+                      </mesh>
+                      {/* Side window */}
+                      <mesh position={[b.w / 2 + 0.012, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
+                        <planeGeometry args={[wSize, wSize * 1.3]} />
+                        <meshStandardMaterial color="#5aa8c0" metalness={0.4} roughness={0.2} />
+                      </mesh>
+                      {/* Balcony on apartments (every other window, front only) */}
+                      {b.type === "apartment" && row > 0 && col % 2 === 0 && (
+                        <group position={[wx, wy - wSize * 0.65, b.d / 2 + 0.15]}>
+                          <mesh><boxGeometry args={[wSize + 0.15, 0.04, 0.25]} /><meshStandardMaterial color="#888" metalness={0.3} /></mesh>
+                          <mesh position={[0, 0.1, 0.12]}><boxGeometry args={[wSize + 0.15, 0.18, 0.02]} /><meshStandardMaterial color="#666" metalness={0.4} transparent opacity={0.6} /></mesh>
+                        </group>
+                      )}
+                    </>}
                   </group>
                 );
               })
@@ -528,30 +542,32 @@ function CityBlocks() {
                     <planeGeometry args={[0.34, 0.38]} />
                     <meshStandardMaterial color="#e8e8e4" />
                   </mesh>
-                  {/* Shutters */}
-                  <mesh position={[wx * b.w - 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
-                    <planeGeometry args={[0.06, 0.36]} />
-                    <meshStandardMaterial color={b.accentColor} />
-                  </mesh>
-                  <mesh position={[wx * b.w + 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
-                    <planeGeometry args={[0.06, 0.36]} />
-                    <meshStandardMaterial color={b.accentColor} />
-                  </mesh>
+                  {/* Shutters — skip on mobile */}
+                  {!IS_MOBILE && <>
+                    <mesh position={[wx * b.w - 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
+                      <planeGeometry args={[0.06, 0.36]} />
+                      <meshStandardMaterial color={b.accentColor} />
+                    </mesh>
+                    <mesh position={[wx * b.w + 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
+                      <planeGeometry args={[0.06, 0.36]} />
+                      <meshStandardMaterial color={b.accentColor} />
+                    </mesh>
+                  </>}
                 </group>
               ))}
             </>
           )}
 
-          {/* Awning / shop canopy on ground floor for market/civic */}
-          {(b.type === "office" || b.type === "apartment") && (
+          {/* Awning / shop canopy — skip on mobile */}
+          {!IS_MOBILE && (b.type === "office" || b.type === "apartment") && (
             <mesh position={[0, 1.1, b.d / 2 + 0.25]} rotation={[0.2, 0, 0]} castShadow>
               <boxGeometry args={[b.w * 0.6, 0.03, 0.5]} />
               <meshStandardMaterial color={b.accentColor} />
             </mesh>
           )}
 
-          {/* AC units on side (offices/towers) */}
-          {(b.type === "office" || b.type === "tower") && b.h > 5 && (
+          {/* AC units — skip on mobile */}
+          {!IS_MOBILE && (b.type === "office" || b.type === "tower") && b.h > 5 && (
             <>
               <mesh position={[b.w / 2 + 0.15, b.h * 0.4, 0]}>
                 <boxGeometry args={[0.2, 0.15, 0.3]} />
@@ -572,11 +588,11 @@ function CityBlocks() {
                 <coneGeometry args={[Math.max(b.w, b.d) * 0.7, 1.1, 4]} />
                 <meshStandardMaterial color={b.roofColor} roughness={0.8} />
               </mesh>
-              {/* Chimney */}
-              <mesh position={[b.w * 0.25, b.h + 0.7, -b.d * 0.15]} castShadow>
+              {/* Chimney — skip on mobile */}
+              {!IS_MOBILE && <mesh position={[b.w * 0.25, b.h + 0.7, -b.d * 0.15]} castShadow>
                 <boxGeometry args={[0.15, 0.4, 0.15]} />
                 <meshStandardMaterial color="#706060" />
-              </mesh>
+              </mesh>}
             </group>
           )}
           {b.type === "apartment" && (
@@ -585,11 +601,11 @@ function CityBlocks() {
                 <boxGeometry args={[b.w + 0.2, 0.12, b.d + 0.2]} />
                 <meshStandardMaterial color={b.roofColor} roughness={0.85} />
               </mesh>
-              {/* Rooftop railing */}
-              <mesh position={[0, b.h + 0.2, b.d / 2 + 0.1]}>
+              {/* Rooftop railing — skip on mobile */}
+              {!IS_MOBILE && <mesh position={[0, b.h + 0.2, b.d / 2 + 0.1]}>
                 <boxGeometry args={[b.w, 0.15, 0.02]} />
                 <meshStandardMaterial color="#888" metalness={0.3} transparent opacity={0.5} />
-              </mesh>
+              </mesh>}
             </group>
           )}
           {(b.type === "office" || b.type === "tower") && (
@@ -599,19 +615,21 @@ function CityBlocks() {
                 <boxGeometry args={[b.w + 0.3, 0.15, b.d + 0.3]} />
                 <meshStandardMaterial color={b.roofColor} roughness={0.8} />
               </mesh>
-              {/* Accent stripe near top */}
-              <mesh position={[0, b.h - 0.15, b.d / 2 + 0.02]}>
-                <planeGeometry args={[b.w * 0.95, 0.2]} />
-                <meshStandardMaterial color={b.accentColor} />
-              </mesh>
-              {/* Rooftop equipment */}
-              <mesh position={[b.w * 0.2, b.h + 0.3, 0]}>
-                <boxGeometry args={[0.4, 0.3, 0.3]} />
-                <meshStandardMaterial color="#708090" metalness={0.3} />
-              </mesh>
+              {!IS_MOBILE && <>
+                {/* Accent stripe near top */}
+                <mesh position={[0, b.h - 0.15, b.d / 2 + 0.02]}>
+                  <planeGeometry args={[b.w * 0.95, 0.2]} />
+                  <meshStandardMaterial color={b.accentColor} />
+                </mesh>
+                {/* Rooftop equipment */}
+                <mesh position={[b.w * 0.2, b.h + 0.3, 0]}>
+                  <boxGeometry args={[0.4, 0.3, 0.3]} />
+                  <meshStandardMaterial color="#708090" metalness={0.3} />
+                </mesh>
+              </>}
             </group>
           )}
-          {b.type === "tower" && (
+          {!IS_MOBILE && b.type === "tower" && (
             <group>
               {/* Antenna */}
               <mesh position={[0, b.h + 0.9, 0]} castShadow>
@@ -626,8 +644,8 @@ function CityBlocks() {
             </group>
           )}
 
-          {/* Neon signs / billboards */}
-          {b.signs.map((sign, si) => (
+          {/* Neon signs / billboards — skip on mobile */}
+          {!IS_MOBILE && b.signs.map((sign, si) => (
             <group key={`sign${si}`}>
               {sign.face === "front" ? (
                 <group>
@@ -657,11 +675,13 @@ function CityBlocks() {
             </group>
           ))}
 
-          {/* Building shadow on ground */}
-          <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[b.w + 0.5, b.d + 0.5]} />
-            <meshBasicMaterial color="#000" transparent opacity={0.08} />
-          </mesh>
+          {/* Building shadow on ground — skip on mobile */}
+          {!IS_MOBILE && (
+            <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[b.w + 0.5, b.d + 0.5]} />
+              <meshBasicMaterial color="#000" transparent opacity={0.08} />
+            </mesh>
+          )}
         </group>
       ))}
     </group>
@@ -683,16 +703,16 @@ function ParkTree({ position, scale = 1 }: { position: [number, number, number];
         <sphereGeometry args={[0.8, 12, 8]} />
         <meshStandardMaterial color="#3da03a" roughness={0.75} />
       </mesh>
-      {/* Highlight sphere (lighter green on top) */}
-      <mesh position={[0.1, 1.9, 0.1]}>
+      {/* Highlight sphere — skip on mobile */}
+      {!IS_MOBILE && <mesh position={[0.1, 1.9, 0.1]}>
         <sphereGeometry args={[0.45, 8, 6]} />
         <meshStandardMaterial color="#58c048" roughness={0.7} />
-      </mesh>
-      {/* Shadow on ground */}
-      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      </mesh>}
+      {/* Shadow on ground — skip on mobile */}
+      {!IS_MOBILE && <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.7, 10]} />
         <meshBasicMaterial color="#1a3a18" transparent opacity={0.2} />
-      </mesh>
+      </mesh>}
     </group>
   );
 }
@@ -719,7 +739,8 @@ function Parks() {
       { cx: 50, cz: 26, r: 3, count: 3 },
     ];
     for (const park of parkZones) {
-      for (let i = 0; i < park.count; i++) {
+      const cnt = IS_MOBILE ? Math.ceil(park.count / 2) : park.count;
+      for (let i = 0; i < cnt; i++) {
         const angle = rng() * Math.PI * 2;
         const dist = rng() * park.r;
         result.push({
@@ -759,8 +780,8 @@ function Parks() {
 
       {trees.map((t, i) => <ParkTree key={i} position={[t.x, 0, t.z]} scale={t.s} />)}
 
-      {/* Street trees along avenues */}
-      {streetTrees.map((st, i) => (
+      {/* Street trees along avenues — skip on mobile */}
+      {!IS_MOBILE && streetTrees.map((st, i) => (
         <group key={`st${i}`}>
           {/* Tree pit (small green square) */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[st.x, -0.02, st.z]}>
@@ -771,8 +792,8 @@ function Parks() {
         </group>
       ))}
 
-      {/* Park benches */}
-      {[[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
+      {/* Park benches — skip on mobile */}
+      {!IS_MOBILE && [[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
         <group key={`bench${i}`} position={[x, 0, z]}>
           {/* Seat */}
           <mesh position={[0, 0.25, 0]} castShadow>
@@ -814,7 +835,8 @@ function Lake() {
   const cx = 62, cz = -8;
   const lakeW = 22, lakeH = 16;
   const shoreTrees: { x: number; z: number; s: number }[] = [];
-  for (let i = 0; i < 30; i++) {
+  const shoreTreeCount = IS_MOBILE ? 10 : 30;
+  for (let i = 0; i < shoreTreeCount; i++) {
     const angle = rng() * Math.PI * 2;
     const dist = 10 + rng() * 5;
     shoreTrees.push({
@@ -1015,8 +1037,8 @@ function Landmarks() {
             <meshStandardMaterial color={color as string} roughness={0.9} />
           </mesh>
         ))}
-        {/* Garden trees — larger and denser */}
-        {[[-5, 8], [-2, 11], [1, 8], [4, 12], [-4, 13], [3, 9], [6, 11], [-6, 10]].map(([x, z], ti) => (
+        {/* Garden trees — fewer on mobile */}
+        {(IS_MOBILE ? [[-5, 8], [1, 8], [4, 12], [-6, 10]] : [[-5, 8], [-2, 11], [1, 8], [4, 12], [-4, 13], [3, 9], [6, 11], [-6, 10]]).map(([x, z], ti) => (
           <ParkTree key={`gt${ti}`} position={[x, 0, z]} scale={0.7 + (ti % 3) * 0.15} />
         ))}
         {/* Garden path */}
@@ -1184,133 +1206,62 @@ function Lamps() {
 // ─── Ambient life ────────────────────────────────────────────────
 
 function AmbientPerson({ position, color, rot = 0 }: { position: [number, number, number]; color: string; rot?: number }) {
+  if (IS_MOBILE) {
+    // Mobile: 2 meshes only
+    return (
+      <group position={position} rotation={[0, rot, 0]} scale={2.5}>
+        <mesh position={[0, 0.6, 0]} castShadow><capsuleGeometry args={[0.18, 0.45, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+        <mesh position={[0, 1.15, 0]}><sphereGeometry args={[0.16, 5, 4]} /><meshStandardMaterial color="#e8c8a0" /></mesh>
+      </group>
+    );
+  }
   const skinColor = "#e8c8a0";
-  const shoeColor = "#3a3028";
   const pantsColor = "#404858";
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.5}>
-      {/* Torso */}
-      <mesh position={[0, 0.65, 0]} castShadow>
-        <capsuleGeometry args={[0.16, 0.35, 4, 8]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Neck */}
-      <mesh position={[0, 0.95, 0]}>
-        <cylinderGeometry args={[0.06, 0.07, 0.1, 6]} />
-        <meshStandardMaterial color={skinColor} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0, 1.15, 0]}>
-        <sphereGeometry args={[0.16, 8, 6]} />
-        <meshStandardMaterial color={skinColor} />
-      </mesh>
-      {/* Hair */}
-      <mesh position={[0, 1.25, -0.02]}>
-        <sphereGeometry args={[0.14, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#3a2818" />
-      </mesh>
-      {/* Arms */}
-      <mesh position={[-0.22, 0.7, 0]} rotation={[0, 0, 0.15]} castShadow>
-        <capsuleGeometry args={[0.055, 0.3, 4, 5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      <mesh position={[0.22, 0.7, 0]} rotation={[0, 0, -0.15]} castShadow>
-        <capsuleGeometry args={[0.055, 0.3, 4, 5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Hands */}
-      <mesh position={[-0.26, 0.44, 0]}>
-        <sphereGeometry args={[0.04, 5, 4]} />
-        <meshStandardMaterial color={skinColor} />
-      </mesh>
-      <mesh position={[0.26, 0.44, 0]}>
-        <sphereGeometry args={[0.04, 5, 4]} />
-        <meshStandardMaterial color={skinColor} />
-      </mesh>
-      {/* Legs / pants */}
-      <mesh position={[-0.08, 0.28, 0]} castShadow>
-        <capsuleGeometry args={[0.065, 0.25, 4, 5]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-      <mesh position={[0.08, 0.28, 0]} castShadow>
-        <capsuleGeometry args={[0.065, 0.25, 4, 5]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-      {/* Shoes */}
-      <mesh position={[-0.08, 0.06, 0.03]}>
-        <boxGeometry args={[0.1, 0.07, 0.16]} />
-        <meshStandardMaterial color={shoeColor} />
-      </mesh>
-      <mesh position={[0.08, 0.06, 0.03]}>
-        <boxGeometry args={[0.1, 0.07, 0.16]} />
-        <meshStandardMaterial color={shoeColor} />
-      </mesh>
+      <mesh position={[0, 0.65, 0]} castShadow><capsuleGeometry args={[0.16, 0.35, 4, 6]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0, 1.15, 0]}><sphereGeometry args={[0.16, 6, 5]} /><meshStandardMaterial color={skinColor} /></mesh>
+      <mesh position={[0, 1.25, -0.02]}><sphereGeometry args={[0.14, 5, 3, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color="#3a2818" /></mesh>
+      <mesh position={[-0.22, 0.7, 0]} rotation={[0, 0, 0.15]}><capsuleGeometry args={[0.055, 0.3, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.22, 0.7, 0]} rotation={[0, 0, -0.15]}><capsuleGeometry args={[0.055, 0.3, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[-0.08, 0.28, 0]}><capsuleGeometry args={[0.065, 0.25, 3, 4]} /><meshStandardMaterial color={pantsColor} /></mesh>
+      <mesh position={[0.08, 0.28, 0]}><capsuleGeometry args={[0.065, 0.25, 3, 4]} /><meshStandardMaterial color={pantsColor} /></mesh>
     </group>
   );
 }
 
 function AmbientDog({ position, color = "#a07040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
+  if (IS_MOBILE) {
+    return (
+      <group position={position} rotation={[0, rot, 0]} scale={2.2}>
+        <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+        <mesh position={[0.35, 0.32, 0]}><sphereGeometry args={[0.13, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
+      </group>
+    );
+  }
   const darkerColor = "#704820";
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-      {/* Body */}
-      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <capsuleGeometry args={[0.14, 0.4, 4, 6]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Chest (slightly larger front) */}
-      <mesh position={[0.15, 0.27, 0]}>
-        <sphereGeometry args={[0.15, 6, 5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0.38, 0.35, 0]}>
-        <sphereGeometry args={[0.13, 6, 5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Snout */}
-      <mesh position={[0.48, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <capsuleGeometry args={[0.05, 0.08, 4, 4]} />
-        <meshStandardMaterial color={darkerColor} />
-      </mesh>
-      {/* Nose */}
-      <mesh position={[0.53, 0.33, 0]}>
-        <sphereGeometry args={[0.025, 4, 3]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      {/* Ears (floppy) */}
-      <mesh position={[0.35, 0.44, 0.1]} rotation={[0.3, 0, 0.5]}>
-        <capsuleGeometry args={[0.035, 0.08, 3, 4]} />
-        <meshStandardMaterial color={darkerColor} />
-      </mesh>
-      <mesh position={[0.35, 0.44, -0.1]} rotation={[-0.3, 0, 0.5]}>
-        <capsuleGeometry args={[0.035, 0.08, 3, 4]} />
-        <meshStandardMaterial color={darkerColor} />
-      </mesh>
-      {/* Legs */}
-      {[[-0.16, 0.1], [0.16, 0.1], [-0.16, -0.1], [0.16, -0.1]].map(([ox, oz], i) => (
-        <mesh key={i} position={[ox, 0.08, oz]}>
-          <capsuleGeometry args={[0.04, 0.1, 4, 4]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
-      ))}
-      {/* Paws */}
-      {[[-0.16, 0.1], [0.16, 0.1], [-0.16, -0.1], [0.16, -0.1]].map(([ox, oz], i) => (
-        <mesh key={`p${i}`} position={[ox, 0.01, oz + 0.02]}>
-          <sphereGeometry args={[0.04, 4, 3]} />
-          <meshStandardMaterial color={darkerColor} />
-        </mesh>
-      ))}
-      {/* Tail (curvy up) */}
-      <mesh position={[-0.32, 0.38, 0]} rotation={[0, 0, -0.8]}>
-        <capsuleGeometry args={[0.02, 0.16, 4, 4]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
+      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 4, 5]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.15, 0.27, 0]}><sphereGeometry args={[0.15, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.38, 0.35, 0]}><sphereGeometry args={[0.13, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.48, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}><capsuleGeometry args={[0.05, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
+      <mesh position={[0.35, 0.44, 0.1]} rotation={[0.3, 0, 0.5]}><capsuleGeometry args={[0.035, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
+      <mesh position={[0.35, 0.44, -0.1]} rotation={[-0.3, 0, 0.5]}><capsuleGeometry args={[0.035, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
+      <mesh position={[-0.32, 0.38, 0]} rotation={[0, 0, -0.8]}><capsuleGeometry args={[0.02, 0.16, 3, 3]} /><meshStandardMaterial color={color} /></mesh>
     </group>
   );
 }
 
 function AmbientCat({ position, color = "#404040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
+  if (IS_MOBILE) {
+    return (
+      <group position={position} rotation={[0, rot, 0]} scale={2.2}>
+        <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.09, 0.22, 3, 3]} /><meshStandardMaterial color={color} /></mesh>
+        <mesh position={[0.22, 0.24, 0]}><sphereGeometry args={[0.1, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
+      </group>
+    );
+  }
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
       {/* Body */}
@@ -1392,9 +1343,10 @@ function AmbientLife() {
       "#706080", "#80a0b0", "#4090a0", "#a07050", "#907040", "#608090", "#a060a0", "#60b060"];
     const result: { x: number; z: number; color: string; rot: number }[] = [];
 
+    const step = IS_MOBILE ? 14 : 6; // fewer people on mobile
     // Scatter along main avenues
     for (const ave of MAIN_AVENUES) {
-      for (let x = ave.x1 + 5; x < ave.x2 - 5; x += 6 + rng() * 6) {
+      for (let x = ave.x1 + 5; x < ave.x2 - 5; x += step + rng() * step) {
         const side = rng() < 0.5 ? 4.5 : -4.5;
         result.push({ x, z: ave.z + side + (rng() - 0.5) * 1.5, color: colors[Math.floor(rng() * colors.length)], rot: rng() * Math.PI * 2 });
       }
@@ -1413,7 +1365,8 @@ function AmbientLife() {
       { cx: -10, cz: 36, r: 6, count: 3 },  // near school/mall
     ];
     for (const hub of hubs) {
-      for (let i = 0; i < hub.count; i++) {
+      const cnt = IS_MOBILE ? Math.ceil(hub.count / 2) : hub.count;
+      for (let i = 0; i < cnt; i++) {
         const angle = rng() * Math.PI * 2;
         const dist = rng() * hub.r;
         result.push({
@@ -1451,19 +1404,20 @@ function AmbientLife() {
       <AmbientCat position={[12, 0, -12]} color="#e0a040" rot={2.8} />
       <AmbientCat position={[-28, 0, 40]} color="#606060" rot={5.2} />
 
-      {/* Birds — scattered groups */}
-      {[
-        [32, 28], [33, 29], [31, 27.5], [-7, 9], [-8.5, 7.5],
-        [-48, 35], [-47, 36], [15, -5], [16, -4], [-30, -1],
-        [42, -29], [43, -28], [-34, -37], [25, 42], [26, 43],
-      ].map(([x, z], i) => (
-        <AmbientBird key={`b${i}`} position={[x, 0.01, z]} rot={i * 1.3} />
-      ))}
-      {/* Birds on rooftops */}
-      <AmbientBird position={[20, 5, -6]} rot={2.0} />
-      <AmbientBird position={[-30, 4, 2]} rot={5.0} />
-      <AmbientBird position={[5, 6, -3]} rot={1.2} />
-      <AmbientBird position={[-15, 4, -10]} rot={3.5} />
+      {/* Birds — skip on mobile */}
+      {!IS_MOBILE && <>
+        {[
+          [32, 28], [33, 29], [31, 27.5], [-7, 9], [-8.5, 7.5],
+          [-48, 35], [-47, 36], [15, -5], [16, -4], [-30, -1],
+          [42, -29], [43, -28], [-34, -37], [25, 42], [26, 43],
+        ].map(([x, z], i) => (
+          <AmbientBird key={`b${i}`} position={[x, 0.01, z]} rot={i * 1.3} />
+        ))}
+        <AmbientBird position={[20, 5, -6]} rot={2.0} />
+        <AmbientBird position={[-30, 4, 2]} rot={5.0} />
+        <AmbientBird position={[5, 6, -3]} rot={1.2} />
+        <AmbientBird position={[-15, 4, -10]} rot={3.5} />
+      </>}
     </group>
   );
 }
@@ -1471,6 +1425,17 @@ function AmbientLife() {
 // ─── Cars on streets ─────────────────────────────────────────────
 
 function Car({ position, color, rot = 0 }: { position: [number, number, number]; color: string; rot?: number }) {
+  if (IS_MOBILE) {
+    return (
+      <group position={position} rotation={[0, rot, 0]}>
+        <mesh position={[0, 0.3, 0]} castShadow><boxGeometry args={[2.2, 0.5, 1.1]} /><meshStandardMaterial color={color} metalness={0.3} roughness={0.5} /></mesh>
+        <mesh position={[0.05, 0.65, 0]}><boxGeometry args={[1.2, 0.35, 0.95]} /><meshStandardMaterial color={color} metalness={0.3} roughness={0.5} /></mesh>
+        {[[-0.6, 0.55], [-0.6, -0.55], [0.6, 0.55], [0.6, -0.55]].map(([ox, oz], i) => (
+          <mesh key={i} position={[ox, 0.1, oz]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.14, 0.14, 0.08, 6]} /><meshStandardMaterial color="#1a1a1a" /></mesh>
+        ))}
+      </group>
+    );
+  }
   return (
     <group position={position} rotation={[0, rot, 0]}>
       {/* Main body — lower chassis */}
@@ -1573,14 +1538,16 @@ function Cars() {
       <Car position={[-5, 0, -0.8]} color="#4080c0" rot={Math.PI} />
       <Car position={[40, 0, 0.8]} color="#40a060" rot={0} />
       <Car position={[20, 0, 36.8]} color="#c0a040" rot={0} />
-      <Car position={[-40, 0, 35.2]} color="#8060a0" rot={Math.PI} />
-      <Car position={[50, 0, -36.8]} color="#e07030" rot={Math.PI} />
-      <Car position={[-20, 0, -35.2]} color="#3080a0" rot={0} />
-      {/* Cars on secondary streets */}
-      <Car position={[-54.8, 0, 10]} color="#a04080" rot={Math.PI / 2} />
-      <Car position={[10.8, 0, -20]} color="#c08040" rot={-Math.PI / 2} />
-      <Car position={[38.8, 0, 15]} color="#505050" rot={Math.PI / 2} />
-      <Car position={[-19.2, 0, 30]} color="#d0d040" rot={-Math.PI / 2} />
+      {!IS_MOBILE && <>
+        <Car position={[-40, 0, 35.2]} color="#8060a0" rot={Math.PI} />
+        <Car position={[50, 0, -36.8]} color="#e07030" rot={Math.PI} />
+        <Car position={[-20, 0, -35.2]} color="#3080a0" rot={0} />
+        {/* Cars on secondary streets */}
+        <Car position={[-54.8, 0, 10]} color="#a04080" rot={Math.PI / 2} />
+        <Car position={[10.8, 0, -20]} color="#c08040" rot={-Math.PI / 2} />
+        <Car position={[38.8, 0, 15]} color="#505050" rot={Math.PI / 2} />
+        <Car position={[-19.2, 0, 30]} color="#d0d040" rot={-Math.PI / 2} />
+      </>}
     </group>
   );
 }
@@ -1796,7 +1763,7 @@ interface WorldMapProps {
 export function WorldMap({ onSelectCity }: WorldMapProps) {
   const { totalPoints, getTopicCompletedLevels } = useProgressStore();
   const lang = useProgressStore((s) => s.targetLanguage) as Language;
-  const [dpr, setDpr] = useState(1.5);
+  const [dpr, setDpr] = useState(IS_MOBILE ? 1 : 1.5);
   const [sceneReady, setSceneReady] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayHidden, setOverlayHidden] = useState(false);
@@ -1830,7 +1797,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
         camera={{ position: [0, 55, 40], fov: 45 }}
         style={{ touchAction: "none" }}
       >
-        <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
+        <PerformanceMonitor onDecline={() => setDpr(IS_MOBILE ? 0.75 : 1)} onIncline={() => setDpr(IS_MOBILE ? 1 : 1.5)} />
 
         {/* Sky gradient instead of flat color */}
         <Sky sunPosition={[80, 40, 30]} turbidity={2} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
@@ -1843,8 +1810,8 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
           intensity={1.5}
           color="#fff0c0"
           castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
+          shadow-mapSize-width={IS_MOBILE ? 512 : 2048}
+          shadow-mapSize-height={IS_MOBILE ? 512 : 2048}
           shadow-camera-left={-90}
           shadow-camera-right={90}
           shadow-camera-top={70}
@@ -1865,11 +1832,11 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
           <Lake />
           <Landmarks />
           <Parks />
-          <MarketStalls />
-          <Lamps />
+          {!IS_MOBILE && <MarketStalls />}
+          {!IS_MOBILE && <Lamps />}
           <AmbientLife />
           <Cars />
-          <Clouds />
+          {!IS_MOBILE && <Clouds />}
 
           {CITIES.map((city) => (
             <CityMarker
