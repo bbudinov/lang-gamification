@@ -34,6 +34,9 @@ interface ProgressState {
     gamesPlayed: number; // total games since pet was hatched
   } | null;
 
+  // Intro cutscenes
+  visitedIntros: TopicId[];
+
   // Actions
   addPoints: (points: number) => void;
   addCoins: (amount: number) => void;
@@ -51,6 +54,10 @@ interface ProgressState {
 
   // Pet
   hatchPet: () => void;
+
+  // Intro
+  markIntroSeen: (topicId: TopicId) => void;
+  hasSeenIntro: (topicId: TopicId) => boolean;
 
   // Level system (computed from gameResults)
   getTopicLevelProgress: (topicId: TopicId, level: LevelNumber) => {
@@ -118,6 +125,9 @@ export const useProgressStore = create<ProgressState>()(
 
       // Pet
       pet: null,
+
+      // Intro
+      visitedIntros: [],
 
       addPoints: (points) =>
         set((s) => ({ totalPoints: s.totalPoints + points })),
@@ -227,6 +237,13 @@ export const useProgressStore = create<ProgressState>()(
         set({
           pet: { active: true, stage: 0, gamesPlayed: 0 },
         }),
+
+      markIntroSeen: (topicId) =>
+        set((s) => ({
+          visitedIntros: [...new Set([...s.visitedIntros, topicId])],
+        })),
+
+      hasSeenIntro: (topicId) => get().visitedIntros.includes(topicId),
 
       checkAndUpdateStreak: () => {
         const s = get();

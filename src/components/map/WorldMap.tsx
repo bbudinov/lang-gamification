@@ -33,7 +33,7 @@ const CITY_POSITIONS: Record<string, [number, number]> = {
 const FUTURE_LOCATIONS = [
   { id: "cinema", emoji: "🎬", label: "Cinema", pos: [-10, 26] as [number, number] },
   { id: "bakery", emoji: "🧁", label: "Bakery", pos: [50, 4] as [number, number] },
-  { id: "restaurant", emoji: "🍽️", label: "Restaurant", pos: [8, 14] as [number, number] },
+  { id: "market", emoji: "🏪", label: "Market", pos: [8, 14] as [number, number] },
   { id: "library", emoji: "📚", label: "Library", pos: [-56, -10] as [number, number] },
   { id: "toystore", emoji: "🧸", label: "Toy Store", pos: [-28, 40] as [number, number] },
   { id: "trainstation", emoji: "🚂", label: "Train Station", pos: [56, -40] as [number, number] },
@@ -1950,12 +1950,25 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
 
       {!overlayHidden && (
         <div
-          className="absolute inset-0 bg-[#7a9ab0] flex items-center justify-center z-10 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 bg-gradient-to-b from-[#1a2a3a] via-[#2a4a6a] to-[#1a2a3a] flex items-center justify-center z-10 pointer-events-none transition-opacity duration-700"
           style={{ opacity: overlayVisible ? 1 : 0 }}
         >
           <div className="text-center">
-            <div className="text-4xl mb-3 animate-bounce">🏙️</div>
-            <p className="text-slate-600/60 text-sm">Loading city...</p>
+            {/* Animated globe */}
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-emerald-500 opacity-20 animate-ping" />
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-400 to-emerald-500 opacity-30 animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center text-4xl animate-[spin_8s_linear_infinite]">
+                🌍
+              </div>
+            </div>
+            <p className="text-white/60 text-sm font-medium tracking-wider">Exploring the world...</p>
+            {/* Loading dots */}
+            <div className="flex gap-1.5 justify-center mt-3">
+              <div className="w-2 h-2 rounded-full bg-blue-400/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2 h-2 rounded-full bg-blue-400/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-2 h-2 rounded-full bg-blue-400/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
           </div>
         </div>
       )}
