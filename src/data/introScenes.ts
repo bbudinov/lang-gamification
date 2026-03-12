@@ -246,6 +246,7 @@ export const introScenes: IntroScene[] = [
     frames: [
       {
         image: "/images/intros/home-1.svg",
+        video: "/images/intros/home-1.mp4",
         speaker: "professor",
         text: {
           en: "What a cozy house! Someone special lives here.",
@@ -257,6 +258,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/home-2.svg",
+        video: "/images/intros/home-2.mp4",
         speaker: "Grandma Rose",
         text: {
           en: "Oh, hello dear! Come in! I'm Grandma Rose.",
@@ -268,6 +270,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/home-3.svg",
+        video: "/images/intros/home-3.mp4",
         speaker: "professor",
         text: {
           en: "Let's talk about family! This will be fun!",
