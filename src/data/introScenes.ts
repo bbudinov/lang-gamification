@@ -289,6 +289,7 @@ export const introScenes: IntroScene[] = [
     frames: [
       {
         image: "/images/intros/hospital-1.svg",
+        video: "/images/intros/hospital-1.mp4",
         speaker: "professor",
         text: {
           en: "Here's the hospital! Don't worry, it's a fun visit!",
@@ -300,6 +301,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/hospital-2.svg",
+        video: "/images/intros/hospital-2.mp4",
         speaker: "Dr. Bones",
         text: {
           en: "Hello! I'm Dr. Bones! Ready for a fun checkup?",
@@ -311,6 +313,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/hospital-3.svg",
+        video: "/images/intros/hospital-3.mp4",
         speaker: "professor",
         text: {
           en: "Let's learn about the body! Point to your nose!",
@@ -329,6 +332,7 @@ export const introScenes: IntroScene[] = [
     frames: [
       {
         image: "/images/intros/station-1.svg",
+        video: "/images/intros/weather-station-1.mp4",
         speaker: "professor",
         text: {
           en: "Look up! The weather station is on the mountain top!",
@@ -340,6 +344,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/station-2.svg",
+        video: "/images/intros/weather-station-2.mp4",
         speaker: "Sunny",
         text: {
           en: "GOOD MORNING! I'm Sunny! What's the weather like today?",
@@ -351,6 +356,7 @@ export const introScenes: IntroScene[] = [
       },
       {
         image: "/images/intros/station-3.svg",
+        video: "/images/intros/weather-station-3.mp4",
         speaker: "professor",
         text: {
           en: "Let's learn about weather! Sun, rain, snow... let's go!",
