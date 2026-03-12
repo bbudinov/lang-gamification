@@ -291,6 +291,31 @@ function isMaleVoice(v: SpeechSynthesisVoice): boolean {
   return false; // unknown
 }
 
+function findFemaleVoice(
+  voices: SpeechSynthesisVoice[],
+  language: Language
+): SpeechSynthesisVoice | null {
+  const locale = LANG_MAP[language];
+  const langPrefix = locale.split("-")[0];
+  const matching = voices.filter((v) => v.lang.startsWith(langPrefix));
+  if (matching.length === 0) return null;
+
+  const females = matching.filter((v) => {
+    const n = v.name.toLowerCase();
+    return FEMALE_HINTS.some((h) => n.includes(h)) || !MALE_HINTS.some((h) => n.includes(h));
+  });
+
+  const femaleGoogle = females.find((v) => v.name.toLowerCase().includes("google"));
+  if (femaleGoogle) return femaleGoogle;
+
+  const femalePremium = females.find((v) => !v.localService);
+  if (femalePremium) return femalePremium;
+
+  if (females.length > 0) return females[0];
+
+  return matching[0];
+}
+
 function findBestVoice(
   voices: SpeechSynthesisVoice[],
   language: Language
@@ -341,6 +366,48 @@ export function stopSpeech(): void {
 export function initSpeech(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   ensureVoices();
+}
+
+/** Speak with explicit gender voice selection (for intros) */
+export function speakAndWaitGendered(
+  text: string,
+  language: Language,
+  gender: "male" | "female",
+  maxWaitMs = 15000
+): Promise<void> {
+  return new Promise(async (resolve) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      resolve();
+      return;
+    }
+
+    const voices = await ensureVoices();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = LANG_MAP[language];
+    utterance.rate = RATE_MAP[language];
+    utterance.pitch = gender === "female" ? 1.1 : 0.9;
+    utterance.volume = 1;
+
+    const voice = gender === "female"
+      ? findFemaleVoice(voices, language)
+      : findBestVoice(voices, language);
+    if (voice) utterance.voice = voice;
+
+    let resolved = false;
+    const done = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    utterance.onend = done;
+    utterance.onerror = done;
+    setTimeout(done, maxWaitMs);
+
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 /** Speak text using Web Speech API (fallback for dynamic text) */

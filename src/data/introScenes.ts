@@ -7,6 +7,8 @@ export interface IntroFrame {
   video?: string;
   /** Who speaks — "professor" or the NPC name */
   speaker: "professor" | string;
+  /** Voice gender for TTS — "male" | "female" */
+  voiceGender?: "male" | "female";
   /** Dialogue text per language */
   text: Record<Language, string>;
   /** Duration in ms (default 4500) */
@@ -45,6 +47,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/zoo-2.webp",
         video: "/images/intros/zoo-2.mp4",
         speaker: "Zara",
+        voiceGender: "female",
         text: {
           en: "Hello there! I'm Zara, the zookeeper. Ready to explore?",
           bg: "Здравей! Аз съм Зара, пазачката на зоопарка. Готов ли си за разходка?",
@@ -88,6 +91,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/restaurant-2.webp",
         video: "/images/intros/restaurant-2.mp4",
         speaker: "Marco",
+        voiceGender: "male",
         text: {
           en: "Buongiorno! I'm Chef Marco. Welcome to my kitchen!",
           bg: "Бонджорно! Аз съм Готвач Марко. Добре дошъл в моята кухня!",
@@ -131,6 +135,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/school-2.svg",
         video: "/images/intros/school-2.mp4",
         speaker: "Miss Luna",
+        voiceGender: "female",
         text: {
           en: "Shhh... Welcome! I'm Miss Luna. Let's find what you need!",
           bg: "Шшш... Добре дошъл! Аз съм Мис Луна. Хайде да намерим каквото ти трябва!",
@@ -174,6 +179,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/studio-2.svg",
         video: "/images/intros/art-studio-2.mp4",
         speaker: "Pablo",
+        voiceGender: "male",
         text: {
           en: "Hello, young artist! I'm Pablo. Let's paint together!",
           bg: "Здравей, млад художник! Аз съм Пабло. Хайде да рисуваме заедно!",
@@ -217,6 +223,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/bank-2.svg",
         video: "/images/intros/bank-2.mp4",
         speaker: "Digit",
+        voiceGender: "male",
         text: {
           en: "BEEP BOOP! I'm Digit! Let's count everything together!",
           bg: "БИП БУП! Аз съм Диджит! Хайде да преброим всичко заедно!",
@@ -260,6 +267,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/home-2.svg",
         video: "/images/intros/home-2.mp4",
         speaker: "Grandma Rose",
+        voiceGender: "female",
         text: {
           en: "Oh, hello dear! Come in! I'm Grandma Rose.",
           bg: "Ох, здравей, мило! Влизай! Аз съм Баба Роза.",
@@ -303,6 +311,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/hospital-2.svg",
         video: "/images/intros/hospital-2.mp4",
         speaker: "Dr. Bones",
+        voiceGender: "male",
         text: {
           en: "Hello! I'm Dr. Bones! Ready for a fun checkup?",
           bg: "Здравей! Аз съм Доктор Боунс! Готов ли си за забавен преглед?",
@@ -346,6 +355,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/station-2.svg",
         video: "/images/intros/weather-station-2.mp4",
         speaker: "Sunny",
+        voiceGender: "female",
         text: {
           en: "GOOD MORNING! I'm Sunny! What's the weather like today?",
           bg: "ДОБРО УТРО! Аз съм Съни! Какво е времето днес?",

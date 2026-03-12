@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getIntroScene, type IntroFrame } from "@/data/introScenes";
-import { speakAndWait } from "@/lib/speech";
+import { speakAndWait, speakAndWaitGendered } from "@/lib/speech";
 import { useProgressStore } from "@/stores/progressStore";
 import type { TopicId, Language } from "@/types";
 
@@ -70,7 +70,11 @@ function Frame({
   active: boolean;
   onDone: () => void;
 }) {
+  const isProfessor = frame.speaker === "professor";
+  // Professor Globe always speaks EN; NPCs speak target language
+  const speechLang = isProfessor ? "en" as const : language;
   const text = frame.text[language] || frame.text.en;
+  const speechText = isProfessor ? frame.text.en : text;
   const duration = frame.duration || 4500;
   const anim = KEN_BURNS[frame.animation || "still"];
   const { displayed, done: typeDone, complete: skipType } = useTypewriter(
@@ -90,8 +94,9 @@ function Frame({
     }
     if (spokRef.current) return;
     spokRef.current = true;
-    speakAndWait(text, language, duration + 2000).catch(() => {});
-  }, [active, videoReady, text, language, duration]);
+    const gender = isProfessor ? "male" : (frame.voiceGender || "male");
+    speakAndWaitGendered(speechText, speechLang, gender, duration + 2000).catch(() => {});
+  }, [active, videoReady, speechText, speechLang, duration, isProfessor, frame.voiceGender]);
 
   // Auto-advance after duration (wait for video to be ready)
   useEffect(() => {
@@ -99,8 +104,6 @@ function Frame({
     timerRef.current = setTimeout(onDone, duration);
     return () => clearTimeout(timerRef.current);
   }, [active, videoReady, duration, onDone]);
-
-  const isProfessor = frame.speaker === "professor";
 
   return (
     <div className="absolute inset-0">
