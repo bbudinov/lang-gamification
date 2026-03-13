@@ -166,16 +166,16 @@ const STORY_PHRASES = [
   { id: "story5", text: "Хахаха, шегичка! Естествено, че знанието е важно, но ще има и други награди — точки, звезди и изненади по пътя!", lang: "bg" },
 ];
 
-// Motivational phrases (BG only)
+// Motivational phrases (EN — Professor Globe voice)
 const MOTIVATIONAL = [
-  { id: "motiv1", text: "страхотен избор", lang: "bg" },
-  { id: "motiv2", text: "да играем", lang: "bg" },
-  { id: "motiv3", text: "уууууу", lang: "bg" },
-  { id: "motiv4", text: "това ще е велико", lang: "bg" },
-  { id: "motiv5", text: "фантастично", lang: "bg" },
-  { id: "motiv6", text: "магнифик", lang: "bg" },
-  { id: "motiv7", text: "мисли за всичко", lang: "bg" },
-  { id: "motiv8", text: "владей своя ЛангУърлд", lang: "bg" },
+  { id: "motiv1", text: "Great choice!", lang: "en" },
+  { id: "motiv2", text: "Let's play!", lang: "en" },
+  { id: "motiv3", text: "Woooow!", lang: "en" },
+  { id: "motiv4", text: "This is going to be epic!", lang: "en" },
+  { id: "motiv5", text: "Fantastic!", lang: "en" },
+  { id: "motiv6", text: "Magnificent!", lang: "en" },
+  { id: "motiv7", text: "Think about everything!", lang: "en" },
+  { id: "motiv8", text: "Master your LangWorld!", lang: "en" },
 ];
 
 // Professor Globe rules (BG)
