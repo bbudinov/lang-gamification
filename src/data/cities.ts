@@ -26,7 +26,7 @@ export const CITIES: City[] = [
     emoji: "🏫",
     building: { en: "School", bg: "Училище", es: "Escuela" },
     topicId: "school",
-    requiredXP: 0, // was 1500
+    requiredXP: 1500,
     pos: { x: 25, y: 75 },
     terrain: "grass",
     connectsTo: ["farmstead"],
@@ -49,7 +49,7 @@ export const CITIES: City[] = [
     emoji: "🎨",
     building: { en: "Art Studio", bg: "Арт Студио", es: "Estudio de Arte" },
     topicId: "colors",
-    requiredXP: 0, // was 500
+    requiredXP: 500,
     pos: { x: 30, y: 55 },
     terrain: "grass",
     connectsTo: ["numberville"],
@@ -60,7 +60,7 @@ export const CITIES: City[] = [
     emoji: "🔢",
     building: { en: "Bank", bg: "Банка", es: "Banco" },
     topicId: "numbers",
-    requiredXP: 0, // was 800
+    requiredXP: 800,
     pos: { x: 70, y: 48 },
     terrain: "grass",
     connectsTo: ["homestead"],
@@ -71,7 +71,7 @@ export const CITIES: City[] = [
     emoji: "🏠",
     building: { en: "Houses", bg: "Къщи", es: "Casas" },
     topicId: "family",
-    requiredXP: 0, // was 1200
+    requiredXP: 1200,
     pos: { x: 40, y: 38 },
     terrain: "grass",
     connectsTo: ["seaside"],
@@ -94,7 +94,7 @@ export const CITIES: City[] = [
     emoji: "🏥",
     building: { en: "Hospital", bg: "Болница", es: "Hospital" },
     topicId: "body",
-    requiredXP: 0, // was 2000
+    requiredXP: 2000,
     pos: { x: 25, y: 18 },
     terrain: "urban",
     connectsTo: ["stormridge"],
@@ -105,7 +105,7 @@ export const CITIES: City[] = [
     emoji: "⛈️",
     building: { en: "Weather Station", bg: "Метеостанция", es: "Estación Meteorológica" },
     topicId: "weather",
-    requiredXP: 0, // was 2500
+    requiredXP: 2500,
     pos: { x: 60, y: 10 },
     terrain: "mountain",
     connectsTo: [],
