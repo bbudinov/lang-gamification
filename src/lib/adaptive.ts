@@ -20,19 +20,47 @@ function priorityScore(mastery: WordMastery | undefined): number {
 }
 
 /**
+ * Compute the unlocked difficulty tier for a topic based on word mastery.
+ * - Start at 1
+ * - Unlock 2 when 60%+ of difficulty-1 words have streak >= 3
+ * - Unlock 3 when 60%+ of difficulty-1+2 words have streak >= 3
+ */
+export function getUnlockedDifficulty(
+  allWords: WordEntry[],
+  mastery: Record<string, WordMastery>,
+): 1 | 2 | 3 {
+  const d1Words = allWords.filter((w) => (w.difficulty || 1) === 1);
+  const d1Mastered = d1Words.filter((w) => mastery[w.id]?.streak >= 3).length;
+  if (d1Words.length === 0 || d1Mastered / d1Words.length < 0.6) return 1;
+
+  const d12Words = allWords.filter((w) => (w.difficulty || 1) <= 2);
+  const d12Mastered = d12Words.filter((w) => mastery[w.id]?.streak >= 3).length;
+  if (d12Words.length === 0 || d12Mastered / d12Words.length < 0.6) return 2;
+
+  return 3;
+}
+
+/**
  * Select `count` words from `allWords`, weighted by mastery data.
  * At least `minNew` never-seen words are guaranteed (if available).
+ * If `maxDifficulty` is set, only words up to that difficulty are considered.
  */
 export function selectAdaptiveWords(
   allWords: WordEntry[],
   mastery: Record<string, WordMastery>,
   count: number,
-  minNew: number = 2
+  minNew: number = 2,
+  maxDifficulty?: 1 | 2 | 3,
 ): WordEntry[] {
-  if (allWords.length <= count) return shuffle(allWords);
+  // Filter by difficulty if specified
+  const pool = maxDifficulty
+    ? allWords.filter((w) => (w.difficulty || 1) <= maxDifficulty)
+    : allWords;
 
-  const unseen = allWords.filter((w) => !mastery[w.id]);
-  const seen = allWords.filter((w) => mastery[w.id]);
+  if (pool.length <= count) return shuffle(pool);
+
+  const unseen = pool.filter((w) => !mastery[w.id]);
+  const seen = pool.filter((w) => mastery[w.id]);
 
   const selected: WordEntry[] = [];
 

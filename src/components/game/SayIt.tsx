@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
-import { selectAdaptiveWords } from "@/lib/adaptive";
+import { selectAdaptiveWords, getUnlockedDifficulty } from "@/lib/adaptive";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
@@ -47,7 +47,8 @@ export function SayIt({ topic }: SayItProps) {
   // Initialize words
   useEffect(() => {
     if (topic.words.length === 0) return;
-    const selected = selectAdaptiveWords(topic.words, wordMastery, Math.min(WORDS_PER_ROUND, topic.words.length));
+    const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, Math.min(WORDS_PER_ROUND, topic.words.length), 2, maxDiff);
     setWords(selected);
   }, [topic.words, topic.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -194,7 +195,8 @@ export function SayIt({ topic }: SayItProps) {
               setAttempts(0);
               setFeedback(null);
               setHintVisible(false);
-              const selected = selectAdaptiveWords(topic.words, wordMastery, Math.min(WORDS_PER_ROUND, topic.words.length));
+              const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, Math.min(WORDS_PER_ROUND, topic.words.length), 2, maxDiff);
               setWords(selected);
               setRoundKey(0);
             }}

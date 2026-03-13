@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases, phrases as allPhrases } from "@/data/phrases";
+import { getUnlockedDifficulty } from "@/lib/adaptive";
 import { MatchPopup } from "@/components/game/MatchPopup";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
@@ -70,6 +71,7 @@ export function FillScene({ topic }: FillSceneProps) {
     addPoints,
     addGameResult,
     updateWordMastery,
+    wordMastery,
   } = useProgressStore();
 
   const { chestReward, checkForChest, collectReward } = useTreasureChest();
@@ -85,12 +87,13 @@ export function FillScene({ topic }: FillSceneProps) {
   const [lives, setLives] = useState(MAX_LIVES);
   const [gameOver, setGameOver] = useState(false);
 
-  // Initialize rounds
+  // Initialize rounds — filter phrases by unlocked difficulty
   useEffect(() => {
-    const phrases = getTopicPhrases(topic.id);
+    const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const phrases = getTopicPhrases(topic.id, maxDiff);
     if (phrases.length === 0) return;
     setRounds(buildRounds(phrases, targetLanguage));
-  }, [topic.id, targetLanguage]);
+  }, [topic.id, topic.words, targetLanguage, wordMastery]);
 
   const round = rounds[currentRound];
 
@@ -232,7 +235,8 @@ export function FillScene({ topic }: FillSceneProps) {
               setScore(0);
               setMistakes(0);
               setSelected(null);
-              setRounds(buildRounds(getTopicPhrases(topic.id), targetLanguage));
+              const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+              setRounds(buildRounds(getTopicPhrases(topic.id, maxDiff), targetLanguage));
               setRoundKey(0);
             }}
             className="flex-1 bg-white/10 text-white py-3 rounded-xl font-medium active:bg-white/20 transition-colors"
@@ -260,7 +264,8 @@ export function FillScene({ topic }: FillSceneProps) {
     setMistakes(0);
     setSelected(null);
     setLives(MAX_LIVES);
-    setRounds(buildRounds(getTopicPhrases(topic.id), targetLanguage));
+    const maxDiff2 = getUnlockedDifficulty(topic.words, wordMastery);
+    setRounds(buildRounds(getTopicPhrases(topic.id, maxDiff2), targetLanguage));
     setRoundKey(0);
   };
 

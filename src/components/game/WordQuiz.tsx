@@ -14,7 +14,7 @@ import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
-import { selectAdaptiveWords } from "@/lib/adaptive";
+import { selectAdaptiveWords, getUnlockedDifficulty } from "@/lib/adaptive";
 import type { Topic, WordEntry } from "@/types";
 
 const ROUNDS = 8;
@@ -40,7 +40,8 @@ interface Round {
 }
 
 function generateRounds(topic: Topic, targetLang: string, nativeLang: string, mastery: Record<string, import("@/types").WordMastery>): Round[] {
-  const words = selectAdaptiveWords(topic.words, mastery, ROUNDS);
+  const maxDiff = getUnlockedDifficulty(topic.words, mastery);
+  const words = selectAdaptiveWords(topic.words, mastery, ROUNDS, 2, maxDiff);
   return words.map((word) => {
     const correctAnswer = word[nativeLang as keyof WordEntry] as string;
     const wrongWords = shuffle(

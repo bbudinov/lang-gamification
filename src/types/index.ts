@@ -8,6 +8,8 @@ export interface WordEntry {
   bg: string;
   es: string;
   emoji: string;
+  /** Difficulty tier: 1=basic, 2=intermediate, 3=advanced */
+  difficulty?: 1 | 2 | 3;
 }
 
 export interface Topic {

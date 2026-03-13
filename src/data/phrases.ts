@@ -674,7 +674,9 @@ export const phrases: PhraseEntry[] = [
   },
 ];
 
-/** Get phrases for a specific topic */
-export function getTopicPhrases(topicId: string): PhraseEntry[] {
-  return phrases.filter((p) => p.topicId === topicId);
+/** Get phrases for a specific topic, optionally filtered by max difficulty */
+export function getTopicPhrases(topicId: string, maxDifficulty?: 1 | 2 | 3): PhraseEntry[] {
+  return phrases.filter((p) =>
+    p.topicId === topicId && (!maxDifficulty || p.difficulty <= maxDifficulty)
+  );
 }

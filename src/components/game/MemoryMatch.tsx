@@ -16,7 +16,7 @@ import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
 import { GAME_CONFIG } from "@/lib/constants";
-import { selectAdaptiveWords } from "@/lib/adaptive";
+import { selectAdaptiveWords, getUnlockedDifficulty } from "@/lib/adaptive";
 import type { Topic, MemoryCard as MemoryCardType, WordMastery } from "@/types";
 
 function shuffle<T>(arr: T[]): T[] {
@@ -29,7 +29,8 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function generateCards(topic: Topic, nativeLang: string, targetLang: string, mastery: Record<string, WordMastery>, pairsCount: number): MemoryCardType[] {
-  const selected = selectAdaptiveWords(topic.words, mastery, pairsCount);
+  const maxDiff = getUnlockedDifficulty(topic.words, mastery);
+  const selected = selectAdaptiveWords(topic.words, mastery, pairsCount, 2, maxDiff);
 
   const cards: MemoryCardType[] = [];
   for (const word of selected) {

@@ -13,7 +13,7 @@ import { useTreasureChest } from "@/hooks/useTreasureChest";
 import { npcs } from "@/data/npcs";
 import { playWordAudio, playPopSound, playDingSound, playBuzzSound } from "@/lib/speech";
 import { requestWakeLock, releaseWakeLock } from "@/lib/wakeLock";
-import { selectAdaptiveWords } from "@/lib/adaptive";
+import { selectAdaptiveWords, getUnlockedDifficulty } from "@/lib/adaptive";
 import type { Topic, WordEntry } from "@/types";
 
 const ROUNDS = 6;
@@ -88,7 +88,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
   );
 
   useEffect(() => {
-    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS);
+    const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS, 2, maxDiff);
     setWords(selected);
     setCurrentWord(0);
     setScore(0);
@@ -196,7 +197,8 @@ export function WordScramble({ topic }: WordScrambleProps) {
   };
 
   const handleReplay = () => {
-    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS);
+    const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const selected = selectAdaptiveWords(topic.words, wordMastery, ROUNDS, 2, maxDiff);
     setWords(selected);
     setCurrentWord(0);
     setScore(0);

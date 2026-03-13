@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { getTopicPhrases } from "@/data/phrases";
+import { getUnlockedDifficulty } from "@/lib/adaptive";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { StarDisplay } from "@/components/game/StarDisplay";
 import { playPopSound, playDingSound, playPhraseAudioAndWait } from "@/lib/speech";
@@ -36,7 +37,7 @@ interface ListenRepeatProps {
 
 export function ListenRepeat({ topic }: ListenRepeatProps) {
   const router = useRouter();
-  const { targetLanguage, addPoints, addGameResult } = useProgressStore();
+  const { targetLanguage, addPoints, addGameResult, wordMastery } = useProgressStore();
 
   const { isListening, transcript, isSupported, start, stop } = useSpeechRecognition(targetLanguage);
 
@@ -51,12 +52,13 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
   const [matchScore, setMatchScore] = useState(0);
   const [globeSpeaking, setGlobeSpeaking] = useState(false);
 
-  // Initialize phrases
+  // Initialize phrases — filtered by unlocked difficulty
   useEffect(() => {
-    const topicPhrases = getTopicPhrases(topic.id);
+    const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+    const topicPhrases = getTopicPhrases(topic.id, maxDiff);
     if (topicPhrases.length === 0) return;
     setPhrases(shuffle(topicPhrases));
-  }, [topic.id]);
+  }, [topic.id, topic.words, wordMastery]);
 
   const phrase = phrases[currentIndex];
 
@@ -199,7 +201,8 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
               setFeedback(null);
               setMatchScore(0);
               setShowSentence(false);
-              setPhrases(shuffle(getTopicPhrases(topic.id)));
+              const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
+              setPhrases(shuffle(getTopicPhrases(topic.id, maxDiff)));
               setRoundKey(0);
             }}
             className="flex-1 bg-white/10 text-white py-3 rounded-xl font-medium active:bg-white/20 transition-colors"
