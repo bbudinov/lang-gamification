@@ -24,6 +24,7 @@ export interface ConversationStep {
 export interface RoomNPC {
   name: string;
   emoji: string;
+  gender: "male" | "female";
   role: Record<Language, string>;
 }
 
@@ -59,6 +60,7 @@ export const ROOMS: Room[] = [
     npc: {
       name: "Maria",
       emoji: "👩‍🍳",
+      gender: "female",
       role: { en: "Shopkeeper", bg: "Продавачка", es: "Tendera" },
     },
     requiredXP: 0,
@@ -152,6 +154,7 @@ export const ROOMS: Room[] = [
     npc: {
       name: "Tom",
       emoji: "🧑‍🌾",
+      gender: "male",
       role: { en: "Zookeeper", bg: "Зоопазач", es: "Cuidador" },
     },
     requiredXP: 200,

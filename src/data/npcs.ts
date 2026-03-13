@@ -5,6 +5,8 @@ export interface NPCData {
   topicId: TopicId;
   name: string;
   emoji: string;
+  /** Voice gender for TTS */
+  gender: "male" | "female";
   role: Record<Language, string>;
   personality: string; // used in AI system prompt
   goal: Record<Language, string>; // what the NPC wants to accomplish in the conversation
@@ -19,6 +21,7 @@ export const npcs: NPCData[] = [
     topicId: "animals",
     name: "Zara",
     emoji: "🐕",
+    gender: "female",
     role: { en: "Zookeeper", bg: "Пазачка на зоопарка", es: "Cuidadora del zoo" },
     personality: "Cheerful zookeeper who loves all animals. Speaks simply and uses animal sounds. Very patient with kids.",
     goal: {
@@ -38,6 +41,7 @@ export const npcs: NPCData[] = [
     topicId: "colors",
     name: "Pablo",
     emoji: "🎨",
+    gender: "male",
     role: { en: "Artist", bg: "Художник", es: "Artista" },
     personality: "Creative and enthusiastic artist. Loves describing things by their colors. Very encouraging about any creative attempt.",
     goal: {
@@ -57,6 +61,7 @@ export const npcs: NPCData[] = [
     topicId: "food",
     name: "Marco",
     emoji: "👨‍🍳",
+    gender: "male",
     role: { en: "Chef", bg: "Готвач", es: "Chef" },
     personality: "Funny Italian-style chef who loves cooking. Always hungry. Makes jokes about food. Very warm and welcoming.",
     goal: {
@@ -76,6 +81,7 @@ export const npcs: NPCData[] = [
     topicId: "numbers",
     name: "Digit",
     emoji: "🤖",
+    gender: "male",
     role: { en: "Robot Counter", bg: "Робот Брояч", es: "Robot Contador" },
     personality: "Friendly robot who loves counting everything. Speaks in a fun robotic way. Gets excited when kids count correctly.",
     goal: {
@@ -95,6 +101,7 @@ export const npcs: NPCData[] = [
     topicId: "family",
     name: "Grandma Rose",
     emoji: "👵",
+    gender: "female",
     role: { en: "Grandmother", bg: "Баба", es: "Abuela" },
     personality: "Warm, loving grandmother. Asks about family. Shares little stories. Very gentle and patient.",
     goal: {
@@ -114,6 +121,7 @@ export const npcs: NPCData[] = [
     topicId: "body",
     name: "Dr. Bones",
     emoji: "🩺",
+    gender: "male",
     role: { en: "Doctor", bg: "Доктор", es: "Doctor" },
     personality: "Funny, friendly doctor. Makes silly jokes about body parts. Not scary at all. Very reassuring.",
     goal: {
@@ -133,6 +141,7 @@ export const npcs: NPCData[] = [
     topicId: "weather",
     name: "Sunny",
     emoji: "🌤️",
+    gender: "female",
     role: { en: "Weather Reporter", bg: "Метеоролог", es: "Reportera del clima" },
     personality: "Excited TV weather reporter. Always dramatic about the weather. Uses gestures and sound effects.",
     goal: {
@@ -152,6 +161,7 @@ export const npcs: NPCData[] = [
     topicId: "travel",
     name: "Captain Jack",
     emoji: "🧭",
+    gender: "male",
     role: { en: "Explorer", bg: "Изследовател", es: "Explorador" },
     personality: "Adventurous explorer with a compass. Tells stories of travels. Excited about new places. Brave but kind.",
     goal: {
@@ -171,6 +181,7 @@ export const npcs: NPCData[] = [
     topicId: "school",
     name: "Miss Luna",
     emoji: "📚",
+    gender: "female",
     role: { en: "Librarian", bg: "Библиотекарка", es: "Bibliotecaria" },
     personality: "Quiet, wise librarian. Loves books and learning. Whispers sometimes. Always has interesting facts.",
     goal: {
@@ -190,6 +201,7 @@ export const npcs: NPCData[] = [
     topicId: "work",
     name: "Mayor Max",
     emoji: "🏛️",
+    gender: "male",
     role: { en: "Mayor", bg: "Кмет", es: "Alcalde" },
     personality: "Friendly town mayor. Knows everyone's jobs. Very proud of the town. Loves meeting new people.",
     goal: {
@@ -209,6 +221,7 @@ export const npcs: NPCData[] = [
     topicId: "sports",
     name: "Coach Tiger",
     emoji: "🏅",
+    gender: "male",
     role: { en: "Sports Coach", bg: "Треньор", es: "Entrenador" },
     personality: "Energetic sports coach. Always motivating. Loves all sports equally. High-fives a lot. Never too serious.",
     goal: {
@@ -228,6 +241,7 @@ export const npcs: NPCData[] = [
     topicId: "music",
     name: "Melody",
     emoji: "🎵",
+    gender: "female",
     role: { en: "Musician", bg: "Музикантка", es: "Músico" },
     personality: "Joyful musician who hums and sings while talking. Plays many instruments. Dances when happy.",
     goal: {

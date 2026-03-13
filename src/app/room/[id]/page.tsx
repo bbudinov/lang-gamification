@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { getRoomById } from "@/data/rooms";
 import type { ConversationStep } from "@/data/rooms";
-import { speak, stopAudio } from "@/lib/speech";
+import { speakAndWaitGendered, stopAudio } from "@/lib/speech";
 
 export default function RoomPage() {
   const params = useParams();
@@ -61,8 +61,9 @@ export default function RoomPage() {
     setSpeechResult("");
     setShowTapFallback(false);
 
-    // NPC speaks with voice
-    speak(currentStep.npcSays[lang], lang);
+    // NPC speaks with gendered voice
+    const gender = room.npc.gender || "male";
+    speakAndWaitGendered(currentStep.npcSays[lang], lang, gender).catch(() => {});
 
     const cleanup = typeText(currentStep.npcSays[lang], () => {
       setPhase("choosing");
@@ -101,10 +102,10 @@ export default function RoomPage() {
     if (isCorrect) {
       setScore((s) => s + 1);
       setNpcText(currentStep.correctResponse[lang]);
-      speak(currentStep.correctResponse[lang], lang);
+      speakAndWaitGendered(currentStep.correctResponse[lang], lang, room.npc.gender || "male").catch(() => {});
     } else {
       setNpcText(currentStep.wrongResponse[lang]);
-      speak(currentStep.wrongResponse[lang], lang);
+      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, room.npc.gender || "male").catch(() => {});
     }
     setPhase("response");
   }, [transcript, room, step, lang, phase]);
@@ -161,10 +162,10 @@ export default function RoomPage() {
     if (correct) {
       setScore((s) => s + 1);
       setNpcText(currentStep.correctResponse[lang]);
-      speak(currentStep.correctResponse[lang], lang);
+      speakAndWaitGendered(currentStep.correctResponse[lang], lang, room.npc.gender || "male").catch(() => {});
     } else {
       setNpcText(currentStep.wrongResponse[lang]);
-      speak(currentStep.wrongResponse[lang], lang);
+      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, room.npc.gender || "male").catch(() => {});
     }
     setPhase("response");
   };

@@ -7,7 +7,7 @@ import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { askAI } from "@/lib/ai";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
-import { playPopSound, playDingSound, speak, speakAndWait, stopAudio } from "@/lib/speech";
+import { playPopSound, playDingSound, speak, speakAndWait, speakAndWaitGendered, stopAudio } from "@/lib/speech";
 import type { Topic, Language } from "@/types";
 import { getNPC, type NPCData } from "@/data/npcs";
 
@@ -95,16 +95,17 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const aiHistoryRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const speakingRef = useRef(false);
 
-  // Speak NPC message with mouth-sync state
+  // Speak NPC message with mouth-sync state (gender-matched voice)
   const speakNPC = useCallback(async (text: string) => {
     speakingRef.current = true;
     setNpcSpeaking(true);
-    await speakAndWait(text, targetLanguage);
+    const gender = npc?.gender || "male";
+    await speakAndWaitGendered(text, targetLanguage, gender);
     if (speakingRef.current) {
       setNpcSpeaking(false);
       speakingRef.current = false;
     }
-  }, [targetLanguage]);
+  }, [targetLanguage, npc?.gender]);
 
   // Cleanup on unmount
   useEffect(() => {
