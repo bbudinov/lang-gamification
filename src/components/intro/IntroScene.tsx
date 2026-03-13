@@ -86,21 +86,24 @@ function Frame({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoReady, setVideoReady] = useState(!frame.video); // images are ready instantly
 
-  // Speak text via TTS immediately when frame becomes active (don't wait for video)
+  // Speak text via TTS when frame becomes active AND video is ready
   useEffect(() => {
-    if (!active) { spokRef.current = false; return; }
+    if (!active || !videoReady) {
+      if (!active) spokRef.current = false;
+      return;
+    }
     if (spokRef.current) return;
     spokRef.current = true;
     const gender = isProfessor ? "male" : (frame.voiceGender || "male");
     speakAndWaitGendered(speechText, speechLang, gender, duration + 2000).catch(() => {});
-  }, [active, speechText, speechLang, duration, isProfessor, frame.voiceGender]);
+  }, [active, videoReady, speechText, speechLang, duration, isProfessor, frame.voiceGender]);
 
-  // Auto-advance after duration (don't wait for video — it catches up visually)
+  // Auto-advance after duration (wait for video to be ready)
   useEffect(() => {
-    if (!active) return;
+    if (!active || !videoReady) return;
     timerRef.current = setTimeout(onDone, duration);
     return () => clearTimeout(timerRef.current);
-  }, [active, duration, onDone]);
+  }, [active, videoReady, duration, onDone]);
 
   return (
     <div className="absolute inset-0">
