@@ -34,6 +34,11 @@ const WORDS = [
   { id: "a8", en: "elephant", bg: "слон", es: "elefante" },
   { id: "a9", en: "lion", bg: "лъв", es: "león" },
   { id: "a10", en: "monkey", bg: "маймуна", es: "mono" },
+  { id: "a11", en: "turtle", bg: "костенурка", es: "tortuga" },
+  { id: "a12", en: "penguin", bg: "пингвин", es: "pingüino" },
+  { id: "a13", en: "dolphin", bg: "делфин", es: "delfín" },
+  { id: "a14", en: "giraffe", bg: "жираф", es: "jirafa" },
+  { id: "a15", en: "crocodile", bg: "крокодил", es: "cocodrilo" },
   // Colors
   { id: "c1", en: "red", bg: "червен", es: "rojo" },
   { id: "c2", en: "blue", bg: "син", es: "azul" },
@@ -43,6 +48,11 @@ const WORDS = [
   { id: "c6", en: "black", bg: "черен", es: "negro" },
   { id: "c7", en: "orange", bg: "оранжев", es: "naranja" },
   { id: "c8", en: "purple", bg: "лилав", es: "morado" },
+  { id: "c9", en: "pink", bg: "розов", es: "rosa" },
+  { id: "c10", en: "brown", bg: "кафяв", es: "marrón" },
+  { id: "c11", en: "gray", bg: "сив", es: "gris" },
+  { id: "c12", en: "gold", bg: "златен", es: "dorado" },
+  { id: "c13", en: "silver", bg: "сребърен", es: "plateado" },
   // Food
   { id: "f1", en: "bread", bg: "хляб", es: "pan" },
   { id: "f2", en: "water", bg: "вода", es: "agua" },
@@ -54,6 +64,11 @@ const WORDS = [
   { id: "f8", en: "meat", bg: "месо", es: "carne" },
   { id: "f9", en: "banana", bg: "банан", es: "plátano" },
   { id: "f10", en: "cake", bg: "торта", es: "pastel" },
+  { id: "f11", en: "soup", bg: "супа", es: "sopa" },
+  { id: "f12", en: "ice cream", bg: "сладолед", es: "helado" },
+  { id: "f13", en: "salad", bg: "салата", es: "ensalada" },
+  { id: "f14", en: "sandwich", bg: "сандвич", es: "sándwich" },
+  { id: "f15", en: "juice", bg: "сок", es: "jugo" },
   // Numbers
   { id: "n1", en: "one", bg: "едно", es: "uno" },
   { id: "n2", en: "two", bg: "две", es: "dos" },
@@ -65,6 +80,9 @@ const WORDS = [
   { id: "n8", en: "eight", bg: "осем", es: "ocho" },
   { id: "n9", en: "nine", bg: "девет", es: "nueve" },
   { id: "n10", en: "ten", bg: "десет", es: "diez" },
+  { id: "n11", en: "twenty", bg: "двадесет", es: "veinte" },
+  { id: "n12", en: "hundred", bg: "сто", es: "cien" },
+  { id: "n13", en: "zero", bg: "нула", es: "cero" },
   // Family
   { id: "fm1", en: "mother", bg: "майка", es: "madre" },
   { id: "fm2", en: "father", bg: "баща", es: "padre" },
@@ -76,6 +94,10 @@ const WORDS = [
   { id: "fm8", en: "son", bg: "син", es: "hijo" },
   { id: "fm9", en: "daughter", bg: "дъщеря", es: "hija" },
   { id: "fm10", en: "friend", bg: "приятел", es: "amigo" },
+  { id: "fm11", en: "uncle", bg: "чичо", es: "tío" },
+  { id: "fm12", en: "aunt", bg: "леля", es: "tía" },
+  { id: "fm13", en: "cousin", bg: "братовчед", es: "primo" },
+  { id: "fm14", en: "family", bg: "семейство", es: "familia" },
   // Body
   { id: "b1", en: "head", bg: "глава", es: "cabeza" },
   { id: "b2", en: "hand", bg: "ръка", es: "mano" },
@@ -87,6 +109,10 @@ const WORDS = [
   { id: "b8", en: "heart", bg: "сърце", es: "corazón" },
   { id: "b9", en: "finger", bg: "пръст", es: "dedo" },
   { id: "b10", en: "leg", bg: "крак", es: "pierna" },
+  { id: "b11", en: "arm", bg: "ръка", es: "brazo" },
+  { id: "b12", en: "shoulder", bg: "рамо", es: "hombro" },
+  { id: "b13", en: "stomach", bg: "стомах", es: "estómago" },
+  { id: "b14", en: "knee", bg: "коляно", es: "rodilla" },
   // Weather
   { id: "w1", en: "sun", bg: "слънце", es: "sol" },
   { id: "w2", en: "rain", bg: "дъжд", es: "lluvia" },
@@ -98,6 +124,10 @@ const WORDS = [
   { id: "w8", en: "cold", bg: "студено", es: "frío" },
   { id: "w9", en: "rainbow", bg: "дъга", es: "arcoíris" },
   { id: "w10", en: "moon", bg: "луна", es: "luna" },
+  { id: "w11", en: "fog", bg: "мъгла", es: "niebla" },
+  { id: "w12", en: "thunder", bg: "гръм", es: "trueno" },
+  { id: "w13", en: "temperature", bg: "температура", es: "temperatura" },
+  { id: "w14", en: "ice", bg: "лед", es: "hielo" },
   // Travel
   { id: "tr1", en: "airport", bg: "летище", es: "aeropuerto" },
   { id: "tr2", en: "suitcase", bg: "куфар", es: "maleta" },
@@ -109,6 +139,10 @@ const WORDS = [
   { id: "tr8", en: "ship", bg: "кораб", es: "barco" },
   { id: "tr9", en: "map", bg: "карта", es: "mapa" },
   { id: "tr10", en: "beach", bg: "плаж", es: "playa" },
+  { id: "tr11", en: "bridge", bg: "мост", es: "puente" },
+  { id: "tr12", en: "mountain", bg: "планина", es: "montaña" },
+  { id: "tr13", en: "island", bg: "остров", es: "isla" },
+  { id: "tr14", en: "luggage", bg: "багаж", es: "equipaje" },
   // School
   { id: "sc1", en: "pencil", bg: "молив", es: "lápiz" },
   { id: "sc2", en: "book", bg: "книга", es: "libro" },
@@ -120,6 +154,10 @@ const WORDS = [
   { id: "sc8", en: "ruler", bg: "линия", es: "regla" },
   { id: "sc9", en: "homework", bg: "домашно", es: "tarea" },
   { id: "sc10", en: "recess", bg: "междучасие", es: "recreo" },
+  { id: "sc11", en: "notebook", bg: "тетрадка", es: "cuaderno" },
+  { id: "sc12", en: "exam", bg: "изпит", es: "examen" },
+  { id: "sc13", en: "library", bg: "библиотека", es: "biblioteca" },
+  { id: "sc14", en: "principal", bg: "директор", es: "director" },
   // Work
   { id: "wk1", en: "doctor", bg: "лекар", es: "doctor" },
   { id: "wk2", en: "firefighter", bg: "пожарникар", es: "bombero" },
@@ -131,6 +169,10 @@ const WORDS = [
   { id: "wk8", en: "singer", bg: "певец", es: "cantante" },
   { id: "wk9", en: "painter", bg: "художник", es: "pintor" },
   { id: "wk10", en: "astronaut", bg: "космонавт", es: "astronauta" },
+  { id: "wk11", en: "dentist", bg: "зъболекар", es: "dentista" },
+  { id: "wk12", en: "scientist", bg: "учен", es: "científico" },
+  { id: "wk13", en: "engineer", bg: "инженер", es: "ingeniero" },
+  { id: "wk14", en: "journalist", bg: "журналист", es: "periodista" },
   // Sports
   { id: "spt1", en: "ball", bg: "топка", es: "balón" },
   { id: "spt2", en: "swim", bg: "плувам", es: "nadar" },
@@ -142,6 +184,10 @@ const WORDS = [
   { id: "spt8", en: "win", bg: "печеля", es: "ganar" },
   { id: "spt9", en: "race", bg: "надбягване", es: "carrera" },
   { id: "spt10", en: "coach", bg: "треньор", es: "entrenador" },
+  { id: "spt11", en: "stadium", bg: "стадион", es: "estadio" },
+  { id: "spt12", en: "champion", bg: "шампион", es: "campeón" },
+  { id: "spt13", en: "score", bg: "резултат", es: "puntuación" },
+  { id: "spt14", en: "exercise", bg: "упражнение", es: "ejercicio" },
   // Music
   { id: "mu1", en: "guitar", bg: "китара", es: "guitarra" },
   { id: "mu2", en: "sing", bg: "пея", es: "cantar" },
@@ -153,6 +199,10 @@ const WORDS = [
   { id: "mu8", en: "flute", bg: "флейта", es: "flauta" },
   { id: "mu9", en: "concert", bg: "концерт", es: "concierto" },
   { id: "mu10", en: "rhythm", bg: "ритъм", es: "ritmo" },
+  { id: "mu11", en: "melody", bg: "мелодия", es: "melodía" },
+  { id: "mu12", en: "orchestra", bg: "оркестър", es: "orquesta" },
+  { id: "mu13", en: "microphone", bg: "микрофон", es: "micrófono" },
+  { id: "mu14", en: "composer", bg: "композитор", es: "compositor" },
 ];
 
 // Story intro phrases (BG only)
