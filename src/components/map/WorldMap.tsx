@@ -279,6 +279,74 @@ function CityRoads({ unlockedIds }: { unlockedIds: Set<string> }) {
 
 // ─── Procedural city blocks — varied building types ──────────────
 
+// Mobile facade textures — canvas-drawn windows/doors, cached globally
+const _facadeCache = new Map<string, THREE.CanvasTexture>();
+function getFacadeTex(type: "house" | "apartment" | "office" | "tower", wallColor: string, h: number): THREE.CanvasTexture {
+  const floors = Math.max(1, Math.min(6, Math.round(h / 2.5)));
+  const key = `${type}-${wallColor}-${floors}`;
+  const cached = _facadeCache.get(key);
+  if (cached) return cached;
+
+  const S = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = S; canvas.height = S;
+  const ctx = canvas.getContext("2d")!;
+
+  // Wall background
+  ctx.fillStyle = wallColor;
+  ctx.fillRect(0, 0, S, S);
+
+  // Subtle ground floor distinction
+  ctx.fillStyle = "rgba(0,0,0,0.07)";
+  ctx.fillRect(0, S * 0.82, S, S * 0.18);
+
+  const WIN = "#78c8e0";
+  const FRAME = "#d8d4cc";
+  const DOOR = "#5a4030";
+
+  if (type === "house") {
+    // Two windows with crosses
+    const ww = 22, wh = 20, wy = S * 0.3;
+    for (const wx of [18, S - 18 - ww]) {
+      ctx.fillStyle = WIN; ctx.fillRect(wx, wy, ww, wh);
+      ctx.strokeStyle = FRAME; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, ww, wh);
+      ctx.beginPath();
+      ctx.moveTo(wx + ww / 2, wy); ctx.lineTo(wx + ww / 2, wy + wh);
+      ctx.moveTo(wx, wy + wh / 2); ctx.lineTo(wx + ww, wy + wh / 2);
+      ctx.stroke();
+    }
+    // Door
+    ctx.fillStyle = DOOR; ctx.fillRect(S / 2 - 11, S - 30, 22, 30);
+    ctx.fillStyle = "#3a2818"; ctx.fillRect(S / 2 - 13, S - 32, 26, 3);
+  } else {
+    // Window grid
+    const cols = type === "tower" ? 4 : 3;
+    const rows = floors;
+    const ww = S * 0.11, wh = S * 0.065;
+    const mx = S * 0.1;
+    const gapX = cols > 1 ? (S - 2 * mx - cols * ww) / (cols - 1) : 0;
+    const mt = S * 0.06;
+    const zone = S * 0.74;
+    const gapY = rows > 0 ? (zone - rows * wh) / (rows + 1) : 0;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = mx + c * (ww + gapX);
+        const y = mt + gapY * (r + 1) + r * wh;
+        ctx.fillStyle = WIN; ctx.fillRect(x, y, ww, wh);
+        ctx.strokeStyle = FRAME; ctx.lineWidth = 1; ctx.strokeRect(x, y, ww, wh);
+      }
+    }
+    // Door
+    ctx.fillStyle = DOOR; ctx.fillRect(S / 2 - 8, S - 22, 16, 22);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  _facadeCache.set(key, tex);
+  return tex;
+}
+
 type SignData = {
   face: "front" | "side";
   y: number; // height on building
@@ -444,16 +512,16 @@ function CityBlocks() {
     return buildings;
   }, []);
 
-  // Mobile: simplified — box + roof (2-3 meshes per building)
+  // Mobile: textured facades — canvas-drawn windows/doors (0 extra meshes)
   if (IS_MOBILE) {
     return (
       <group>
         {blocks.map((b, i) => (
           <group key={i} position={[b.x, 0, b.z]} rotation={[0, b.rot, 0]}>
-            {/* Building body */}
+            {/* Building body with facade texture */}
             <mesh position={[0, b.h / 2, 0]}>
               <boxGeometry args={[b.w, b.h, b.d]} />
-              <meshStandardMaterial color={b.wallColor} />
+              <meshStandardMaterial map={getFacadeTex(b.type, b.wallColor, b.h)} />
             </mesh>
             {/* Roof — pitched for houses, flat slab for others */}
             {b.type === "house" ? (
