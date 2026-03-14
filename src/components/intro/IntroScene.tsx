@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getIntroScene, type IntroFrame } from "@/data/introScenes";
-import { speakAndWait, speakAndWaitGendered } from "@/lib/speech";
+import { stopAudio } from "@/lib/speech";
 import { useProgressStore } from "@/stores/progressStore";
 import type { TopicId, Language } from "@/types";
 
@@ -64,17 +64,18 @@ function Frame({
   language,
   active,
   onDone,
+  topicId,
+  frameIndex,
 }: {
   frame: IntroFrame;
   language: Language;
   active: boolean;
   onDone: () => void;
+  topicId: string;
+  frameIndex: number;
 }) {
   const isProfessor = frame.speaker === "professor";
-  // Professor Globe always speaks EN; NPCs speak target language
-  const speechLang = isProfessor ? "en" as const : language;
   const text = frame.text[language] || frame.text.en;
-  const speechText = isProfessor ? frame.text.en : text;
   const duration = frame.duration || 4500;
   const anim = KEN_BURNS[frame.animation || "still"];
   const { displayed, done: typeDone, complete: skipType } = useTypewriter(
@@ -83,20 +84,33 @@ function Frame({
   );
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const spokRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoReady, setVideoReady] = useState(!frame.video); // images are ready instantly
+  const [videoReady, setVideoReady] = useState(!frame.video);
 
-  // Speak text via TTS when frame becomes active AND video is ready
+  // Play pre-generated audio when frame becomes active AND video is ready
   useEffect(() => {
     if (!active || !videoReady) {
-      if (!active) spokRef.current = false;
+      if (!active) {
+        spokRef.current = false;
+        // Stop audio when frame becomes inactive
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+      }
       return;
     }
     if (spokRef.current) return;
     spokRef.current = true;
-    const gender = isProfessor ? "male" : (frame.voiceGender || "male");
-    speakAndWaitGendered(speechText, speechLang, gender, duration + 2000).catch(() => {});
-  }, [active, videoReady, speechText, speechLang, duration, isProfessor, frame.voiceGender]);
+    const audio = new Audio(`/audio/intros/intro-${topicId}-${frameIndex}-${language}.mp3`);
+    audioRef.current = audio;
+    audio.play().catch(() => {});
+    return () => {
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, [active, videoReady, topicId, frameIndex, language]);
 
   // Auto-advance after duration (wait for video to be ready)
   useEffect(() => {
@@ -235,6 +249,7 @@ export function IntroScene({ topicId, onComplete }: IntroSceneProps) {
   const finish = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
+    stopAudio();
     markIntroSeen(topicId);
     setFadeOut(true);
     setTimeout(onComplete, 600);
@@ -262,6 +277,8 @@ export function IntroScene({ topicId, onComplete }: IntroSceneProps) {
           language={targetLanguage}
           active={currentFrame === idx}
           onDone={handleFrameDone}
+          topicId={topicId}
+          frameIndex={idx}
         />
       ))}
 

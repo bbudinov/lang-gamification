@@ -21,6 +21,9 @@ const LANG_MAP: Record<string, string> = {
   en: "en-US",
   bg: "bg-BG",
   es: "es-ES",
+  it: "it-IT",
+  de: "de-DE",
+  fr: "fr-FR",
 };
 
 export function useSpeechRecognition(language: string = "en"): UseSpeechRecognitionReturn {

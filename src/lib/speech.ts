@@ -213,12 +213,18 @@ const LANG_MAP: Record<Language, string> = {
   en: "en-US",
   bg: "bg-BG",
   es: "es-ES",
+  it: "it-IT",
+  de: "de-DE",
+  fr: "fr-FR",
 };
 
 const RATE_MAP: Record<Language, number> = {
   en: 0.9,
   bg: 0.75,
   es: 0.85,
+  it: 0.85,
+  de: 0.85,
+  fr: 0.85,
 };
 
 const VOICE_STORAGE_KEY = "langworld-voice-pref";
@@ -280,9 +286,35 @@ function getPreferredVoiceName(language: Language): string | null {
   return prefs[language] || null;
 }
 
-// Male voice name hints — Professor Globe should always sound male
-const MALE_HINTS = ["daniel", "aaron", "guy", "james", "thomas", "male", "puck", "ivan", "jorge", "andrés"];
-const FEMALE_HINTS = ["samantha", "karen", "fiona", "moira", "female", "woman", "girl", "alice", "victoria", "kate", "tessa"];
+// Male voice name hints — used for gender detection across all languages
+const MALE_HINTS = [
+  "male", "puck",
+  // EN
+  "daniel", "aaron", "guy", "james", "thomas", "alex", "fred", "ralph", "lee",
+  // BG
+  "ivan",
+  // ES
+  "jorge", "andrés", "diego", "pablo", "juan",
+  // IT
+  "luca", "marco", "giorgio",
+  // DE
+  "hans", "markus", "martin", "florian", "yannick",
+  // FR
+  "thomas", "henri", "louis",
+];
+const FEMALE_HINTS = [
+  "female", "woman", "girl",
+  // EN
+  "samantha", "karen", "fiona", "moira", "alice", "victoria", "kate", "tessa", "zoe", "siri",
+  // ES
+  "paulina", "mónica", "lucía", "elena",
+  // IT
+  "federica", "elsa", "paola", "alice",
+  // DE
+  "petra", "anna", "vicki",
+  // FR
+  "amélie", "marie", "léa", "céline", "audrey",
+];
 
 function isMaleVoice(v: SpeechSynthesisVoice): boolean {
   const n = v.name.toLowerCase();

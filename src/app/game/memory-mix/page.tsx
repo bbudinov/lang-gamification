@@ -33,7 +33,7 @@ export default function MemoryMixPage() {
     // Create a virtual topic with merged words
     return {
       id: "memory-mix" as Topic["id"],
-      name: { en: "Memory Mix", bg: "Мемори Микс", es: "Memory Mix" },
+      name: { en: "Memory Mix", bg: "Мемори Микс", es: "Memory Mix", it: "Memory Mix", de: "Memory Mix", fr: "Memory Mix" },
       emoji: "🌀",
       words: allWords,
       unlockCost: 0,

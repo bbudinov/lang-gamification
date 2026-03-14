@@ -1,4 +1,4 @@
-export type Language = "en" | "bg" | "es";
+export type Language = "en" | "bg" | "es" | "it" | "de" | "fr";
 
 export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "sports" | "music";
 
@@ -7,6 +7,9 @@ export interface WordEntry {
   en: string;
   bg: string;
   es: string;
+  it: string;
+  de: string;
+  fr: string;
   emoji: string;
   /** Difficulty tier: 1=basic, 2=intermediate, 3=advanced */
   difficulty?: 1 | 2 | 3;
