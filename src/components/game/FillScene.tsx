@@ -335,7 +335,6 @@ export function FillScene({ topic }: FillSceneProps) {
       {/* Scene context */}
       <div className="px-6 mb-4" key={roundKey}>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">{round.phrase.emoji}</span>
           <span className="text-blue-400 text-sm font-medium">{context}</span>
         </div>
 

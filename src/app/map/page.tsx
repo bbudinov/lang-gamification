@@ -62,37 +62,42 @@ export default function MapPage() {
       <WorldMap onSelectCity={handleSelectCity} />
 
       <HelpButton />
-      <DailyChallengeButton />
       <PetWidget />
 
-      {/* Rooms button */}
-      <button
-        onClick={() => router.push("/rooms")}
-        className="absolute bottom-28 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
+      {/* Left sidebar buttons */}
+      <div
+        className="absolute left-3 bottom-3 flex flex-col-reverse gap-2"
         style={{ zIndex: 9999 }}
       >
-        <span className="text-2xl">🚪</span>
-      </button>
+        {/* Daily Challenge (bottom) */}
+        <DailyChallengeButton />
 
-      {/* Mission button */}
-      <button
-        onClick={() => setShowMissions(true)}
-        className="absolute bottom-44 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
-        style={{ zIndex: 9999 }}
-      >
-        <span className="text-2xl">📋</span>
-      </button>
-
-      {/* Memory Mix button */}
-      {mixUnlocked && (
+        {/* Rooms */}
         <button
-          onClick={() => router.push("/game/memory-mix")}
-          className="absolute bottom-60 left-4 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
-          style={{ zIndex: 9999 }}
+          onClick={() => router.push("/rooms")}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
         >
-          <span className="text-2xl">🌀</span>
+          <span className="text-xl">🚪</span>
         </button>
-      )}
+
+        {/* Missions */}
+        <button
+          onClick={() => setShowMissions(true)}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
+        >
+          <span className="text-xl">📋</span>
+        </button>
+
+        {/* Memory Mix */}
+        {mixUnlocked && (
+          <button
+            onClick={() => router.push("/game/memory-mix")}
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+          >
+            <span className="text-xl">🌀</span>
+          </button>
+        )}
+      </div>
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />

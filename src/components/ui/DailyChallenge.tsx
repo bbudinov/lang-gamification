@@ -17,14 +17,13 @@ export function DailyChallengeButton() {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className={`absolute bottom-12 left-4 w-14 h-14 rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform border-2 ${
+        className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform border-2 ${
           completed
             ? "bg-gradient-to-br from-green-500 to-emerald-600 border-green-400/50 shadow-green-500/30"
             : "bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400/50 shadow-cyan-500/30 animate-pulse"
         }`}
-        style={{ zIndex: 9999 }}
       >
-        <span className="text-2xl">{completed ? "✅" : "⚔️"}</span>
+        <span className="text-xl">{completed ? "✅" : "⚔️"}</span>
       </button>
 
       {showModal && (
