@@ -273,7 +273,6 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-5" key={roundKey}>
         {/* Scene context */}
         <div className="flex items-center gap-2">
-          <span className="text-lg">{phrase.emoji}</span>
           <span className="text-blue-400 text-sm font-medium">{phrase.context[targetLanguage]}</span>
         </div>
 
