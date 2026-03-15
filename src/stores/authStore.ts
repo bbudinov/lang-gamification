@@ -120,7 +120,13 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ user: data.user, profile, loading: false });
     } catch (err: any) {
       set({ loading: false });
-      return { error: err?.message || "Unknown error" };
+      const msg = err?.message || "Unknown error";
+      // Show debug info for fetch errors (user tests on mobile, no DevTools)
+      if (msg.includes("fetch") || msg.includes("Invalid")) {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "(empty)";
+        return { error: `${msg} [URL: ${url.slice(0, 30)}...]` };
+      }
+      return { error: msg };
     }
 
     return { error: null };
