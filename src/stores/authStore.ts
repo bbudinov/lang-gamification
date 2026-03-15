@@ -71,6 +71,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   signUpWithEmail: async (email, password, displayName) => {
     set({ loading: true });
 
+    if (!supabase) {
+      set({ loading: false });
+      return { error: "Server connection unavailable. Try again later." };
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -123,6 +128,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signInWithEmail: async (email, password) => {
     set({ loading: true });
+    if (!supabase) {
+      set({ loading: false });
+      return { error: "Server connection unavailable. Try again later." };
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     set({ loading: false });
     return { error: error?.message ?? null };
@@ -131,6 +140,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   // PIN login — finds profile by name+pin, then signs in with generated email
   signInWithPin: async (displayName, pin) => {
     set({ loading: true });
+    if (!supabase) {
+      set({ loading: false });
+      return { error: "Server connection unavailable. Try again later." };
+    }
 
     // Look up profile with matching name + pin (via edge function or direct query)
     const { data: profiles } = await supabase
