@@ -61,6 +61,15 @@ export function SayIt({ topic }: SayItProps) {
     }
   }, [currentIndex, word, targetLanguage, feedback, roundKey]);
 
+  // When recognition ends without a result, reset feedback so user can retry
+  useEffect(() => {
+    if (!isListening && feedback === "listening") {
+      // Recognition ended but no transcript came — reset after short delay
+      const t = setTimeout(() => setFeedback(null), 600);
+      return () => clearTimeout(t);
+    }
+  }, [isListening, feedback]);
+
   // Process speech result
   useEffect(() => {
     if (!transcript || !word) return;
@@ -70,14 +79,14 @@ export function SayIt({ topic }: SayItProps) {
     const expected = word[targetLanguage];
     const sim = similarityScore(transcript, expected);
 
-    if (sim >= 0.8) {
+    if (sim >= 0.7) {
       // Great pronunciation!
       setFeedback("great");
       playDingSound();
       setScore((s) => s + GOOD_POINTS);
       updateWordMastery(word.id, true);
       setPopup({ emoji: word.emoji, word: expected });
-    } else if (sim >= 0.6) {
+    } else if (sim >= 0.45) {
       // Almost there!
       setFeedback("almost");
       playPopSound();
