@@ -48,9 +48,11 @@ export default function LoginPage() {
       setError("PIN must be exactly 4 digits");
       return;
     }
-    const safeId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const fakeEmail = `kid-${safeId}@langworld.app`;
-    const result = await signUpWithEmail(fakeEmail, `pin-${pin}-${safeId}`, kidName.trim());
+    // Deterministic email/password so login can reconstruct them from name+pin
+    const safeName = kidName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const fakeEmail = `kid-${safeName}-${pin}@langworld.app`;
+    const fakePassword = `lw-pin-${pin}-${safeName}`;
+    const result = await signUpWithEmail(fakeEmail, fakePassword, kidName.trim());
     if (result.error) {
       setError(result.error);
     } else {

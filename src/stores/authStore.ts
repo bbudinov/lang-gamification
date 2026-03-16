@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     return { error: error?.message ?? null };
   },
 
-  // PIN login — finds profile by name+pin, then signs in with generated email
+  // PIN login — reconstructs deterministic email/password from name+pin
   signInWithPin: async (displayName, pin) => {
     set({ loading: true });
     if (!supabase) {
@@ -151,28 +151,17 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return { error: "Server connection unavailable. Try again later." };
     }
 
-    // Look up profile with matching name + pin (via edge function or direct query)
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("display_name", displayName)
-      .eq("pin_code", pin)
-      .limit(1);
+    const safeName = displayName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const email = `kid-${safeName}-${pin}@langworld.app`;
+    const password = `lw-pin-${pin}-${safeName}`;
 
-    if (!profiles || profiles.length === 0) {
-      set({ loading: false });
-      return { error: "Wrong name or PIN" };
-    }
-
-    // PIN users use a generated email: {uid}@langworld.pin
-    const pinEmail = `${profiles[0].id}@langworld.pin`;
-    const { error } = await supabase.auth.signInWithPassword({
-      email: pinEmail,
-      password: `pin-${pin}-${profiles[0].id}`,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     set({ loading: false });
-    return { error: error?.message ?? null };
+    if (error) {
+      return { error: "Wrong name or PIN" };
+    }
+    return { error: null };
   },
 
   signOut: async () => {
