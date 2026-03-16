@@ -48,6 +48,13 @@ export default function LoginPage() {
       setError("PIN must be exactly 4 digits");
       return;
     }
+    // Debug: show Supabase connection status
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+    if (!url || !key) {
+      setError(`Config missing — URL: ${url ? "OK" : "EMPTY"}, KEY: ${key ? "OK" : "EMPTY"}`);
+      return;
+    }
     const safeId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     const fakeEmail = `kid-${safeId}@langworld.app`;
     const result = await signUpWithEmail(fakeEmail, `pin-${pin}-${safeId}`, kidName.trim());
