@@ -13,6 +13,19 @@ const TABS: { key: ShopCategory; emoji: string; label: string }[] = [
   { key: "mystery", emoji: "🎁", label: "Mystery" },
 ];
 
+const AVATAR_FACTS: Record<string, Record<string, string>> = {
+  Dragon:    { en: "Dragons appear in myths across every continent!", bg: "Драконите се срещат в митовете на всеки континент!", es: "¡Los dragones aparecen en mitos de todos los continentes!" },
+  Shark:     { en: "Sharks have been around for over 400 million years!", bg: "Акулите съществуват от над 400 милиона години!", es: "¡Los tiburones existen desde hace más de 400 millones de años!" },
+  Eagle:     { en: "Eagles can spot a rabbit from over 3 km away!", bg: "Орлите могат да забележат заек от над 3 км!", es: "¡Las águilas pueden ver un conejo a más de 3 km!" },
+  Dinosaur:  { en: "The word 'dinosaur' means 'terrible lizard' in Greek!", bg: "Думата 'динозавър' означава 'ужасен гущер' на гръцки!", es: "¡La palabra 'dinosaurio' significa 'lagarto terrible' en griego!" },
+  Wolf:      { en: "Wolves can hear sounds up to 10 km away!", bg: "Вълците могат да чуят звуци на до 10 км!", es: "¡Los lobos pueden oír sonidos a hasta 10 km!" },
+  Peacock:   { en: "Only male peacocks have the colorful tail feathers!", bg: "Само мъжките паунове имат цветните пера!", es: "¡Solo los pavos reales machos tienen las plumas coloridas!" },
+  Parrot:    { en: "Parrots can learn over 100 words in human languages!", bg: "Папагалите могат да научат над 100 думи на човешки езици!", es: "¡Los loros pueden aprender más de 100 palabras en idiomas humanos!" },
+  Flamingo:  { en: "Flamingos are pink because of the shrimp they eat!", bg: "Фламингите са розови заради скаридите, които ядат!", es: "¡Los flamencos son rosas por los camarones que comen!" },
+  Octopus:   { en: "Octopuses have three hearts and blue blood!", bg: "Октоподите имат три сърца и синя кръв!", es: "¡Los pulpos tienen tres corazones y sangre azul!" },
+  Unicorn:   { en: "The unicorn is Scotland's national animal!", bg: "Еднорогът е националното животно на Шотландия!", es: "¡El unicornio es el animal nacional de Escocia!" },
+};
+
 export default function ShopPage() {
   const router = useRouter();
   const { coins, ownedItems, equippedTitle, pet, buyItem, addCoins, addPoints, equipTitle, hatchPet } =
@@ -21,6 +34,8 @@ export default function ShopPage() {
   const [tab, setTab] = useState<ShopCategory>("avatars");
   const [mysteryResult, setMysteryResult] = useState<MysteryReward | null>(null);
   const [justBought, setJustBought] = useState<string | null>(null);
+  const [factItem, setFactItem] = useState<ShopItem | null>(null);
+  const { targetLanguage } = useProgressStore();
 
   const items = SHOP_ITEMS.filter((i) => i.category === tab);
 
@@ -107,6 +122,31 @@ export default function ShopPage() {
         ))}
       </div>
 
+      {/* Avatar Fun Fact popup */}
+      {factItem && AVATAR_FACTS[factItem.name] && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-6"
+          onClick={() => setFactItem(null)}
+        >
+          <div
+            className="bg-[#0f1d32] border border-white/10 rounded-2xl p-5 text-center space-y-3 max-w-xs w-full animate-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-5xl">{factItem.emoji}</div>
+            <h3 className="text-white text-lg font-bold">{factItem.name}</h3>
+            <p className="text-blue-300 text-sm leading-relaxed">
+              {AVATAR_FACTS[factItem.name][targetLanguage] || AVATAR_FACTS[factItem.name].en}
+            </p>
+            <button
+              onClick={() => setFactItem(null)}
+              className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-medium active:bg-blue-700 transition-colors"
+            >
+              Cool! 😎
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mystery Box result overlay */}
       {mysteryResult && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4">
@@ -154,8 +194,13 @@ export default function ShopPage() {
                     justBought === item.id ? "ring-2 ring-green-400 scale-105" : ""
                   }`}
                 >
-                  <div className="text-4xl">{item.emoji}</div>
-                  <p className="text-white text-sm font-medium">{item.name}</p>
+                  <div className="text-4xl select-none">{item.emoji}</div>
+                  <p
+                    className="text-white text-sm font-medium select-none cursor-pointer underline decoration-dotted decoration-white/30 underline-offset-2 active:text-blue-300 transition-colors"
+                    onClick={(e) => { e.stopPropagation(); setFactItem(item); }}
+                  >
+                    {item.name} <span className="text-[10px] opacity-50">ℹ️</span>
+                  </p>
 
                   {owned ? (
                     <button
