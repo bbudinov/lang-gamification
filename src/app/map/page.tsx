@@ -66,8 +66,8 @@ export default function MapPage() {
 
       {/* Left sidebar buttons */}
       <div
-        className="absolute left-3 bottom-3 flex flex-col-reverse gap-2"
-        style={{ zIndex: 9999 }}
+        className="absolute left-3 flex flex-col-reverse gap-2"
+        style={{ zIndex: 9999, bottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
       >
         {/* Daily Challenge (bottom) */}
         <DailyChallengeButton />
