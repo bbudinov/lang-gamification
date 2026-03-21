@@ -412,32 +412,58 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* NPC Character Portrait */}
+      {/* NPC Character Portrait — hologram style like ProfessorGlobe */}
       <div className="flex flex-col items-center py-3 px-4">
-        <div className="relative">
+        <div className="relative inline-flex items-center justify-center" style={{ width: 100, height: 100 }}>
+          {/* Outer glow ring */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: npcSpeaking
+                ? "radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0.1) 50%, transparent 70%)"
+                : "radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0.05) 50%, transparent 70%)",
+              transform: "scale(1.3)",
+              animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
+            }}
+          />
+          {/* Floating particles when speaking */}
+          {npcSpeaking && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-full" style={{ transform: "scale(1.5)" }}>
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    left: `${(i * 12.5) + 5}%`,
+                    bottom: "-5%",
+                    width: 2,
+                    height: 2,
+                    backgroundColor: "#38bdf8",
+                    opacity: 0.4,
+                    animation: `particle-float ${3 + (i % 3)}s ease-in-out ${i * 0.3}s infinite`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          {/* Portrait circle */}
           {npc.image ? (
             <div
-              className={`w-24 h-24 rounded-full overflow-hidden border-3 transition-all duration-300 ${
-                npcSpeaking
-                  ? "border-blue-400 scale-110 shadow-[0_0_24px_rgba(59,130,246,0.5)]"
-                  : "border-white/20 scale-100"
-              }`}
+              className="relative w-full h-full rounded-full overflow-hidden"
               style={{
+                boxShadow: npcSpeaking
+                  ? "0 0 15px rgba(56,189,248,0.5), 0 0 30px rgba(56,189,248,0.25)"
+                  : "0 0 8px rgba(56,189,248,0.2)",
                 animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
               }}
             >
-              <img
-                src={npc.image}
-                alt={npc.name}
-                className="w-full h-full object-cover object-top"
-              />
+              <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" draggable={false} />
+              <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: "inset 0 0 10px 4px #0a1628" }} />
             </div>
           ) : (
             <div
               className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
-              style={{
-                animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
-              }}
+              style={{ animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite" }}
             >
               {npc.emoji}
             </div>
@@ -565,8 +591,22 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
           50% { transform: translateY(-4px); }
         }
         @keyframes npc-speak {
-          0%, 100% { transform: scale(1.1); }
-          50% { transform: scale(1.15); }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        @keyframes globe-breathe {
+          0%, 100% { opacity: 0.6; transform: scale(1.25); }
+          50% { opacity: 1; transform: scale(1.35); }
+        }
+        @keyframes globe-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(1.25); }
+          50% { opacity: 1; transform: scale(1.45); }
+        }
+        @keyframes particle-float {
+          0% { transform: translateY(0) translateX(0); opacity: 0; }
+          15% { opacity: 0.4; }
+          85% { opacity: 0.4; }
+          100% { transform: translateY(-80px) translateX(10px); opacity: 0; }
         }
         .animate-sound-1 {
           animation: sound-wave 0.4s ease-in-out infinite;
