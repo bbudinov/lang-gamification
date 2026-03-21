@@ -25,8 +25,9 @@ interface DialogueBoxProps {
 }
 
 function buildSystemPrompt(npc: NPCData, lang: Language, memories: string[], topicWords: string[]): string {
+  const langName = lang === "en" ? "English" : lang === "bg" ? "Bulgarian" : lang === "es" ? "Spanish" : lang === "it" ? "Italian" : lang === "de" ? "German" : "French";
   const memorySection = memories.length > 0
-    ? `\n\nYou remember these facts about the child from previous conversations:\n${memories.map((m) => `- ${m}`).join("\n")}\nRefer to these naturally when relevant (e.g., "Last time you said you like dogs!").`
+    ? `\n\nYou remember these facts from previous conversations:\n${memories.map((m) => `- ${m}`).join("\n")}\nRefer to these naturally when relevant (e.g., "Last time you said you like dogs!").`
     : "";
 
   return `You are ${npc.name}, a ${npc.role[lang]}. ${npc.personality}
@@ -34,26 +35,46 @@ function buildSystemPrompt(npc: NPCData, lang: Language, memories: string[], top
 Your goal in this conversation: ${npc.goal[lang]}
 
 RULES:
-- You are talking to a child aged 6-10 who is learning ${lang === "en" ? "English" : lang === "bg" ? "Bulgarian" : "Spanish"}.
+- You are talking to a learner aged 7-14 who is learning ${langName}.
 - Use ONLY these vocabulary words when possible: ${topicWords.join(", ")}. You may use 20% words outside this list for natural flow.
-- Keep responses SHORT: maximum 20 words.
-- Be encouraging, fun, and patient. NEVER scold or make the child feel bad.
-- If the child makes a language mistake, gently correct it by using the right word naturally in your response (Invisible Teacher technique). For example, if they say "I want el gato", respond "Oh, you want THE CAT? Great choice!"
+- Keep responses SHORT: maximum 25 words.
+- Stay IN CHARACTER at all times. You are a real ${npc.role.en} in your location, not a language teacher.
+
+CONSEQUENCES & CORRECTION (very important):
+- If the learner says something that doesn't make sense in context, react naturally IN CHARACTER:
+  * Chef: "Hmm, we don't serve that here. Would you like to try our fish or pasta?"
+  * Doctor: "That's not quite right. Can you point to where it hurts?"
+  * Zookeeper: "I don't think we have that animal. But we do have lions and monkeys!"
+- If the learner makes a grammar/language mistake, correct it naturally by repeating the correct form:
+  * They say "I want eat fish" → you say "You want TO EAT fish? Great choice! 🐟"
+  * They say "me like dog" → you say "Oh, you LIKE dogs! Me too!"
+- Add a CORRECTION line when you correct something. Format: CORRECTION: "wrong" → "right"
+- Don't be harsh — be helpful and encouraging, but DO react when things don't make sense.
+
+CONVERSATION FLOW:
 - Ask follow-up questions to keep the conversation going.
 - Use your character's personality and emoji occasionally.
-- After 3-4 exchanges, naturally try to wrap up toward your goal.
-- At the end of your response, add a line starting with "OPTIONS:" followed by exactly 3 short reply options the child can choose from, separated by " | ". Each option should be 2-6 words. Example:
-OPTIONS: I like cats | Tell me more | What about dogs?${memorySection}
+- Make the learner DO things: order food, name animals, describe symptoms — not just chat.
+- After 4-5 exchanges, naturally wrap up toward your goal.
 
-ALSO: After processing the child's message, if they shared personal information (like favorite animal, name, hobby, etc.), add a line starting with "MEMORY:" followed by a single short fact to remember. Example:
-MEMORY: The child's favorite animal is a dog.
-Only add MEMORY if there's something genuinely worth remembering. Don't add it every time.`;
+RESPONSE FORMAT:
+- At the end, add: OPTIONS: option1 | option2 | option3 (exactly 3 reply options, 2-6 words each)
+- If learner shared personal info, add: MEMORY: short fact to remember
+- If you corrected a mistake, add: CORRECTION: "wrong form" → "correct form"${memorySection}`;
 }
 
-function parseAIResponse(text: string): { message: string; options: string[]; memory: string | null } {
+function parseAIResponse(text: string): { message: string; options: string[]; memory: string | null; correction: string | null } {
   let message = text;
   let options: string[] = [];
   let memory: string | null = null;
+  let correction: string | null = null;
+
+  // Extract CORRECTION line
+  const correctionMatch = message.match(/\n?CORRECTION:\s*(.+)/i);
+  if (correctionMatch) {
+    correction = correctionMatch[1].trim();
+    message = message.replace(correctionMatch[0], "").trim();
+  }
 
   // Extract MEMORY line
   const memoryMatch = message.match(/\n?MEMORY:\s*(.+)/i);
@@ -74,7 +95,7 @@ function parseAIResponse(text: string): { message: string; options: string[]; me
     options = ["Yes!", "Tell me more", "I don't know"];
   }
 
-  return { message, options, memory };
+  return { message, options, memory, correction };
 }
 
 export function DialogueBox({ topic }: DialogueBoxProps) {
@@ -91,6 +112,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [score, setScore] = useState(0);
   const [npcSpeaking, setNpcSpeaking] = useState(false);
+  const [lastCorrection, setLastCorrection] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const aiHistoryRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const speakingRef = useRef(false);
@@ -215,6 +237,12 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       addFact(npc.id, parsed.memory);
     }
 
+    // Show correction if any
+    if (parsed.correction) {
+      setLastCorrection(parsed.correction);
+      setTimeout(() => setLastCorrection(null), 4000);
+    }
+
     // Add NPC response + speak it
     aiHistoryRef.current.push({ role: "assistant", content: parsed.message });
     setMessages((prev) => [...prev, { role: "npc", text: parsed.message }]);
@@ -293,9 +321,15 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   if (gameCompleted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
-        <div className="text-8xl" style={{ filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))" }}>
-          {npc.emoji}
-        </div>
+        {npc.image ? (
+          <div className="w-28 h-28 rounded-full overflow-hidden border-3 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+            <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
+          </div>
+        ) : (
+          <div className="text-8xl" style={{ filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))" }}>
+            {npc.emoji}
+          </div>
+        )}
         <h2 className="text-3xl font-bold text-white">Great Chat!</h2>
         <p className="text-slate-300 text-center">
           {npc.name} enjoyed talking with you!
@@ -352,7 +386,13 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             <span className="text-white text-sm">← Back</span>
           </button>
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-            <span>{npc.emoji}</span>
+            {npc.image ? (
+              <div className="w-6 h-6 rounded-full overflow-hidden border border-white/30">
+                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
+              </div>
+            ) : (
+              <span>{npc.emoji}</span>
+            )}
             <span className="text-white text-sm font-medium">{npc.name}</span>
           </div>
           <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
@@ -372,23 +412,39 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* Large NPC Character */}
+      {/* NPC Character Portrait */}
       <div className="flex flex-col items-center py-3 px-4">
         <div className="relative">
-          <div
-            className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
-            style={{
-              filter: npcSpeaking
-                ? "drop-shadow(0 0 24px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 48px rgba(59, 130, 246, 0.3))"
-                : "drop-shadow(0 0 8px rgba(59, 130, 246, 0.2))",
-              animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
-            }}
-          >
-            {npc.emoji}
-          </div>
+          {npc.image ? (
+            <div
+              className={`w-24 h-24 rounded-full overflow-hidden border-3 transition-all duration-300 ${
+                npcSpeaking
+                  ? "border-blue-400 scale-110 shadow-[0_0_24px_rgba(59,130,246,0.5)]"
+                  : "border-white/20 scale-100"
+              }`}
+              style={{
+                animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+              }}
+            >
+              <img
+                src={npc.image}
+                alt={npc.name}
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+          ) : (
+            <div
+              className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
+              style={{
+                animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+              }}
+            >
+              {npc.emoji}
+            </div>
+          )}
           {/* Sound wave indicator when speaking */}
           {npcSpeaking && (
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
               <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
@@ -401,6 +457,13 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
       </div>
 
+      {/* Correction toast */}
+      {lastCorrection && (
+        <div className="mx-4 mb-2 bg-amber-900/40 border border-amber-500/30 rounded-xl px-3 py-2 animate-in slide-in-from-top duration-300">
+          <p className="text-amber-300 text-xs font-medium">💡 {lastCorrection}</p>
+        </div>
+      )}
+
       {/* Chat messages */}
       <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-2.5 pb-4">
         {messages.map((msg, i) => (
@@ -409,7 +472,13 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             className={`flex ${msg.role === "player" ? "justify-end" : "justify-start"}`}
           >
             {msg.role === "npc" && (
-              <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
+              npc.image ? (
+                <div className="w-7 h-7 rounded-full overflow-hidden mr-1.5 shrink-0 self-end border border-white/20">
+                  <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
+                </div>
+              ) : (
+                <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
+              )
             )}
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
@@ -428,7 +497,13 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
         {loading && (
           <div className="flex justify-start">
-            <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
+            {npc.image ? (
+              <div className="w-7 h-7 rounded-full overflow-hidden mr-1.5 shrink-0 self-end border border-white/20">
+                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
+              </div>
+            ) : (
+              <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
+            )}
             <div className="bg-white/10 rounded-2xl rounded-bl-md px-4 py-2.5">
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

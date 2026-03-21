@@ -5,6 +5,8 @@ export interface NPCData {
   topicId: TopicId;
   name: string;
   emoji: string;
+  /** Portrait image path for chat UI */
+  image?: string;
   /** Voice gender for TTS */
   gender: "male" | "female";
   role: Record<Language, string>;
@@ -21,6 +23,7 @@ export const npcs: NPCData[] = [
     topicId: "animals",
     name: "Zara",
     emoji: "🐕",
+    image: "/images/npcs/zara.jpg",
     gender: "female",
     role: {
       en: "Zookeeper",
@@ -54,6 +57,7 @@ export const npcs: NPCData[] = [
     topicId: "colors",
     name: "Pablo",
     emoji: "🎨",
+    image: "/images/npcs/pablo.jpg",
     gender: "male",
     role: {
       en: "Artist",
@@ -87,6 +91,7 @@ export const npcs: NPCData[] = [
     topicId: "food",
     name: "Marco",
     emoji: "👨‍🍳",
+    image: "/images/npcs/marco.jpg",
     gender: "male",
     role: {
       en: "Chef",
@@ -120,6 +125,7 @@ export const npcs: NPCData[] = [
     topicId: "numbers",
     name: "Digit",
     emoji: "🤖",
+    image: "/images/npcs/digit.jpg",
     gender: "male",
     role: {
       en: "Robot Counter",
@@ -153,6 +159,7 @@ export const npcs: NPCData[] = [
     topicId: "family",
     name: "Grandma Rose",
     emoji: "👵",
+    image: "/images/npcs/grandma-rose.jpg",
     gender: "female",
     role: {
       en: "Grandmother",
@@ -186,6 +193,7 @@ export const npcs: NPCData[] = [
     topicId: "body",
     name: "Dr. Bones",
     emoji: "🩺",
+    image: "/images/npcs/dr-bones.jpg",
     gender: "male",
     role: {
       en: "Doctor",
@@ -219,6 +227,7 @@ export const npcs: NPCData[] = [
     topicId: "weather",
     name: "Sunny",
     emoji: "🌤️",
+    image: "/images/npcs/sunny.jpg",
     gender: "female",
     role: {
       en: "Weather Reporter",
