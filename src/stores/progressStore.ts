@@ -286,7 +286,8 @@ export const useProgressStore = create<ProgressState>()(
 
         let unlocked = false;
         if (level === 1) {
-          unlocked = s.unlockedTopics.includes(topicId);
+          // Level 1 is always unlocked — if the city is visible on map (XP-gated), player can play
+          unlocked = true;
         } else {
           const prevProgress = get().getTopicLevelProgress(topicId, (level - 1) as LevelNumber);
           unlocked = prevProgress.completed;
