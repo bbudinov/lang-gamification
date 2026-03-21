@@ -321,7 +321,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   if (gameCompleted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
-        {npc.image ? (
+        {npc.imageFull ? (
+          <div style={{ height: 180, filter: "drop-shadow(0 0 16px rgba(34,197,94,0.3))" }}>
+            <img src={npc.imageFull} alt={npc.name} className="h-full w-auto object-contain" />
+          </div>
+        ) : npc.image ? (
           <div className="w-28 h-28 rounded-full overflow-hidden border-3 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
             <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
           </div>
@@ -412,75 +416,127 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* NPC Character Portrait — hologram style like ProfessorGlobe */}
-      <div className="flex flex-col items-center py-3 px-4">
-        <div className="relative inline-flex items-center justify-center" style={{ width: 100, height: 100 }}>
-          {/* Outer glow ring */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: npcSpeaking
-                ? "radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0.1) 50%, transparent 70%)"
-                : "radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0.05) 50%, transparent 70%)",
-              transform: "scale(1.3)",
-              animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
-            }}
-          />
-          {/* Floating particles when speaking */}
-          {npcSpeaking && (
-            <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-full" style={{ transform: "scale(1.5)" }}>
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
-                  style={{
-                    left: `${(i * 12.5) + 5}%`,
-                    bottom: "-5%",
-                    width: 2,
-                    height: 2,
-                    backgroundColor: "#38bdf8",
-                    opacity: 0.4,
-                    animation: `particle-float ${3 + (i % 3)}s ease-in-out ${i * 0.3}s infinite`,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-          {/* Portrait circle */}
-          {npc.image ? (
+      {/* NPC Character — full body when available, circle fallback */}
+      <div className="flex flex-col items-center py-2 px-4">
+        {npc.imageFull ? (
+          /* Full body character display */
+          <div className="relative flex flex-col items-center">
+            {/* Glow behind character */}
             <div
-              className="relative w-full h-full rounded-full overflow-hidden"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
               style={{
-                boxShadow: npcSpeaking
-                  ? "0 0 15px rgba(56,189,248,0.5), 0 0 30px rgba(56,189,248,0.25)"
-                  : "0 0 8px rgba(56,189,248,0.2)",
+                width: 180,
+                height: 180,
+                background: npcSpeaking
+                  ? "radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(56,189,248,0.08) 50%, transparent 70%)"
+                  : "radial-gradient(circle, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.03) 50%, transparent 70%)",
+                animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
+              }}
+            />
+            {/* Floating particles when speaking */}
+            {npcSpeaking && (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ transform: "scale(1.3)" }}>
+                {[...Array(10)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                      left: `${(i * 10) + 2}%`,
+                      bottom: "0%",
+                      width: 2,
+                      height: 2,
+                      backgroundColor: "#38bdf8",
+                      opacity: 0.4,
+                      animation: `particle-float ${3 + (i % 3)}s ease-in-out ${i * 0.25}s infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            {/* Full body image */}
+            <div
+              className="relative"
+              style={{
+                height: 220,
                 animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+                filter: npcSpeaking
+                  ? "drop-shadow(0 0 12px rgba(56,189,248,0.4)) drop-shadow(0 0 24px rgba(56,189,248,0.15))"
+                  : "drop-shadow(0 0 6px rgba(56,189,248,0.15))",
+                transition: "filter 0.3s ease",
               }}
             >
-              <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" draggable={false} />
-              <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: "inset 0 0 10px 4px #0a1628" }} />
+              <img
+                src={npc.imageFull}
+                alt={npc.name}
+                className="h-full w-auto object-contain"
+                draggable={false}
+              />
             </div>
-          ) : (
+            {/* Sound wave indicator when speaking */}
+            {npcSpeaking && (
+              <div className="flex gap-0.5 items-end mt-1">
+                <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+                <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+                <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+                <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+                <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+              </div>
+            )}
+            <p className="text-white font-semibold text-sm mt-1">{npc.name}</p>
+            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
+          </div>
+        ) : npc.image ? (
+          /* Circle portrait fallback */
+          <div className="relative inline-flex flex-col items-center">
+            <div className="relative" style={{ width: 100, height: 100 }}>
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: npcSpeaking
+                    ? "radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0.1) 50%, transparent 70%)"
+                    : "radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0.05) 50%, transparent 70%)",
+                  transform: "scale(1.3)",
+                  animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
+                }}
+              />
+              <div
+                className="relative w-full h-full rounded-full overflow-hidden"
+                style={{
+                  boxShadow: npcSpeaking
+                    ? "0 0 15px rgba(56,189,248,0.5), 0 0 30px rgba(56,189,248,0.25)"
+                    : "0 0 8px rgba(56,189,248,0.2)",
+                  animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+                }}
+              >
+                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" draggable={false} />
+                <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: "inset 0 0 10px 4px #0a1628" }} />
+              </div>
+              {npcSpeaking && (
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+                </div>
+              )}
+            </div>
+            <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
+            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
+          </div>
+        ) : (
+          /* Emoji fallback */
+          <div className="flex flex-col items-center">
             <div
               className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
               style={{ animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite" }}
             >
               {npc.emoji}
             </div>
-          )}
-          {/* Sound wave indicator when speaking */}
-          {npcSpeaking && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-            </div>
-          )}
-        </div>
-        <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
-        <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
+            <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
+            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
+          </div>
+        )}
       </div>
 
       {/* Correction toast */}
