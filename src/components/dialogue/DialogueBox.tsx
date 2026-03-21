@@ -464,9 +464,26 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               );
             })}
           </div>
-          {/* Character — always transparent PNG, centered fullscreen */}
-          {npc.imageFull && (
-            <div className="absolute inset-0 flex items-center justify-center">
+          {/* Character — video if available, otherwise transparent PNG */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {npc.videoTalking ? (
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{
+                  height: "75%",
+                  maxHeight: "80vh",
+                  width: "auto",
+                  objectFit: "contain",
+                  borderRadius: 16,
+                  filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4))",
+                }}
+              >
+                <source src={npc.videoTalking} type="video/mp4" />
+              </video>
+            ) : npc.imageFull ? (
               <img
                 src={npc.imageFull}
                 alt={npc.name}
@@ -480,8 +497,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                 }}
                 draggable={false}
               />
-            </div>
-          )}
+            ) : null}
+          </div>
           {/* Name + sound waves at bottom */}
           <div className="absolute bottom-16 left-0 right-0 flex flex-col items-center">
             <div className="flex gap-0.5 items-end mb-2">
