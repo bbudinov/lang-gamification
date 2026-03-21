@@ -54,6 +54,7 @@ CONSEQUENCES & CORRECTION (very important):
 CONVERSATION FLOW:
 - Ask follow-up questions to keep the conversation going.
 - Use your character's personality and emoji occasionally.
+- NEVER use action text like *smiles*, *laughs*, *looks around* etc. Just speak naturally.
 - Make the learner DO things: order food, name animals, describe symptoms — not just chat.
 - After 4-5 exchanges, naturally wrap up toward your goal.
 
@@ -89,6 +90,9 @@ function parseAIResponse(text: string): { message: string; options: string[]; me
     options = optionsMatch[1].split("|").map((o) => o.trim()).filter(Boolean);
     message = message.replace(optionsMatch[0], "").trim();
   }
+
+  // Strip action/emotion text like *smiles*, *laughs kindly*, etc.
+  message = message.replace(/\*[^*]+\*/g, "").replace(/\s{2,}/g, " ").trim();
 
   // Fallback options
   if (options.length === 0) {
