@@ -28,7 +28,7 @@ export const npcs: NPCData[] = [
     name: "Zara",
     emoji: "🐕",
     image: "/images/npcs/zara.jpg",
-    imageFull: "/images/npcs/zara-full.jpg",
+    imageFull: "/images/npcs/zara-full.png",
     videoTalking: "/videos/npcs/zara-talking.mp4",
     gender: "female",
     role: {
@@ -64,7 +64,7 @@ export const npcs: NPCData[] = [
     name: "Pablo",
     emoji: "🎨",
     image: "/images/npcs/pablo.jpg",
-    imageFull: "/images/npcs/pablo-full.jpg",
+    imageFull: "/images/npcs/pablo-full.png",
     gender: "male",
     role: {
       en: "Artist",
@@ -99,7 +99,7 @@ export const npcs: NPCData[] = [
     name: "Marco",
     emoji: "👨‍🍳",
     image: "/images/npcs/marco.jpg",
-    imageFull: "/images/npcs/marco-full.jpg",
+    imageFull: "/images/npcs/marco-full.png",
     videoTalking: "/videos/npcs/marco-talking.mp4",
     gender: "male",
     role: {
@@ -135,7 +135,7 @@ export const npcs: NPCData[] = [
     name: "Digit",
     emoji: "🤖",
     image: "/images/npcs/digit.jpg",
-    imageFull: "/images/npcs/digit-full.jpg",
+    imageFull: "/images/npcs/digit-full.png",
     gender: "male",
     role: {
       en: "Robot Counter",
@@ -170,7 +170,7 @@ export const npcs: NPCData[] = [
     name: "Grandma Rose",
     emoji: "👵",
     image: "/images/npcs/grandma-rose.jpg",
-    imageFull: "/images/npcs/grandma-rose-full.jpg",
+    imageFull: "/images/npcs/grandma-rose-full.png",
     gender: "female",
     role: {
       en: "Grandmother",
@@ -205,7 +205,7 @@ export const npcs: NPCData[] = [
     name: "Dr. Bones",
     emoji: "🩺",
     image: "/images/npcs/dr-bones.jpg",
-    imageFull: "/images/npcs/dr-bones-full.jpg",
+    imageFull: "/images/npcs/dr-bones-full.png",
     gender: "male",
     role: {
       en: "Doctor",
@@ -240,7 +240,7 @@ export const npcs: NPCData[] = [
     name: "Sunny",
     emoji: "🌤️",
     image: "/images/npcs/sunny.jpg",
-    imageFull: "/images/npcs/sunny-full.jpg",
+    imageFull: "/images/npcs/sunny-full.png",
     gender: "female",
     role: {
       en: "Weather Reporter",
@@ -342,7 +342,7 @@ export const npcs: NPCData[] = [
     name: "Miss Luna",
     emoji: "📚",
     image: "/images/npcs/miss-luna.jpg",
-    imageFull: "/images/npcs/miss-luna-full.jpg",
+    imageFull: "/images/npcs/miss-luna-full.png",
     gender: "female",
     role: {
       en: "Librarian",
