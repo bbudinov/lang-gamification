@@ -7,6 +7,8 @@ export interface NPCData {
   emoji: string;
   /** Portrait image path for chat UI */
   image?: string;
+  /** Full body image path */
+  imageFull?: string;
   /** Voice gender for TTS */
   gender: "male" | "female";
   role: Record<Language, string>;
@@ -24,6 +26,7 @@ export const npcs: NPCData[] = [
     name: "Zara",
     emoji: "🐕",
     image: "/images/npcs/zara.jpg",
+    imageFull: "/images/npcs/zara-full.jpg",
     gender: "female",
     role: {
       en: "Zookeeper",
@@ -58,6 +61,7 @@ export const npcs: NPCData[] = [
     name: "Pablo",
     emoji: "🎨",
     image: "/images/npcs/pablo.jpg",
+    imageFull: "/images/npcs/pablo-full.jpg",
     gender: "male",
     role: {
       en: "Artist",
@@ -92,6 +96,7 @@ export const npcs: NPCData[] = [
     name: "Marco",
     emoji: "👨‍🍳",
     image: "/images/npcs/marco.jpg",
+    imageFull: "/images/npcs/marco-full.jpg",
     gender: "male",
     role: {
       en: "Chef",
@@ -126,6 +131,7 @@ export const npcs: NPCData[] = [
     name: "Digit",
     emoji: "🤖",
     image: "/images/npcs/digit.jpg",
+    imageFull: "/images/npcs/digit-full.jpg",
     gender: "male",
     role: {
       en: "Robot Counter",
@@ -160,6 +166,7 @@ export const npcs: NPCData[] = [
     name: "Grandma Rose",
     emoji: "👵",
     image: "/images/npcs/grandma-rose.jpg",
+    imageFull: "/images/npcs/grandma-rose-full.jpg",
     gender: "female",
     role: {
       en: "Grandmother",
@@ -194,6 +201,7 @@ export const npcs: NPCData[] = [
     name: "Dr. Bones",
     emoji: "🩺",
     image: "/images/npcs/dr-bones.jpg",
+    imageFull: "/images/npcs/dr-bones-full.jpg",
     gender: "male",
     role: {
       en: "Doctor",
@@ -228,6 +236,7 @@ export const npcs: NPCData[] = [
     name: "Sunny",
     emoji: "🌤️",
     image: "/images/npcs/sunny.jpg",
+    imageFull: "/images/npcs/sunny-full.jpg",
     gender: "female",
     role: {
       en: "Weather Reporter",
@@ -329,6 +338,7 @@ export const npcs: NPCData[] = [
     name: "Miss Luna",
     emoji: "📚",
     image: "/images/npcs/miss-luna.jpg",
+    imageFull: "/images/npcs/miss-luna-full.jpg",
     gender: "female",
     role: {
       en: "Librarian",
