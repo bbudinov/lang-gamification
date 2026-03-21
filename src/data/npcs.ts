@@ -9,6 +9,8 @@ export interface NPCData {
   image?: string;
   /** Full body image path */
   imageFull?: string;
+  /** Talking video loop (plays while NPC speaks) */
+  videoTalking?: string;
   /** Voice gender for TTS */
   gender: "male" | "female";
   role: Record<Language, string>;
@@ -27,6 +29,7 @@ export const npcs: NPCData[] = [
     emoji: "🐕",
     image: "/images/npcs/zara.jpg",
     imageFull: "/images/npcs/zara-full.jpg",
+    videoTalking: "/videos/npcs/zara-talking.mp4",
     gender: "female",
     role: {
       en: "Zookeeper",
@@ -97,6 +100,7 @@ export const npcs: NPCData[] = [
     emoji: "👨‍🍳",
     image: "/images/npcs/marco.jpg",
     imageFull: "/images/npcs/marco-full.jpg",
+    videoTalking: "/videos/npcs/marco-talking.mp4",
     gender: "male",
     role: {
       en: "Chef",

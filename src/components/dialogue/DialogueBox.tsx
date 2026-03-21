@@ -418,8 +418,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
       {/* NPC Character — full body when available, circle fallback */}
       <div className="flex flex-col items-center py-2 px-4">
-        {npc.imageFull ? (
-          /* Full body character display */
+        {(npc.imageFull || npc.videoTalking) ? (
+          /* Full body character display — video when speaking, static when idle */
           <div className="relative flex flex-col items-center">
             {/* Glow behind character */}
             <div
@@ -453,24 +453,49 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                 ))}
               </div>
             )}
-            {/* Full body image */}
+            {/* Character: video loop when speaking, static image when idle */}
             <div
               className="relative"
               style={{
                 height: 220,
-                animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+                animation: !npc.videoTalking
+                  ? (npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite")
+                  : (npcSpeaking ? undefined : "npc-idle 3s ease-in-out infinite"),
                 filter: npcSpeaking
                   ? "drop-shadow(0 0 12px rgba(56,189,248,0.4)) drop-shadow(0 0 24px rgba(56,189,248,0.15))"
                   : "drop-shadow(0 0 6px rgba(56,189,248,0.15))",
                 transition: "filter 0.3s ease",
               }}
             >
-              <img
-                src={npc.imageFull}
-                alt={npc.name}
-                className="h-full w-auto object-contain"
-                draggable={false}
-              />
+              {/* Talking video — always mounted for instant play, visibility toggled */}
+              {npc.videoTalking && (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="h-full w-auto object-contain absolute inset-0"
+                  style={{
+                    opacity: npcSpeaking ? 1 : 0,
+                    transition: "opacity 0.2s ease",
+                  }}
+                >
+                  <source src={npc.videoTalking} type="video/mp4" />
+                </video>
+              )}
+              {/* Static full body image — visible when NOT speaking */}
+              {npc.imageFull && (
+                <img
+                  src={npc.imageFull}
+                  alt={npc.name}
+                  className="h-full w-auto object-contain"
+                  style={{
+                    opacity: npc.videoTalking ? (npcSpeaking ? 0 : 1) : 1,
+                    transition: "opacity 0.2s ease",
+                  }}
+                  draggable={false}
+                />
+              )}
             </div>
             {/* Sound wave indicator when speaking */}
             {npcSpeaking && (
