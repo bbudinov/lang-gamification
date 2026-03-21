@@ -108,7 +108,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const { getRecentFacts, addFact } = useNPCMemoryStore();
 
   const npc = getNPC(topic.id);
-  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage);
+  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage, { continuous: true, silenceMs: 1500 });
   const [messages, setMessages] = useState<Message[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);

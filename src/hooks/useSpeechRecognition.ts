@@ -26,12 +26,15 @@ const LANG_MAP: Record<string, string> = {
   fr: "fr-FR",
 };
 
-export function useSpeechRecognition(language: string = "en"): UseSpeechRecognitionReturn {
+export function useSpeechRecognition(language: string = "en", opts?: { continuous?: boolean; silenceMs?: number }): UseSpeechRecognitionReturn {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [confidence, setConfidence] = useState(0);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  const continuousMode = opts?.continuous ?? false;
+  const silenceMs = opts?.silenceMs ?? 1500;
 
   // Cleanup on unmount
   useEffect(() => {
@@ -40,6 +43,7 @@ export function useSpeechRecognition(language: string = "en"): UseSpeechRecognit
         recognitionRef.current.abort();
         recognitionRef.current = null;
       }
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     };
   }, []);
 
@@ -50,6 +54,7 @@ export function useSpeechRecognition(language: string = "en"): UseSpeechRecognit
     if (recognitionRef.current) {
       recognitionRef.current.abort();
     }
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
     setTranscript("");
     setConfidence(0);
@@ -58,8 +63,8 @@ export function useSpeechRecognition(language: string = "en"): UseSpeechRecognit
     const recognition = new SpeechRecognitionAPI();
 
     recognition.lang = LANG_MAP[language] || language;
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = continuousMode;
+    recognition.interimResults = continuousMode;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
@@ -67,9 +72,26 @@ export function useSpeechRecognition(language: string = "en"): UseSpeechRecognit
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const result = event.results[0][0];
-      setTranscript(result.transcript);
-      setConfidence(result.confidence);
+      // Build full transcript from all results
+      let fullTranscript = "";
+      let lastConfidence = 0;
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          lastConfidence = event.results[i][0].confidence;
+        }
+      }
+      setTranscript(fullTranscript.trim());
+      if (lastConfidence > 0) setConfidence(lastConfidence);
+
+      // In continuous mode, reset silence timer on each result
+      if (continuousMode) {
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          // User stopped speaking — stop recognition
+          recognition.stop();
+        }, silenceMs);
+      }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -83,11 +105,12 @@ export function useSpeechRecognition(language: string = "en"): UseSpeechRecognit
     recognition.onend = () => {
       setIsListening(false);
       recognitionRef.current = null;
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     };
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [isSupported, language]);
+  }, [isSupported, language, continuousMode, silenceMs]);
 
   const stop = useCallback(() => {
     if (recognitionRef.current) {
