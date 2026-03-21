@@ -58,7 +58,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     const topicPhrases = getTopicPhrases(topic.id, maxDiff);
     if (topicPhrases.length === 0) return;
     setPhrases(shuffle(topicPhrases));
-  }, [topic.id, topic.words, wordMastery]);
+  }, [topic.id, topic.words]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const phrase = phrases[currentIndex];
 

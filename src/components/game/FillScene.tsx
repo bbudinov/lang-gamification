@@ -87,13 +87,14 @@ export function FillScene({ topic }: FillSceneProps) {
   const [lives, setLives] = useState(MAX_LIVES);
   const [gameOver, setGameOver] = useState(false);
 
-  // Initialize rounds — filter phrases by unlocked difficulty
+  // Initialize rounds ONCE — filter phrases by unlocked difficulty at mount time
+  // wordMastery intentionally excluded: rebuilding mid-game reshuffles questions
   useEffect(() => {
     const maxDiff = getUnlockedDifficulty(topic.words, wordMastery);
     const phrases = getTopicPhrases(topic.id, maxDiff);
     if (phrases.length === 0) return;
     setRounds(buildRounds(phrases, targetLanguage));
-  }, [topic.id, topic.words, targetLanguage, wordMastery]);
+  }, [topic.id, targetLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const round = rounds[currentRound];
 
