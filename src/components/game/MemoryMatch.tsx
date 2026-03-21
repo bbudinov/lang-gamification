@@ -164,10 +164,12 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
       }
 
       addScore(cfg.MATCH_POINTS);
+      // Mark matched quickly, unlock immediately after
+      markMatched(result.pairId);
+      // Brief lock just for the match animation to feel right
       setTimeout(() => {
-        markMatched(result.pairId);
         setLocked(false);
-      }, 600);
+      }, 300);
     } else {
       // Mismatch — shake the cards
       playBuzzSound();
