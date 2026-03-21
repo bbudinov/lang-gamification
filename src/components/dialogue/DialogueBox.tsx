@@ -379,7 +379,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a1628] flex flex-col">
+    <div className="min-h-screen bg-[#0a1628] flex flex-col relative overflow-hidden">
       {/* Header */}
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
@@ -416,153 +416,84 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* NPC Character — full body when available, circle fallback */}
-      <div className="flex flex-col items-center py-2 px-4">
-        {(npc.imageFull || npc.videoTalking) ? (
-          /* Full body character display — video when speaking, static when idle */
-          <div className="relative flex flex-col items-center">
-            {/* Glow behind character */}
-            <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-              style={{
-                width: 180,
-                height: 180,
-                background: npcSpeaking
-                  ? "radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(56,189,248,0.08) 50%, transparent 70%)"
-                  : "radial-gradient(circle, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.03) 50%, transparent 70%)",
-                animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
-              }}
-            />
-            {/* Floating particles when speaking */}
-            {npcSpeaking && (
-              <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ transform: "scale(1.3)" }}>
-                {[...Array(10)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute rounded-full"
-                    style={{
-                      left: `${(i * 10) + 2}%`,
-                      bottom: "0%",
-                      width: 2,
-                      height: 2,
-                      backgroundColor: "#38bdf8",
-                      opacity: 0.4,
-                      animation: `particle-float ${3 + (i % 3)}s ease-in-out ${i * 0.25}s infinite`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-            {/* Character: video loop when speaking, static image when idle */}
-            <div
-              className="relative"
-              style={{
-                height: 220,
-                animation: !npc.videoTalking
-                  ? (npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite")
-                  : (npcSpeaking ? undefined : "npc-idle 3s ease-in-out infinite"),
-                filter: npcSpeaking
-                  ? "drop-shadow(0 0 12px rgba(56,189,248,0.4)) drop-shadow(0 0 24px rgba(56,189,248,0.15))"
-                  : "drop-shadow(0 0 6px rgba(56,189,248,0.15))",
-                transition: "filter 0.3s ease",
-              }}
-            >
-              {/* Talking video — always mounted for instant play, visibility toggled */}
-              {npc.videoTalking && (
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="h-full w-auto object-contain absolute inset-0"
-                  style={{
-                    opacity: npcSpeaking ? 1 : 0,
-                    transition: "opacity 0.2s ease",
-                  }}
-                >
-                  <source src={npc.videoTalking} type="video/mp4" />
-                </video>
-              )}
-              {/* Static full body image — visible when NOT speaking */}
-              {npc.imageFull && (
-                <img
-                  src={npc.imageFull}
-                  alt={npc.name}
-                  className="h-full w-auto object-contain"
-                  style={{
-                    opacity: npc.videoTalking ? (npcSpeaking ? 0 : 1) : 1,
-                    transition: "opacity 0.2s ease",
-                  }}
-                  draggable={false}
-                />
-              )}
-            </div>
-            {/* Sound wave indicator when speaking */}
-            {npcSpeaking && (
-              <div className="flex gap-0.5 items-end mt-1">
-                <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-                <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-                <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
-                <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-                <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-              </div>
-            )}
-            <p className="text-white font-semibold text-sm mt-1">{npc.name}</p>
-            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
-          </div>
-        ) : npc.image ? (
-          /* Circle portrait fallback */
-          <div className="relative inline-flex flex-col items-center">
-            <div className="relative" style={{ width: 100, height: 100 }}>
-              <div
-                className="absolute inset-0 rounded-full"
+      {/* NPC Full Body Overlay — floats OVER everything like ProfessorGlobe */}
+      {(npc.imageFull || npc.videoTalking) && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 flex flex-col items-center"
+          style={{
+            top: 60,
+            transition: "opacity 0.3s ease",
+          }}
+        >
+          {/* Glow behind character */}
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              width: 200,
+              height: 200,
+              background: npcSpeaking
+                ? "radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0.1) 50%, transparent 70%)"
+                : "radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0.05) 50%, transparent 70%)",
+              animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
+            }}
+          />
+          {/* Character: video when speaking, static image when idle */}
+          <div
+            className="relative"
+            style={{
+              height: "45vh",
+              maxHeight: 420,
+              minHeight: 250,
+              animation: npcSpeaking && !npc.videoTalking ? "npc-speak 0.6s ease-in-out infinite" : (!npcSpeaking ? "npc-idle 3s ease-in-out infinite" : undefined),
+              filter: npcSpeaking
+                ? "drop-shadow(0 0 16px rgba(56,189,248,0.5)) drop-shadow(0 0 32px rgba(56,189,248,0.2))"
+                : "drop-shadow(0 0 8px rgba(56,189,248,0.15))",
+              transition: "filter 0.3s ease",
+            }}
+          >
+            {npc.videoTalking && (
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-full w-auto object-contain absolute inset-0"
                 style={{
-                  background: npcSpeaking
-                    ? "radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0.1) 50%, transparent 70%)"
-                    : "radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0.05) 50%, transparent 70%)",
-                  transform: "scale(1.3)",
-                  animation: npcSpeaking ? "globe-pulse 1.5s ease-in-out infinite" : "globe-breathe 4s ease-in-out infinite",
-                }}
-              />
-              <div
-                className="relative w-full h-full rounded-full overflow-hidden"
-                style={{
-                  boxShadow: npcSpeaking
-                    ? "0 0 15px rgba(56,189,248,0.5), 0 0 30px rgba(56,189,248,0.25)"
-                    : "0 0 8px rgba(56,189,248,0.2)",
-                  animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite",
+                  opacity: npcSpeaking ? 1 : 0,
+                  transition: "opacity 0.25s ease",
                 }}
               >
-                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" draggable={false} />
-                <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: "inset 0 0 10px 4px #0a1628" }} />
-              </div>
-              {npcSpeaking && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5 items-end">
-                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-                  <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
-                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-                </div>
-              )}
-            </div>
-            <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
-            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
+                <source src={npc.videoTalking} type="video/mp4" />
+              </video>
+            )}
+            {npc.imageFull && (
+              <img
+                src={npc.imageFull}
+                alt={npc.name}
+                className="h-full w-auto object-contain"
+                style={{
+                  opacity: npc.videoTalking ? (npcSpeaking ? 0 : 1) : 1,
+                  transition: "opacity 0.25s ease",
+                }}
+                draggable={false}
+              />
+            )}
           </div>
-        ) : (
-          /* Emoji fallback */
-          <div className="flex flex-col items-center">
-            <div
-              className={`text-7xl transition-all duration-300 ${npcSpeaking ? "scale-110" : "scale-100"}`}
-              style={{ animation: npcSpeaking ? "npc-speak 0.6s ease-in-out infinite" : "npc-idle 3s ease-in-out infinite" }}
-            >
-              {npc.emoji}
+          {/* Name label under character */}
+          <p className="text-white font-semibold text-sm mt-1 text-shadow">{npc.name}</p>
+          <p className="text-slate-400 text-[10px]">{npc.role[targetLanguage]}</p>
+          {/* Sound wave indicator when speaking */}
+          {npcSpeaking && (
+            <div className="flex gap-0.5 items-end mt-1">
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
             </div>
-            <p className="text-white font-semibold text-sm mt-2">{npc.name}</p>
-            <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Correction toast */}
       {lastCorrection && (
@@ -572,7 +503,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       )}
 
       {/* Chat messages */}
-      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-2.5 pb-4">
+      <div
+        ref={chatRef}
+        className="flex-1 overflow-y-auto px-4 space-y-2.5 pb-4"
+        style={{ paddingTop: (npc.imageFull || npc.videoTalking) ? "52vh" : 0 }}
+      >
         {messages.map((msg, i) => (
           <div
             key={i}
