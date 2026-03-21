@@ -1,6 +1,6 @@
 export type Language = "en" | "bg" | "es" | "it" | "de" | "fr";
 
-export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "sports" | "music";
+export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "library" | "sports" | "music";
 
 export interface WordEntry {
   id: string;
