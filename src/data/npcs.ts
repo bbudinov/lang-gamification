@@ -9,7 +9,7 @@ export interface NPCData {
   image?: string;
   /** Full body image path */
   imageFull?: string;
-  /** Talking video loop (plays while NPC speaks) */
+  /** Talking video loop (plays while NPC speaks) — WebM with alpha for transparency */
   videoTalking?: string;
   /** Voice gender for TTS */
   gender: "male" | "female";
@@ -29,7 +29,7 @@ export const npcs: NPCData[] = [
     emoji: "🐕",
     image: "/images/npcs/zara.jpg",
     imageFull: "/images/npcs/zara-full.png",
-    videoTalking: "/videos/npcs/zara-talking.mp4",
+    videoTalking: "/videos/npcs/zara-talking.webm",
     gender: "female",
     role: {
       en: "Zookeeper",
