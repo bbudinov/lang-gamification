@@ -473,8 +473,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                 muted
                 playsInline
                 style={{
-                  height: "80%",
-                  maxHeight: "85vh",
+                  height: "75%",
+                  maxHeight: "80vh",
                   width: "auto",
                   objectFit: "contain",
                   filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4))",
