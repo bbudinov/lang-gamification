@@ -478,8 +478,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                   width: "auto",
                   objectFit: "contain",
                   filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4))",
-                  WebkitMaskImage: "radial-gradient(ellipse 75% 90% at center, black 40%, transparent 100%)",
-                  maskImage: "radial-gradient(ellipse 75% 90% at center, black 40%, transparent 100%)",
+                  WebkitMaskImage: "radial-gradient(ellipse 45% 48% at center, black 60%, transparent 90%)",
+                  maskImage: "radial-gradient(ellipse 45% 48% at center, black 60%, transparent 90%)",
                 }}
               >
                 <source src={npc.videoTalking} type="video/mp4" />
