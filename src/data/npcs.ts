@@ -100,7 +100,7 @@ export const npcs: NPCData[] = [
     emoji: "👨‍🍳",
     image: "/images/npcs/marco.jpg",
     imageFull: "/images/npcs/marco-full.png",
-    videoTalking: "/videos/npcs/marco-talking.mp4",
+    videoTalking: "/videos/npcs/marco-talking.webm",
     gender: "male",
     role: {
       en: "Chef",
