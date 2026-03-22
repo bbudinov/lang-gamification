@@ -464,7 +464,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               );
             })}
           </div>
-          {/* Character — transparent video (WebM alpha) if available, otherwise PNG */}
+          {/* Character — video with edge mask, or transparent PNG */}
           <div className="absolute inset-0 flex items-center justify-center">
             {npc.videoTalking ? (
               <video
@@ -473,14 +473,16 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                 muted
                 playsInline
                 style={{
-                  height: "75%",
-                  maxHeight: "80vh",
+                  height: "80%",
+                  maxHeight: "85vh",
                   width: "auto",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4)) drop-shadow(0 0 40px rgba(56,189,248,0.15))",
+                  filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4))",
+                  WebkitMaskImage: "radial-gradient(ellipse 75% 90% at center, black 40%, transparent 100%)",
+                  maskImage: "radial-gradient(ellipse 75% 90% at center, black 40%, transparent 100%)",
                 }}
               >
-                <source src={npc.videoTalking} type="video/webm" />
+                <source src={npc.videoTalking} type="video/mp4" />
               </video>
             ) : npc.imageFull ? (
               <img

@@ -29,7 +29,7 @@ export const npcs: NPCData[] = [
     emoji: "🐕",
     image: "/images/npcs/zara.jpg",
     imageFull: "/images/npcs/zara-full.png",
-    videoTalking: "/videos/npcs/zara-talking.webm",
+    videoTalking: "/videos/npcs/zara-talking.mp4",
     gender: "female",
     role: {
       en: "Zookeeper",
@@ -100,7 +100,7 @@ export const npcs: NPCData[] = [
     emoji: "👨‍🍳",
     image: "/images/npcs/marco.jpg",
     imageFull: "/images/npcs/marco-full.png",
-    videoTalking: "/videos/npcs/marco-talking.webm",
+    videoTalking: "/videos/npcs/marco-talking.mp4",
     gender: "male",
     role: {
       en: "Chef",
