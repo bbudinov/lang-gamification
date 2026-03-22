@@ -206,6 +206,7 @@ export const npcs: NPCData[] = [
     emoji: "🩺",
     image: "/images/npcs/dr-bones.jpg",
     imageFull: "/images/npcs/dr-bones-full.png",
+    videoTalking: "/videos/npcs/dr-bones-talking.mp4",
     gender: "male",
     role: {
       en: "Doctor",
