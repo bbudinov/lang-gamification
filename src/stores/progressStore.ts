@@ -288,9 +288,6 @@ export const useProgressStore = create<ProgressState>()(
         if (level === 1) {
           // Level 1 is always unlocked — if the city is visible on map (XP-gated), player can play
           unlocked = true;
-        } else if (topicId === "body") {
-          // TEMP: unlock all levels for hospital testing
-          unlocked = true;
         } else {
           const prevProgress = get().getTopicLevelProgress(topicId, (level - 1) as LevelNumber);
           unlocked = prevProgress.completed;

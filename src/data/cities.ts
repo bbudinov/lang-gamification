@@ -94,7 +94,7 @@ export const CITIES: City[] = [
     emoji: "🏥",
     building: { en: "Hospital", bg: "Болница", es: "Hospital", it: "Ospedale", de: "Krankenhaus", fr: "Hôpital" },
     topicId: "body",
-    requiredXP: 0,
+    requiredXP: 2000,
     pos: { x: 25, y: 18 },
     terrain: "urban",
     connectsTo: ["stormridge"],
