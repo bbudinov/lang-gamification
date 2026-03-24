@@ -223,23 +223,30 @@ export function SayIt({ topic }: SayItProps) {
     if (feedback === "great" || feedback === "almost") return;
 
     const expected = word[targetLanguage];
+    const spoken = transcript.toLowerCase().trim();
     const sim = similarityScore(transcript, expected);
+
+    // Check if it's a completely wrong word (not even close)
+    const lengthRatio = Math.min(spoken.length, expected.length) / Math.max(spoken.length, expected.length);
+    const isWrongWord = sim < 0.3 || (lengthRatio < 0.4 && sim < 0.5);
+
     const sylResult = scoreSyllables(transcript, syllables);
+    const effectiveSim = isWrongWord ? 0 : sim;
 
     const result: AttemptResult = {
-      scores: sylResult.scores,
-      overall: Math.round(sim * 100),
+      scores: isWrongWord ? syllables.map(() => 0) : sylResult.scores,
+      overall: Math.round(effectiveSim * 100),
       spoken: transcript,
     };
     setAttemptResult(result);
-    setShowBreakdown(true);
+    setShowBreakdown(!isWrongWord); // Don't show syllable breakdown for wrong words
 
-    if (sim >= 0.7) {
+    if (effectiveSim >= 0.7) {
       setFeedback("great");
       playDingSound();
       setScore((s) => s + GOOD_POINTS);
       updateWordMastery(word.id, true);
-      if (sim >= 0.9) {
+      if (effectiveSim >= 0.9) {
         setConfetti(true);
         setTimeout(() => setConfetti(false), 2000);
       }
@@ -247,7 +254,7 @@ export function SayIt({ topic }: SayItProps) {
       setTimeout(() => {
         setPopup({ emoji: word.emoji, word: expected });
       }, 1800);
-    } else if (sim >= 0.45) {
+    } else if (effectiveSim >= 0.45) {
       setFeedback("almost");
       playPopSound();
       setScore((s) => s + ATTEMPT_POINTS);
@@ -255,15 +262,17 @@ export function SayIt({ topic }: SayItProps) {
       setTimeout(() => advance(), 3500);
     } else {
       setFeedback("tryAgain");
-      setScore((s) => s + ATTEMPT_POINTS);
-      // Play correct pronunciation after showing breakdown
-      setTimeout(() => playWordAudio(word.id, targetLanguage), 1200);
-      // Reset after 4s for retry
+      if (!isWrongWord) {
+        setScore((s) => s + ATTEMPT_POINTS);
+      }
+      // Play correct pronunciation
+      setTimeout(() => playWordAudio(word.id, targetLanguage), isWrongWord ? 600 : 1200);
+      // Reset after delay for retry
       setTimeout(() => {
         setFeedback(null);
         setShowBreakdown(false);
         setAttemptResult(null);
-      }, 4000);
+      }, isWrongWord ? 3000 : 4000);
     }
     setAttempts((a) => a + 1);
   }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
