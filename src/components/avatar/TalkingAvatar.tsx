@@ -138,11 +138,11 @@ export function TalkingAvatar({
         // Try using quaternion to rotate from T-pose to arms-down
         // T-pose = arms horizontal. We need to rotate the arm bone ~80° around its local forward axis
       }
-      // Use quaternion: rotate around local X axis (which points forward in T-pose)
+      // Quaternion: rotate both arms down around local X axis
       if (LA) { LA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 1.2); }
-      if (RA) { RA.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), 1.2); }
-      if (LF) { LF.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.3); }
-      if (RF) { RF.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, -1), 0.3); }
+      if (RA) { RA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -1.2); }
+      if (LF) { LF.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.15); }
+      if (RF) { RF.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.15); }
     }
 
     const head = headRef.current;
