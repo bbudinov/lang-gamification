@@ -182,6 +182,18 @@ interface ProfessorOverlay3DProps {
 }
 
 export function ProfessorOverlay3D({ speaking = false, emotion = "idle" }: ProfessorOverlay3DProps) {
+  // Only mount 3D Canvas when actually speaking (saves GPU when idle)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    if (speaking) {
+      setMounted(true);
+    } else {
+      // Delay unmount to allow fade-out
+      const t = setTimeout(() => setMounted(false), 500);
+      return () => clearTimeout(t);
+    }
+  }, [speaking]);
+
   return (
     <div
       className="fixed inset-0 z-[200] pointer-events-none"
@@ -200,7 +212,7 @@ export function ProfessorOverlay3D({ speaking = false, emotion = "idle" }: Profe
         }}
       />
       <HologramParticles count={25} />
-      <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
+      {mounted && <ProfessorGlobe3D speaking={speaking} emotion={emotion} />}
     </div>
   );
 }
