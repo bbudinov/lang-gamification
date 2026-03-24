@@ -74,18 +74,25 @@ export function TalkingAvatar({
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as any;
 
-  // Rotate arms down from T-pose (no FBX animation — it causes arm gestures)
+  // Rotate arms down from T-pose to natural resting position
   useEffect(() => {
     if (!groupRef.current) return;
+    const leftShoulder = groupRef.current.getObjectByName("LeftShoulder");
+    const rightShoulder = groupRef.current.getObjectByName("RightShoulder");
     const leftArm = groupRef.current.getObjectByName("LeftArm");
     const rightArm = groupRef.current.getObjectByName("RightArm");
     const leftForeArm = groupRef.current.getObjectByName("LeftForeArm");
     const rightForeArm = groupRef.current.getObjectByName("RightForeArm");
-    // Rotate arms down to a natural resting position
-    if (leftArm) leftArm.rotation.set(0, 0, 1.2); // down + slightly forward
-    if (rightArm) rightArm.rotation.set(0, 0, -1.2);
-    if (leftForeArm) leftForeArm.rotation.set(0, 0, 0.15); // slight bend
-    if (rightForeArm) rightForeArm.rotation.set(0, 0, -0.15);
+
+    // Shoulders slightly down
+    if (leftShoulder) leftShoulder.rotation.set(0, 0, 0.15);
+    if (rightShoulder) rightShoulder.rotation.set(0, 0, -0.15);
+    // Upper arms down along body (Z rotation from T-pose)
+    if (leftArm) leftArm.rotation.set(0.3, 0, 1.1);
+    if (rightArm) rightArm.rotation.set(0.3, 0, -1.1);
+    // Forearms slightly bent inward
+    if (leftForeArm) leftForeArm.rotation.set(0, 0.3, 0.3);
+    if (rightForeArm) rightForeArm.rotation.set(0, -0.3, -0.3);
   }, [nodes]);
 
   // Setup WebAudio analyser for realtime lip sync
