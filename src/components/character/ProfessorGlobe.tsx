@@ -137,10 +137,9 @@ export function ProfessorGlobe({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/globe/professor-head.png"
+            src="/images/globe/professor-head-3d.png"
             alt="Professor Globe"
             className="w-full h-full object-cover"
-            style={{ transform: "scale(0.85)", objectPosition: "center 30%" }}
             draggable={false}
           />
           <div

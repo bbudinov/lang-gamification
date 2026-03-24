@@ -62,7 +62,7 @@ export default function RoomPage() {
     setShowTapFallback(false);
 
     // NPC speaks with gendered voice
-    const gender = room.npc.gender || "male";
+    const gender = "male" as const;
     speakAndWaitGendered(currentStep.npcSays[lang], lang, gender).catch(() => {});
 
     const cleanup = typeText(currentStep.npcSays[lang], () => {
@@ -102,10 +102,10 @@ export default function RoomPage() {
     if (isCorrect) {
       setScore((s) => s + 1);
       setNpcText(currentStep.correctResponse[lang]);
-      speakAndWaitGendered(currentStep.correctResponse[lang], lang, room.npc.gender || "male").catch(() => {});
+      speakAndWaitGendered(currentStep.correctResponse[lang], lang, "male" as const).catch(() => {});
     } else {
       setNpcText(currentStep.wrongResponse[lang]);
-      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, room.npc.gender || "male").catch(() => {});
+      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, "male" as const).catch(() => {});
     }
     setPhase("response");
   }, [transcript, room, step, lang, phase]);
@@ -162,10 +162,10 @@ export default function RoomPage() {
     if (correct) {
       setScore((s) => s + 1);
       setNpcText(currentStep.correctResponse[lang]);
-      speakAndWaitGendered(currentStep.correctResponse[lang], lang, room.npc.gender || "male").catch(() => {});
+      speakAndWaitGendered(currentStep.correctResponse[lang], lang, "male" as const).catch(() => {});
     } else {
       setNpcText(currentStep.wrongResponse[lang]);
-      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, room.npc.gender || "male").catch(() => {});
+      speakAndWaitGendered(currentStep.wrongResponse[lang], lang, "male" as const).catch(() => {});
     }
     setPhase("response");
   };

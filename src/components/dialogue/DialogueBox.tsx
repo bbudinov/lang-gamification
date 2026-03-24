@@ -355,22 +355,12 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   if (gameCompleted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
-        {npc.imageFull ? (
-          <div style={{ height: 180, filter: "drop-shadow(0 0 16px rgba(34,197,94,0.3))" }}>
-            <img src={npc.imageFull} alt={npc.name} className="h-full w-auto object-contain" />
-          </div>
-        ) : npc.image ? (
-          <div className="w-28 h-28 rounded-full overflow-hidden border-3 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-            <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
-          </div>
-        ) : (
-          <div className="text-8xl" style={{ filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))" }}>
-            {npc.emoji}
-          </div>
-        )}
+        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+          <img src="/images/globe/professor-head-3d.png" alt="Professor Globe" className="w-full h-full object-cover" />
+        </div>
         <h2 className="text-3xl font-bold text-white">Great Chat!</h2>
         <p className="text-slate-300 text-center">
-          {npc.name} enjoyed talking with you!
+          Great conversation! Keep practicing!
         </p>
         <div className="bg-white/5 rounded-2xl p-6 w-full max-w-xs space-y-3">
           <div className="flex justify-between text-slate-300">

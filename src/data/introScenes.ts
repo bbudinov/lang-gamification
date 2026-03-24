@@ -50,7 +50,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/zoo-2.webp",
         video: "/images/intros/zoo-2.mp4",
         speaker: "Zara",
-        voiceGender: "female",
+        voiceGender: "male",
         text: {
           en: "Hello there! I'm Zara, the zookeeper. Ready to explore?",
           bg: "Здравей! Аз съм Зара, пазачката на зоопарка. Готов ли си за разходка?",
@@ -156,7 +156,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/school-2.svg",
         video: "/images/intros/school-2.mp4",
         speaker: "Miss Luna",
-        voiceGender: "female",
+        voiceGender: "male",
         text: {
           en: "Shhh... Welcome! I'm Miss Luna. Let's find what you need!",
           bg: "Шшш... Добре дошъл! Аз съм Мис Луна. Хайде да намерим каквото ти трябва!",
@@ -315,7 +315,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/home-2.svg",
         video: "/images/intros/home-2.mp4",
         speaker: "Grandma Rose",
-        voiceGender: "female",
+        voiceGender: "male",
         text: {
           en: "Oh, hello dear! Come in! I'm Grandma Rose.",
           bg: "Ох, здравей, мило! Влизай! Аз съм Баба Роза.",
@@ -421,7 +421,7 @@ export const introScenes: IntroScene[] = [
         image: "/images/intros/station-2.svg",
         video: "/images/intros/weather-station-2.mp4",
         speaker: "Sunny",
-        voiceGender: "female",
+        voiceGender: "male",
         text: {
           en: "GOOD MORNING! I'm Sunny! What's the weather like today?",
           bg: "ДОБРО УТРО! Аз съм Съни! Какво е времето днес?",
