@@ -5,309 +5,597 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LangWorld — Pitch Deck</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a1628; color: #f1f5f9; overflow: hidden; height: 100vh; }
 
-  .slide { display: none; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 60px 80px; text-align: center; animation: fadeIn 0.4s ease; }
-  .slide.active { display: flex; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a1628;
+    color: #e2e8f0;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
 
-  h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #3b82f6, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 32px; color: #93c5fd; }
-  h3 { font-size: 1.3rem; font-weight: 600; color: #60a5fa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
-  p { font-size: 1.25rem; line-height: 1.7; color: #cbd5e1; max-width: 800px; }
-  .subtitle { font-size: 1.5rem; color: #94a3b8; margin-bottom: 40px; }
-  .big-quote { font-size: 1.8rem; font-style: italic; color: #e2e8f0; max-width: 700px; line-height: 1.6; border-left: 4px solid #3b82f6; padding-left: 24px; text-align: left; }
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), transparent);
+  }
 
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 900px; text-align: left; }
-  .grid2 .col h3 { margin-bottom: 12px; }
-  .grid2 .col p { font-size: 1.05rem; }
+  .slide-number {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 500;
+    letter-spacing: 2px;
+  }
 
-  .list { text-align: left; max-width: 750px; }
-  .list li { font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; margin-bottom: 4px; }
-  .list li strong { color: #e2e8f0; }
-  .list li .tag { color: #f87171; }
+  h1 {
+    font-size: 72px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
 
-  .check-list { text-align: left; max-width: 800px; columns: 2; column-gap: 40px; }
-  .check-list li { font-size: 1rem; line-height: 1.9; color: #cbd5e1; list-style: none; }
-  .check-list li::before { content: "✅ "; }
+  h2 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #f1f5f9;
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
 
-  .vs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; max-width: 900px; text-align: left; }
-  .vs-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
-  .vs-card h3 { color: #f87171; font-size: 1rem; margin-bottom: 8px; }
-  .vs-card p { font-size: 0.95rem; color: #94a3b8; }
-  .vs-card .us { color: #34d399; font-weight: 600; margin-top: 8px; display: block; }
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
 
-  .phase { text-align: left; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; max-width: 800px; }
-  .phase h3 { margin-bottom: 6px; letter-spacing: 0; text-transform: none; }
-  .phase p { font-size: 1rem; }
-  .phase.done { border-color: rgba(52,211,153,0.3); }
-  .phase.done h3 { color: #34d399; }
+  .subtitle {
+    font-size: 22px;
+    color: #94a3b8;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 700px;
+  }
 
-  .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 40px; max-width: 700px; text-align: left; }
-  .tech-grid .row { font-size: 1.05rem; }
-  .tech-grid .label { color: #64748b; }
-  .tech-grid .val { color: #e2e8f0; font-weight: 500; }
+  .tagline {
+    font-size: 28px;
+    color: #cbd5e1;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
 
-  .nav { position: fixed; bottom: 24px; right: 32px; display: flex; gap: 12px; z-index: 100; }
-  .nav button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: background 0.2s; }
-  .nav button:hover { background: rgba(59,130,246,0.4); }
-  .counter { position: fixed; bottom: 30px; left: 32px; color: #475569; font-size: 0.9rem; }
+  .big-quote {
+    font-size: 36px;
+    font-weight: 300;
+    color: #e2e8f0;
+    line-height: 1.5;
+    border-left: 4px solid #38bdf8;
+    padding-left: 24px;
+    margin: 30px 0;
+    max-width: 700px;
+  }
 
-  .highlight { color: #60a5fa; font-weight: 600; }
-  .emoji { font-size: 3rem; margin-bottom: 20px; }
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul li {
+    padding: 8px 0;
+    padding-left: 28px;
+    position: relative;
+    font-size: 18px;
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+
+  ul li::before {
+    content: '\2192';
+    position: absolute;
+    left: 0;
+    color: #38bdf8;
+    font-weight: 700;
+  }
+
+  .problem li::before { content: '\2717'; color: #f87171; }
+  .check li::before { content: '\2713'; color: #4ade80; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .card p, .card li {
+    font-size: 15px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.08));
+    border: 1px solid rgba(56,189,248,0.15);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+
+  .highlight-box p {
+    font-size: 17px;
+    color: #cbd5e1;
+    line-height: 1.7;
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 20px;
+    margin-top: 20px;
+  }
+
+  .tech-label {
+    font-weight: 600;
+    color: #38bdf8;
+    font-size: 14px;
+    text-align: right;
+    padding-top: 2px;
+  }
+
+  .tech-value {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .vs-block {
+    margin-bottom: 20px;
+  }
+
+  .vs-block h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f87171;
+    margin-bottom: 6px;
+  }
+
+  .vs-block p {
+    font-size: 15px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  .phase {
+    margin-bottom: 28px;
+  }
+
+  .phase-label {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0a1628;
+    background: #38bdf8;
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .phase-label.done { background: #4ade80; }
+  .phase-label.next { background: #fbbf24; color: #1a1a1a; }
+
+  .flow-steps {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+
+  .flow-step {
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 14px;
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+
+  .flow-arrow {
+    color: #38bdf8;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .cta {
+    text-align: center;
+    padding: 40px;
+  }
+
+  .cta a {
+    display: inline-block;
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    color: white;
+    text-decoration: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 20px;
+    transition: transform 0.2s;
+  }
+
+  .cta a:hover { transform: scale(1.05); }
+
+  .emphasis { color: #38bdf8; font-weight: 600; }
+  .dim { color: #64748b; }
 
   @media (max-width: 768px) {
     .slide { padding: 40px 24px; }
-    h1 { font-size: 2.2rem; }
-    h2 { font-size: 1.6rem; }
-    p { font-size: 1rem; }
-    .grid2 { grid-template-columns: 1fr; }
-    .check-list { columns: 1; }
-    .vs-grid { grid-template-columns: 1fr; }
-    .tech-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 42px; }
+    h2 { font-size: 28px; }
+    .subtitle { font-size: 17px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: 100px 1fr; }
+    .big-quote { font-size: 24px; }
   }
 </style>
 </head>
 <body>
 
 <!-- SLIDE 1: Title -->
-<div class="slide active" id="s1">
-  <div class="emoji">🌍</div>
+<section class="slide" style="justify-content: center; align-items: center; text-align: center;">
+  <span class="slide-number">01 / 14</span>
   <h1>LangWorld</h1>
-  <p class="subtitle">Learn languages by playing in them.</p>
-  <p>A game world where kids practice speaking, listening, reading and writing in a new language — through real exercises, not textbooks.</p>
-</div>
+  <p class="tagline">Learn languages by living in them.</p>
+  <p class="subtitle" style="max-width: 600px;">A game world where kids practice speaking, listening, reading and writing in a new language — through immersive scenarios, not textbooks.</p>
+</section>
 
-<!-- SLIDE 2: Problem -->
-<div class="slide" id="s2">
-  <h2>The Problem</h2>
-  <p class="big-quote">Language apps today teach words. Not language.<br><br>Kids memorize "apple = ябълка" but can't say "Can I have an apple?"</p>
-  <br>
-  <ul class="list">
-    <li>Most apps are <strong>multiple choice quizzes</strong> — no speaking, no real practice</li>
-    <li>The <strong>#1 global complaint</strong>: "I understand, but I'm afraid to speak"</li>
-    <li>Age <strong>6–10 is almost empty</strong> — apps are for toddlers or adults</li>
-    <li>No product makes kids actually <strong>practice using</strong> a language</li>
+<!-- SLIDE 2: The Problem -->
+<section class="slide">
+  <span class="slide-number">02 / 14</span>
+  <h3>The Problem</h3>
+  <h2>Language apps teach words.<br>Not language.</h2>
+  <ul class="problem">
+    <li>Kids memorize "apple = manzana" but can't say "Can I have an apple?"</li>
+    <li>Most apps are multiple choice quizzes — no speaking, no listening, no real practice</li>
+    <li>The #1 complaint worldwide: "I understand but I'm afraid to speak"</li>
+    <li>Age 7-14 is almost completely ignored — apps are either for toddlers or adults</li>
   </ul>
-</div>
+  <div class="highlight-box" style="margin-top: 32px;">
+    <p>There's no product that makes kids actually <span class="emphasis">PRACTICE using a language</span> in real, meaningful scenarios.</p>
+  </div>
+</section>
 
-<!-- SLIDE 3: Solution -->
-<div class="slide" id="s3">
-  <h2>8 Exercise Types. Every Skill.</h2>
-  <div class="grid2">
-    <div class="col">
-      <h3>👂 Listening</h3>
-      <p>Listen & Repeat — hear a phrase, say it back<br>Word Quiz — hear a word, pick the translation</p>
-      <br>
-      <h3>🗣️ Speaking</h3>
-      <p>Say It! — pronounce words, get feedback<br>NPC Talk — AI conversation with a character</p>
+<!-- SLIDE 3: The Solution -->
+<section class="slide">
+  <span class="slide-number">03 / 14</span>
+  <h3>The Solution</h3>
+  <h2>9 exercise types.<br>Every language skill. Through play.</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Listening</h4>
+      <ul>
+        <li>Listen & Repeat — hear a phrase, say it back</li>
+        <li>Word Quiz — hear a word, pick the translation</li>
+      </ul>
     </div>
-    <div class="col">
-      <h3>📖 Reading</h3>
-      <p>Fill the Scene — read, pick the missing word<br>True or False — judge word-translation pairs</p>
-      <br>
-      <h3>✍️ Spelling</h3>
-      <p>Word Scramble — arrange letters correctly<br>Memory Match — find matching word pairs</p>
+    <div class="card">
+      <h4>Speaking & Pronunciation</h4>
+      <ul>
+        <li>Say It! — syllable-by-syllable feedback</li>
+        <li>NPC Talk — AI conversation with 3D avatar</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Reading</h4>
+      <ul>
+        <li>Fill the Scene — complete sentences</li>
+        <li>True or False — judge translations</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Writing / Spelling</h4>
+      <ul>
+        <li>Word Scramble — arrange letters</li>
+        <li>Memory Match — find word pairs</li>
+        <li>Memory Mix — cross-topic challenge</li>
+      </ul>
     </div>
   </div>
-</div>
+</section>
 
-<!-- SLIDE 4: How it works -->
-<div class="slide" id="s4">
-  <h2>How It Works</h2>
-  <ul class="list">
-    <li>Open the app → <strong>3D island map</strong> with 12 topic islands</li>
-    <li>Tap an island — Animals, Food, Colors, Family...</li>
-    <li>Pick a game type → play <strong>5–8 rounds</strong></li>
-    <li>Earn points → <strong>unlock new islands</strong></li>
-    <li>3 levels per island: <strong>Discover → Use → Survive</strong></li>
-    <li>Professor Globe <strong>guides you with voice</strong> + animations</li>
+<!-- SLIDE 4: How It Works -->
+<section class="slide">
+  <span class="slide-number">04 / 14</span>
+  <h3>How It Works</h3>
+  <h2>From map to mastery in 3 taps.</h2>
+  <div class="flow-steps">
+    <div class="flow-step">Open app</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Tap a location</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Pick a game</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Earn XP</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Unlock new worlds</div>
+  </div>
+  <ul style="margin-top: 28px;">
+    <li>Optimized 3D city map with 12 themed locations</li>
+    <li>3 levels per location: <span class="emphasis">Discover &rarr; Use &rarr; Survive</span></li>
+    <li>Professor Globe — 3D talking avatar — guides with lip-synced speech</li>
+    <li>No accounts required. No setup. Just play.</li>
   </ul>
-  <br>
-  <p>No accounts. No setup. Just play.</p>
-</div>
+</section>
 
-<!-- SLIDE 5: Professor Globe -->
-<div class="slide" id="s5">
-  <div class="emoji">🔮</div>
-  <h2>Professor Globe — AI Guide</h2>
-  <ul class="list">
-    <li>Animated <strong>energy sphere</strong> character with emotions</li>
-    <li><strong>Speaks every word and sentence</strong> in 3 languages</li>
-    <li>Reacts to answers — happy, thinking, surprised</li>
-    <li>Eyes <strong>follow your finger</strong> on screen</li>
-    <li>In NPC Talk: has <strong>real AI conversations</strong> with the child</li>
-    <li><strong>Never punishes mistakes</strong> — always encourages</li>
-  </ul>
-</div>
-
-<!-- SLIDE 6: Who is it for -->
-<div class="slide" id="s6">
-  <h2>Who Is It For</h2>
-  <div class="grid2">
-    <div class="col">
-      <h3>🎯 Primary: Kids 6–10</h3>
-      <p>Learning English, Bulgarian, or Spanish through a game they actually want to play.<br><br>Safe. No ads. No social. No in-app purchases.</p>
+<!-- SLIDE 5: 3D Avatar -->
+<section class="slide">
+  <span class="slide-number">05 / 14</span>
+  <h3>The AI Teacher</h3>
+  <h2>A 3D character you talk to.<br>Not a chatbot.</h2>
+  <div class="grid-2">
+    <div>
+      <ul>
+        <li>Real-time lip sync matched to speech</li>
+        <li>Eye blinking and natural idle pose</li>
+        <li>Head tracking — follows the camera</li>
+        <li>Zoom-in effect when speaking</li>
+        <li>AI-powered conversations — not scripted</li>
+        <li>Never punishes — always encourages</li>
+        <li><span class="emphasis">Encyclopedia mode</span>: ask about ANYTHING</li>
+      </ul>
     </div>
-    <div class="col">
-      <h3>🌍 Also works for</h3>
-      <p>Anyone who wants to practice speaking a language. Beginners who know words but can't use them. People with speaking anxiety — a safe space to practice.</p>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+      <p style="font-size: 14px; color: #64748b; margin-bottom: 8px;">Built with:</p>
+      <p style="font-size: 15px; color: #cbd5e1; line-height: 1.8;">
+        React Three Fiber<br>
+        Rhubarb Lip Sync (168 data files)<br>
+        WebAudio realtime analyser<br>
+        Claude API conversations
+      </p>
     </div>
   </div>
-  <br>
-  <p>The exercises are universal. The game wrapper makes it fun for kids.</p>
-</div>
+</section>
 
-<!-- SLIDE 7: What's built -->
-<div class="slide" id="s7">
-  <h2>What's Built Today</h2>
-  <ul class="check-list">
+<!-- SLIDE 6: Who Is It For -->
+<section class="slide">
+  <span class="slide-number">06 / 14</span>
+  <h3>Target Audience</h3>
+  <h2>Kids 7-14. The ignored market.</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Primary</h4>
+      <ul>
+        <li>Kids 7-14 learning a new language</li>
+        <li>6 languages: EN, BG, ES, IT, DE, FR</li>
+        <li>Safe: no ads, no social, no purchases</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Also Works For</h4>
+      <ul>
+        <li>Beginners who know words but can't speak</li>
+        <li>People with speaking anxiety</li>
+        <li>Anyone who wants immersive practice</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: What's Built -->
+<section class="slide">
+  <span class="slide-number">07 / 14</span>
+  <h3>Current State</h3>
+  <h2>This is not a mockup.<br>It's live.</h2>
+  <ul class="check">
     <li>Fully working PWA — install on any phone</li>
-    <li>12 topic islands with 120+ words</li>
-    <li>8 game types covering all skills</li>
-    <li>3 languages: EN, BG, ES</li>
-    <li>233 audio files (real voices)</li>
-    <li>AI-powered NPC conversations</li>
-    <li>Speech recognition for pronunciation</li>
-    <li>3D interactive island map</li>
-    <li>Points, streaks, daily missions</li>
-    <li>Professor Globe with mouth-sync</li>
-    <li>Offline support</li>
-    <li>Desktop + mobile</li>
+    <li>12 themed locations with 170+ words x 6 languages</li>
+    <li>9 game types covering all language skills</li>
+    <li>AI conversations with 3D talking avatar + lip sync</li>
+    <li>Syllable-by-syllable pronunciation feedback</li>
+    <li>Speech recognition with fuzzy word matching</li>
+    <li>Optimized 3D map (~1K draw calls, InstancedMesh)</li>
+    <li>XP, coins, streaks, achievements, pet system, shop</li>
+    <li>NPC memory — characters remember past conversations</li>
+    <li>Offline support + cloud sync</li>
   </ul>
-  <br>
-  <p>Live now: <span class="highlight">langworld.vercel.app</span></p>
-</div>
+  <div class="cta" style="margin-top: 24px; text-align: left;">
+    <a href="https://langworld.vercel.app" target="_blank">Try it live &rarr;</a>
+  </div>
+</section>
 
-<!-- SLIDE 8: Tech Stack -->
-<div class="slide" id="s8">
-  <h2>Tech Stack</h2>
+<!-- SLIDE 8: NPC Talk -->
+<section class="slide">
+  <span class="slide-number">08 / 14</span>
+  <h3>Key Differentiator</h3>
+  <h2>The NPC Talk experience.</h2>
+  <div class="flow-steps">
+    <div class="flow-step">Tap mic</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Speak freely</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Press Done</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">AI responds</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-step">Avatar lip syncs</div>
+  </div>
+  <div class="highlight-box">
+    <ul>
+      <li>Avatar is a <span class="emphasis">real 3D character</span>, not a flat chatbot</li>
+      <li>Conversations are contextual — at the zoo, restaurant, hospital</li>
+      <li>AI corrects mistakes naturally: "Oh, you mean THE CAT? Great!"</li>
+      <li>Ask about <span class="emphasis">anything</span> — AI has encyclopedia knowledge</li>
+      <li>Fuzzy matching fixes speech errors (bigs &rarr; pigs)</li>
+      <li>Full immersion in the target language</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 9: Tech Stack -->
+<section class="slide">
+  <span class="slide-number">09 / 14</span>
+  <h3>Tech Stack</h3>
+  <h2>Modern. Lean. No backend needed.</h2>
   <div class="tech-grid">
-    <div class="row"><span class="label">Frontend</span></div>
-    <div class="row"><span class="val">Next.js 16 + React 19 + TypeScript</span></div>
-    <div class="row"><span class="label">3D World</span></div>
-    <div class="row"><span class="val">Three.js + React Three Fiber</span></div>
-    <div class="row"><span class="label">Character</span></div>
-    <div class="row"><span class="val">Canvas 2D (custom animation)</span></div>
-    <div class="row"><span class="label">AI</span></div>
-    <div class="row"><span class="val">Claude API (Anthropic)</span></div>
-    <div class="row"><span class="label">Audio</span></div>
-    <div class="row"><span class="val">Google Cloud TTS (pre-generated)</span></div>
-    <div class="row"><span class="label">Speech</span></div>
-    <div class="row"><span class="val">Web Speech API (browser-native)</span></div>
-    <div class="row"><span class="label">Deploy</span></div>
-    <div class="row"><span class="val">Vercel (serverless)</span></div>
-    <div class="row"><span class="label">State</span></div>
-    <div class="row"><span class="val">Zustand (client-side)</span></div>
+    <span class="tech-label">Frontend</span><span class="tech-value">Next.js 16 + React 19 + TypeScript</span>
+    <span class="tech-label">3D World</span><span class="tech-value">Three.js + React Three Fiber (InstancedMesh, ~1K calls)</span>
+    <span class="tech-label">Avatar</span><span class="tech-value">3D GLB + Rhubarb Lip Sync + WebAudio analyser</span>
+    <span class="tech-label">Styling</span><span class="tech-value">Tailwind CSS v4</span>
+    <span class="tech-label">State</span><span class="tech-value">Zustand (offline-first, syncs to Supabase)</span>
+    <span class="tech-label">AI</span><span class="tech-value">Claude API (Anthropic) — NPC conversations</span>
+    <span class="tech-label">Audio</span><span class="tech-value">Google Cloud TTS (233 pre-generated MP3s)</span>
+    <span class="tech-label">Speech</span><span class="tech-value">Web Speech API (browser-native, free)</span>
+    <span class="tech-label">Auth</span><span class="tech-value">Supabase (email + kid PIN login)</span>
+    <span class="tech-label">Deploy</span><span class="tech-value">Vercel (serverless) + PWA</span>
   </div>
-  <br>
-  <p>Zero backend infrastructure. Zero database. Everything runs client-side except AI conversations.</p>
-</div>
+  <p style="margin-top: 28px; color: #64748b; font-size: 14px;">Zero backend infrastructure. Everything client-side except AI conversations.</p>
+</section>
 
-<!-- SLIDE 9: Roadmap -->
-<div class="slide" id="s9">
-  <h2>Roadmap</h2>
-  <div class="phase done">
-    <h3>Phase 1 — Done ✅</h3>
-    <p>Surface World: 12 islands, 8 games, 120+ words, 3 languages, AI conversations, speech recognition</p>
+<!-- SLIDE 10: Roadmap -->
+<section class="slide">
+  <span class="slide-number">10 / 14</span>
+  <h3>Roadmap</h3>
+  <h2>From 12 locations to an entire planet.</h2>
+  <div class="phase">
+    <span class="phase-label done">Phase 1 — Done</span>
+    <p style="color: #cbd5e1; margin-top: 8px;">Surface World: 12 locations, 9 games, 170+ words, 6 languages<br>3D avatar + lip sync + AI conversations + pronunciation feedback</p>
   </div>
   <div class="phase">
-    <h3>Phase 2 — Multi-World Expansion</h3>
-    <p>🌊 Underwater World — marine life, ocean science (+150 words)<br>🌍 Land World — biomes, buildings, earth sciences (+200 words)<br>☁️ Sky World — weather, flight, atmosphere (+150 words)<br><strong>Total: 500–600+ words</strong> across all worlds</p>
+    <span class="phase-label next">Phase 2 — Content Expansion</span>
+    <p style="color: #94a3b8; margin-top: 8px;">
+      Underwater World — marine life (+150 words)<br>
+      Land World — biomes, geography (+200 words)<br>
+      Sky World — weather, flight, space (+150 words)<br>
+      City expansion — more shops, services, professions<br>
+      <span class="emphasis">Total: 700+ words</span>
+    </p>
   </div>
   <div class="phase">
-    <h3>Phase 3 — AI Evolution</h3>
-    <p>Free-form AI conversations. AI-generated stories. NPCs that remember the child. Adaptive difficulty. Survival mechanics — language as resource to progress.</p>
+    <span class="phase-label">Phase 3 — Social & Classroom</span>
+    <p style="color: #64748b; margin-top: 8px;">Multiplayer challenges &middot; Classroom mode &middot; Parent reports &middot; Custom avatars</p>
   </div>
-</div>
+  <div class="phase">
+    <span class="phase-label">Phase 4 — Platform</span>
+    <p style="color: #64748b; margin-top: 8px;">Content SDK &middot; AI-generated scenarios &middot; More languages &middot; Enterprise licensing</p>
+  </div>
+</section>
 
-<!-- SLIDE 10: Dev Approach -->
-<div class="slide" id="s10">
-  <h2>Development Approach</h2>
-  <p class="big-quote">Built in 3 days by one person + Claude Code (AI).<br><br>85 commits. Feb 28 → Mar 2, 2026.</p>
-  <br>
-  <ul class="list">
-    <li>Direction given in <strong>natural language</strong> (Bulgarian)</li>
-    <li>AI writes <strong>all code</strong>, tests, deploys autonomously</li>
-    <li>Human focuses on <strong>product vision</strong> and testing</li>
-    <li>Extremely <strong>fast iteration</strong> — one person = full team</li>
+<!-- SLIDE 11: Dev Approach -->
+<section class="slide">
+  <span class="slide-number">11 / 14</span>
+  <h3>Development</h3>
+  <h2>One person + AI.<br>Full engineering team output.</h2>
+  <ul>
+    <li>Human provides product vision, UX direction, testing</li>
+    <li>AI writes all code, architecture, deploys autonomously</li>
+    <li>3D avatar, lip sync, map optimization — all AI-built</li>
+    <li>Features go from idea to production in <span class="emphasis">hours, not weeks</span></li>
   </ul>
-</div>
-
-<!-- SLIDE 11: Differentiators -->
-<div class="slide" id="s11">
-  <h2>vs Competition</h2>
-  <div class="vs-grid">
-    <div class="vs-card">
-      <h3>vs Duolingo</h3>
-      <p>Multiple choice quiz app. No real speaking. Gamified but not a game.</p>
-      <span class="us">LangWorld: 8 exercise types + AI chat + speaking</span>
-    </div>
-    <div class="vs-card">
-      <h3>vs Lingokids</h3>
-      <p>Designed for ages 3–5. Too simple for 6–10. No AI conversations.</p>
-      <span class="us">LangWorld: built for 6–10 — the empty market</span>
-    </div>
-    <div class="vs-card">
-      <h3>vs ChatGPT tutors</h3>
-      <p>Chat interfaces, not games. Kids don't want to "chat with AI".</p>
-      <span class="us">LangWorld: game first, AI invisible inside</span>
-    </div>
+  <div class="highlight-box" style="margin-top: 24px;">
+    <p><span class="emphasis">Cost-efficient:</span> No salaries. No hiring delays. No team management overhead. Product decisions drive development, not team size.</p>
   </div>
-</div>
+</section>
 
-<!-- SLIDE 12: Vision -->
-<div class="slide" id="s12">
-  <div class="emoji">🌍</div>
-  <h1>LangWorld</h1>
-  <br>
-  <p class="big-quote" style="border:none; text-align:center; padding:0;">
-    "You don't learn a language —<br>you survive in a world through it."
+<!-- SLIDE 12: Differentiators -->
+<section class="slide">
+  <span class="slide-number">12 / 14</span>
+  <h3>Competition</h3>
+  <h2>What exists vs what we built.</h2>
+  <div class="vs-block">
+    <h4>vs Duolingo</h4>
+    <p>Multiple choice quiz app. No real speaking practice. LangWorld has syllable-level pronunciation + free-form AI conversation.</p>
+  </div>
+  <div class="vs-block">
+    <h4>vs Lingokids / Khan Academy Kids</h4>
+    <p>Ages 3-6 (preschool). LangWorld targets 7-14 — an underserved market worth billions.</p>
+  </div>
+  <div class="vs-block">
+    <h4>vs ChatGPT / AI Tutors</h4>
+    <p>Chat interfaces, not games. Kids don't want to "chat with AI" — they want to PLAY.</p>
+  </div>
+  <div class="vs-block">
+    <h4>vs Praktika.ai</h4>
+    <p>Adult-focused, subscription-heavy. LangWorld is kid-first, game-first, scenario-based. Both have 3D avatars — we add the game world.</p>
+  </div>
+</section>
+
+<!-- SLIDE 13: Vision -->
+<section class="slide" style="align-items: center; text-align: center;">
+  <span class="slide-number">13 / 14</span>
+  <h3>Vision</h3>
+  <div class="big-quote" style="border: none; text-align: center; padding: 0;">
+    "You don't learn a language —<br>you <span class="emphasis">live</span> in a world through it."
+  </div>
+  <p class="subtitle" style="margin-top: 32px; max-width: 600px; text-align: center;">
+    Ask a zookeeper about opossums.<br>
+    Order pizza in Spanish.<br>
+    Describe your symptoms to a doctor in German.<br>
+    Negotiate prices at a market in French.
   </p>
-  <br><br>
-  <p><span class="highlight">langworld.vercel.app</span></p>
-</div>
+  <p style="margin-top: 32px; font-size: 22px; font-weight: 600; color: #38bdf8;">LangWorld is building that world.</p>
+</section>
 
-<!-- Navigation -->
-<div class="nav">
-  <button onclick="prev()">←</button>
-  <button onclick="next()">→</button>
-</div>
-<div class="counter" id="counter">1 / 12</div>
+<!-- SLIDE 14: Ask -->
+<section class="slide" style="align-items: center; text-align: center;">
+  <span class="slide-number">14 / 14</span>
+  <h3>Let's Talk</h3>
+  <h2>We're looking for partners.</h2>
+  <div style="margin-top: 24px;">
+    <ul style="text-align: left; display: inline-block;">
+      <li>Seed funding to scale content (more worlds, more languages)</li>
+      <li>Partnerships with schools for classroom pilot programs</li>
+      <li>Distribution partnerships (app stores, education platforms)</li>
+    </ul>
+  </div>
+  <div class="cta">
+    <a href="https://langworld.vercel.app" target="_blank">Try the live demo &rarr;</a>
+  </div>
+</section>
 
-<script>
-  let current = 0;
-  const slides = document.querySelectorAll('.slide');
-  const total = slides.length;
-
-  function show(n) {
-    slides[current].classList.remove('active');
-    current = (n + total) % total;
-    slides[current].classList.add('active');
-    document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
-  }
-
-  function next() { show(current + 1); }
-  function prev() { show(current - 1); }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
-    if (e.key === 'ArrowLeft') prev();
-    if (e.key === 'f' || e.key === 'F') {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-      else document.exitFullscreen();
-    }
-  });
-
-  // Swipe support for mobile
-  let touchStartX = 0;
-  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
-  document.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
-  });
-</script>
 </body>
 </html>
