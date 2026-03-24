@@ -306,18 +306,30 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     }
   }, [loading, npc, npcSpeaking, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
 
-  // Process speech recognition result
+  // Process speech recognition result — only when mic STOPS (user finished talking)
   const processedTranscriptRef = useRef("");
+  const pendingTranscriptRef = useRef("");
+
+  // Track the latest transcript while listening
   useEffect(() => {
-    if (!transcript || loading || gameCompleted) return;
-    if (transcript === processedTranscriptRef.current) return;
-    // Ignore transcripts that are too short (likely noise or echo from speaker)
-    if (transcript.trim().length < 2) return;
-    // Don't process if NPC is still speaking (mic picked up speaker audio)
+    if (transcript && isListening) {
+      pendingTranscriptRef.current = transcript;
+    }
+  }, [transcript, isListening]);
+
+  // When mic stops → process the full answer
+  useEffect(() => {
+    if (isListening) return; // still listening, wait
+    const finalText = pendingTranscriptRef.current || transcript;
+    if (!finalText || loading || gameCompleted) return;
+    if (finalText === processedTranscriptRef.current) return;
+    if (finalText.trim().length < 2) return;
     if (speakingRef.current || npcSpeaking) return;
-    processedTranscriptRef.current = transcript;
-    handlePlayerChoice(transcript);
-  }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    processedTranscriptRef.current = finalText;
+    pendingTranscriptRef.current = "";
+    handlePlayerChoice(finalText);
+  }, [isListening]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMicToggle = () => {
     if (isListening) {
@@ -326,14 +338,15 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       // Don't allow mic while NPC is speaking — it picks up the speaker audio
       if (speakingRef.current || npcSpeaking) {
         stopAudio();
-        // Wait a moment for audio to stop before starting mic
         setTimeout(() => {
           processedTranscriptRef.current = "";
+          pendingTranscriptRef.current = "";
           startMic();
         }, 300);
         return;
       }
       processedTranscriptRef.current = "";
+      pendingTranscriptRef.current = "";
       startMic();
     }
   };
