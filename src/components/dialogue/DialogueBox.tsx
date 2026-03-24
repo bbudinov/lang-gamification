@@ -132,14 +132,13 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const speakNPC = useCallback(async (text: string) => {
     speakingRef.current = true;
     setNpcSpeaking(true);
-    const gender = npc?.gender || "male";
     window.speechSynthesis?.cancel();
-    await speakAndWaitGendered(text, targetLanguage, gender);
+    await speakAndWaitGendered(text, targetLanguage, "male"); // Always male — avatar is Professor Globe
     if (speakingRef.current) {
       setNpcSpeaking(false);
       speakingRef.current = false;
     }
-  }, [targetLanguage, npc?.gender]);
+  }, [targetLanguage]);
 
   // Cleanup on unmount
   useEffect(() => {
