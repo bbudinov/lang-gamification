@@ -130,9 +130,9 @@ export function TalkingAvatar({
       const RA = groupRef.current.getObjectByName("RightArm");
       const LF = groupRef.current.getObjectByName("LeftForeArm");
       const RF = groupRef.current.getObjectByName("RightForeArm");
-      // Arms straight down along body
-      if (LA) { LA.rotation.set(0, 0, 0); }
-      if (RA) { RA.rotation.set(0, 0, 0); }
+      // T-pose is 0. Negative Y should rotate arms down.
+      if (LA) { LA.rotation.set(0, -1.4, 0); }
+      if (RA) { RA.rotation.set(0, 1.4, 0); }
       if (LF) { LF.rotation.set(0, 0, 0); }
       if (RF) { RF.rotation.set(0, 0, 0); }
     }
