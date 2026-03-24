@@ -551,103 +551,11 @@ function CityBlocks() {
             <meshStandardMaterial color="#707068" roughness={0.9} />
           </mesh>
 
-          {/* Main body */}
+          {/* Main body with facade texture (windows/doors baked in) */}
           <mesh position={[0, b.h / 2, 0]} castShadow receiveShadow>
             <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color={b.wallColor} roughness={0.85} />
+            <meshStandardMaterial map={getFacadeTex(b.type, b.wallColor, b.h)} roughness={0.85} />
           </mesh>
-
-          {/* Ground floor distinction */}
-          <mesh position={[0, 0.55, 0]}>
-            <boxGeometry args={[b.w + 0.02, 1.02, b.d + 0.02]} />
-            <meshStandardMaterial color={b.type === "house" ? b.wallColor : "#8a8a82"} roughness={0.9} />
-          </mesh>
-
-          {/* Door on front face */}
-          <mesh position={[0, 0.5, b.d / 2 + 0.015]}>
-            <planeGeometry args={[b.type === "house" ? 0.35 : 0.5, 0.7]} />
-            <meshStandardMaterial color="#4a3828" />
-          </mesh>
-          {/* Door frame */}
-          <mesh position={[0, 0.86, b.d / 2 + 0.016]}>
-            <planeGeometry args={[b.type === "house" ? 0.42 : 0.56, 0.04]} />
-            <meshStandardMaterial color="#4a3018" />
-          </mesh>
-
-          {/* Windows — front + side, spaced grid */}
-          {(b.type !== "house") && (() => {
-            const rows = Math.max(1, Math.floor(b.h / 1.4));
-            const cols = Math.max(1, Math.floor(b.w / 1.0));
-            const wSize = b.type === "tower" ? 0.42 : 0.32;
-            return Array.from({ length: rows }, (_, row) =>
-              Array.from({ length: cols }, (_, col) => {
-                const wx = (col - (cols - 1) / 2) * (b.w * 0.7 / Math.max(cols, 1));
-                const wy = 1.3 + row * ((b.h - 1.5) / Math.max(rows, 1));
-                return (
-                  <group key={`w${row}${col}`}>
-                    {/* Front window */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.012]}>
-                      <planeGeometry args={[wSize, wSize * 1.3]} />
-                      <meshStandardMaterial color="#6ab8d8" metalness={0.4} roughness={0.2} />
-                    </mesh>
-                    {/* Window frame */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.014]}>
-                      <planeGeometry args={[wSize + 0.06, wSize * 1.3 + 0.06]} />
-                      <meshStandardMaterial color="#d8d8d4" />
-                    </mesh>
-                    {/* Window cross */}
-                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
-                      <planeGeometry args={[0.02, wSize * 1.3]} />
-                      <meshStandardMaterial color="#c0c0bc" />
-                    </mesh>
-                    <mesh position={[wx, wy, b.d / 2 + 0.016]}>
-                      <planeGeometry args={[wSize, 0.02]} />
-                      <meshStandardMaterial color="#c0c0bc" />
-                    </mesh>
-                    {/* Side window */}
-                    <mesh position={[b.w / 2 + 0.012, wy, (col - (cols - 1) / 2) * (b.d * 0.7 / Math.max(cols, 1))]} rotation={[0, Math.PI / 2, 0]}>
-                      <planeGeometry args={[wSize, wSize * 1.3]} />
-                      <meshStandardMaterial color="#5aa8c0" metalness={0.4} roughness={0.2} />
-                    </mesh>
-                    {/* Balcony on apartments (every other window, front only) */}
-                    {b.type === "apartment" && row > 0 && col % 2 === 0 && (
-                      <group position={[wx, wy - wSize * 0.65, b.d / 2 + 0.15]}>
-                        <mesh><boxGeometry args={[wSize + 0.15, 0.04, 0.25]} /><meshStandardMaterial color="#888" metalness={0.3} /></mesh>
-                        <mesh position={[0, 0.1, 0.12]}><boxGeometry args={[wSize + 0.15, 0.18, 0.02]} /><meshStandardMaterial color="#666" metalness={0.4} transparent opacity={0.6} /></mesh>
-                      </group>
-                    )}
-                  </group>
-                );
-              })
-            );
-          })()}
-
-          {/* House windows (2 on front) */}
-          {b.type === "house" && (
-            <>
-              {[-0.22, 0.22].map((wx, wi) => (
-                <group key={wi}>
-                  <mesh position={[wx * b.w, b.h * 0.55, b.d / 2 + 0.012]}>
-                    <planeGeometry args={[0.28, 0.32]} />
-                    <meshStandardMaterial color="#80c0d8" metalness={0.3} roughness={0.2} />
-                  </mesh>
-                  <mesh position={[wx * b.w, b.h * 0.55, b.d / 2 + 0.014]}>
-                    <planeGeometry args={[0.34, 0.38]} />
-                    <meshStandardMaterial color="#e8e8e4" />
-                  </mesh>
-                  {/* Shutters */}
-                  <mesh position={[wx * b.w - 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
-                    <planeGeometry args={[0.06, 0.36]} />
-                    <meshStandardMaterial color={b.accentColor} />
-                  </mesh>
-                  <mesh position={[wx * b.w + 0.2, b.h * 0.55, b.d / 2 + 0.013]}>
-                    <planeGeometry args={[0.06, 0.36]} />
-                    <meshStandardMaterial color={b.accentColor} />
-                  </mesh>
-                </group>
-              ))}
-            </>
-          )}
 
           {/* Awning / shop canopy */}
           {(b.type === "office" || b.type === "apartment") && (
@@ -655,20 +563,6 @@ function CityBlocks() {
               <boxGeometry args={[b.w * 0.6, 0.03, 0.5]} />
               <meshStandardMaterial color={b.accentColor} />
             </mesh>
-          )}
-
-          {/* AC units */}
-          {(b.type === "office" || b.type === "tower") && b.h > 5 && (
-            <>
-              <mesh position={[b.w / 2 + 0.15, b.h * 0.4, 0]}>
-                <boxGeometry args={[0.2, 0.15, 0.3]} />
-                <meshStandardMaterial color="#d0d0d0" roughness={0.7} />
-              </mesh>
-              <mesh position={[b.w / 2 + 0.15, b.h * 0.7, 0]}>
-                <boxGeometry args={[0.2, 0.15, 0.3]} />
-                <meshStandardMaterial color="#c8c8c8" roughness={0.7} />
-              </mesh>
-            </>
           )}
 
           {/* Roof varies by type */}
@@ -679,11 +573,6 @@ function CityBlocks() {
                 <coneGeometry args={[Math.max(b.w, b.d) * 0.7, 1.1, 4]} />
                 <meshStandardMaterial color={b.roofColor} roughness={0.8} />
               </mesh>
-              {/* Chimney */}
-              <mesh position={[b.w * 0.25, b.h + 0.7, -b.d * 0.15]} castShadow>
-                <boxGeometry args={[0.15, 0.4, 0.15]} />
-                <meshStandardMaterial color="#706060" />
-              </mesh>
             </group>
           )}
           {b.type === "apartment" && (
@@ -691,11 +580,6 @@ function CityBlocks() {
               <mesh position={[0, b.h + 0.06, 0]} castShadow>
                 <boxGeometry args={[b.w + 0.2, 0.12, b.d + 0.2]} />
                 <meshStandardMaterial color={b.roofColor} roughness={0.85} />
-              </mesh>
-              {/* Rooftop railing */}
-              <mesh position={[0, b.h + 0.2, b.d / 2 + 0.1]}>
-                <boxGeometry args={[b.w, 0.15, 0.02]} />
-                <meshStandardMaterial color="#888" metalness={0.3} transparent opacity={0.5} />
               </mesh>
             </group>
           )}
@@ -733,35 +617,19 @@ function CityBlocks() {
             </group>
           )}
 
-          {/* Neon signs / billboards */}
+          {/* Neon signs / billboards — single mesh per sign */}
           {b.signs.map((sign, si) => (
-            <group key={`sign${si}`}>
-              {sign.face === "front" ? (
-                <group>
-                  {/* Sign backing panel */}
-                  <mesh position={[0, sign.y, b.d / 2 + 0.03]}>
-                    <planeGeometry args={[sign.w + 0.08, sign.h + 0.08]} />
-                    <meshStandardMaterial color="#1a1a1a" />
-                  </mesh>
-                  {/* Glowing sign */}
-                  <mesh position={[0, sign.y, b.d / 2 + 0.04]}>
-                    <planeGeometry args={[sign.w, sign.h]} />
-                    <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
-                  </mesh>
-                </group>
-              ) : (
-                <group>
-                  <mesh position={[b.w / 2 + 0.03, sign.y, 0]} rotation={[0, Math.PI / 2, 0]}>
-                    <planeGeometry args={[sign.w + 0.08, sign.h + 0.08]} />
-                    <meshStandardMaterial color="#1a1a1a" />
-                  </mesh>
-                  <mesh position={[b.w / 2 + 0.04, sign.y, 0]} rotation={[0, Math.PI / 2, 0]}>
-                    <planeGeometry args={[sign.w, sign.h]} />
-                    <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
-                  </mesh>
-                </group>
-              )}
-            </group>
+            sign.face === "front" ? (
+              <mesh key={`sign${si}`} position={[0, sign.y, b.d / 2 + 0.03]}>
+                <planeGeometry args={[sign.w, sign.h]} />
+                <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
+              </mesh>
+            ) : (
+              <mesh key={`sign${si}`} position={[b.w / 2 + 0.03, sign.y, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <planeGeometry args={[sign.w, sign.h]} />
+                <meshStandardMaterial color={sign.color} emissive={sign.emissive} emissiveIntensity={sign.intensity} />
+              </mesh>
+            )
           ))}
 
           {/* Building shadow on ground */}
@@ -871,6 +739,47 @@ function ParkTree({ position, scale = 1 }: { position: [number, number, number];
   );
 }
 
+// ─── Instanced trees (2 draw calls for ALL trees) ───────────────
+function InstancedTrees({ treeData }: { treeData: { x: number; z: number; s: number }[] }) {
+  const trunkRef = useRef<THREE.InstancedMesh>(null);
+  const crownRef = useRef<THREE.InstancedMesh>(null);
+  const count = treeData.length;
+
+  const [trunkGeo, crownGeo, trunkMat, crownMat] = useMemo(() => [
+    new THREE.CylinderGeometry(0.06, 0.1, 1.2, 6),
+    new THREE.SphereGeometry(0.8, 12, 8),
+    new THREE.MeshStandardMaterial({ color: "#3a2818", roughness: 0.9 }),
+    new THREE.MeshStandardMaterial({ color: "#3da03a", roughness: 0.75 }),
+  ], []);
+
+  useEffect(() => {
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const t = treeData[i];
+      // Trunk
+      dummy.position.set(t.x, 0.6 * t.s, t.z);
+      dummy.scale.setScalar(t.s);
+      dummy.updateMatrix();
+      trunkRef.current?.setMatrixAt(i, dummy.matrix);
+      // Crown
+      dummy.position.set(t.x, 1.6 * t.s, t.z);
+      dummy.scale.setScalar(t.s);
+      dummy.updateMatrix();
+      crownRef.current?.setMatrixAt(i, dummy.matrix);
+    }
+    if (trunkRef.current) trunkRef.current.instanceMatrix.needsUpdate = true;
+    if (crownRef.current) crownRef.current.instanceMatrix.needsUpdate = true;
+  }, [treeData, count]);
+
+  if (count === 0) return null;
+  return (
+    <group>
+      <instancedMesh ref={trunkRef} args={[trunkGeo, trunkMat, count]} castShadow />
+      <instancedMesh ref={crownRef} args={[crownGeo, crownMat, count]} castShadow />
+    </group>
+  );
+}
+
 function Parks() {
   const trees = useMemo(() => {
     const rng = seededRng(123);
@@ -908,15 +817,18 @@ function Parks() {
 
   // Street trees along main avenues
   const streetTrees = useMemo(() => {
-    const result: { x: number; z: number }[] = [];
+    const result: { x: number; z: number; s: number }[] = [];
     for (const ave of MAIN_AVENUES) {
       for (let x = ave.x1 + 8; x < ave.x2 - 5; x += 12) {
-        result.push({ x, z: ave.z + 5.2 });
-        result.push({ x: x + 6, z: ave.z - 5.2 });
+        result.push({ x, z: ave.z + 5.2, s: 0.55 });
+        result.push({ x: x + 6, z: ave.z - 5.2, s: 0.55 });
       }
     }
     return result;
   }, []);
+
+  // Combine all trees into a single instanced set
+  const allTrees = useMemo(() => [...trees, ...streetTrees], [trees, streetTrees]);
 
   return (
     <group>
@@ -931,34 +843,19 @@ function Parks() {
         </mesh>
       ))}
 
-      {trees.map((t, i) => <ParkTree key={i} position={[t.x, 0, t.z]} scale={t.s} />)}
-
-      {/* Street trees along avenues */}
-      {streetTrees.map((st, i) => (
-        <group key={`st${i}`}>
-          {/* Tree pit (small green square) */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[st.x, -0.02, st.z]}>
-            <planeGeometry args={[1.2, 1.2]} />
-            <meshStandardMaterial color="#3a7a30" roughness={0.9} />
-          </mesh>
-          <ParkTree position={[st.x, 0, st.z]} scale={0.55} />
-        </group>
-      ))}
+      <InstancedTrees treeData={allTrees} />
 
       {/* Park benches */}
       {[[-9, 7], [-7, 9], [-9, 10]].map(([x, z], i) => (
         <group key={`bench${i}`} position={[x, 0, z]}>
-          {/* Seat */}
           <mesh position={[0, 0.25, 0]} castShadow>
             <boxGeometry args={[1.0, 0.06, 0.35]} />
             <meshStandardMaterial color="#6a5030" roughness={0.85} />
           </mesh>
-          {/* Back rest */}
           <mesh position={[0, 0.4, -0.15]} rotation={[0.15, 0, 0]} castShadow>
             <boxGeometry args={[1.0, 0.3, 0.04]} />
             <meshStandardMaterial color="#6a5030" roughness={0.85} />
           </mesh>
-          {/* Legs */}
           {[-0.35, 0.35].map((lx, li) => (
             <mesh key={li} position={[lx, 0.12, 0]}>
               <boxGeometry args={[0.04, 0.24, 0.3]} />
@@ -984,19 +881,23 @@ function Parks() {
 // ─── Lake / pond (large, central-east) ──────────────────────────
 
 function Lake() {
-  const rng = seededRng(999);
+  const shoreTrees = useMemo(() => {
+    const rng = seededRng(999);
+    const cx = 62, cz = -8;
+    const result: { x: number; z: number; s: number }[] = [];
+    for (let i = 0; i < 30; i++) {
+      const angle = rng() * Math.PI * 2;
+      const dist = 10 + rng() * 5;
+      result.push({
+        x: cx + Math.cos(angle) * dist,
+        z: cz + Math.sin(angle) * dist * 0.75,
+        s: 0.5 + rng() * 0.5,
+      });
+    }
+    return result;
+  }, []);
   const cx = 62, cz = -8;
   const lakeW = 22, lakeH = 16;
-  const shoreTrees: { x: number; z: number; s: number }[] = [];
-  for (let i = 0; i < 30; i++) {
-    const angle = rng() * Math.PI * 2;
-    const dist = 10 + rng() * 5;
-    shoreTrees.push({
-      x: cx + Math.cos(angle) * dist,
-      z: cz + Math.sin(angle) * dist * 0.75,
-      s: 0.5 + rng() * 0.5,
-    });
-  }
 
   return (
     <group>
@@ -1020,8 +921,8 @@ function Lake() {
         <planeGeometry args={[lakeW * 0.4, lakeH * 0.35]} />
         <meshStandardMaterial color="#4890c0" metalness={0.5} roughness={0.15} transparent opacity={0.35} />
       </mesh>
-      {/* Shore trees */}
-      {shoreTrees.map((t, i) => <ParkTree key={`lt${i}`} position={[t.x, 0, t.z]} scale={t.s} />)}
+      {/* Shore trees — instanced */}
+      <InstancedTrees treeData={shoreTrees} />
       {/* Wooden bridge */}
       <mesh position={[cx - 7, 0.15, cz]} castShadow>
         <boxGeometry args={[1.5, 0.1, lakeH * 0.5]} />
@@ -1320,37 +1221,40 @@ function Lamps() {
     return lamps;
   }, []);
 
+  const poleRef = useRef<THREE.InstancedMesh>(null);
+  const bulbRef = useRef<THREE.InstancedMesh>(null);
+  const count = positions.length;
+
+  const [poleGeo, poleMat, bulbGeo, bulbMat] = useMemo(() => [
+    new THREE.CylinderGeometry(0.05, 0.08, 2.4, 6),
+    new THREE.MeshStandardMaterial({ color: "#404040", metalness: 0.5, roughness: 0.5 }),
+    new THREE.SphereGeometry(0.1, 6, 4),
+    new THREE.MeshStandardMaterial({ color: "#fff8d0", emissive: new THREE.Color("#f0e0a0"), emissiveIntensity: 0.4 }),
+  ], []);
+
+  useEffect(() => {
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const [x, z] = positions[i];
+      // Pole
+      dummy.position.set(x, 1.2, z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.setScalar(1);
+      dummy.updateMatrix();
+      poleRef.current?.setMatrixAt(i, dummy.matrix);
+      // Bulb
+      dummy.position.set(x + 0.5, 2.4, z);
+      dummy.updateMatrix();
+      bulbRef.current?.setMatrixAt(i, dummy.matrix);
+    }
+    if (poleRef.current) poleRef.current.instanceMatrix.needsUpdate = true;
+    if (bulbRef.current) bulbRef.current.instanceMatrix.needsUpdate = true;
+  }, [positions, count]);
+
   return (
     <group>
-      {positions.map(([x, z], i) => (
-        <group key={i} position={[x, 0, z]}>
-          {/* Pole */}
-          <mesh position={[0, 1.2, 0]} castShadow>
-            <cylinderGeometry args={[0.05, 0.08, 2.4, 6]} />
-            <meshStandardMaterial color="#404040" metalness={0.5} roughness={0.5} />
-          </mesh>
-          {/* Arm extending out */}
-          <mesh position={[0.3, 2.35, 0]} rotation={[0, 0, Math.PI / 6]}>
-            <cylinderGeometry args={[0.03, 0.035, 0.7, 5]} />
-            <meshStandardMaterial color="#404040" metalness={0.5} roughness={0.5} />
-          </mesh>
-          {/* Lamp housing */}
-          <mesh position={[0.5, 2.45, 0]}>
-            <boxGeometry args={[0.25, 0.08, 0.12]} />
-            <meshStandardMaterial color="#606060" metalness={0.3} />
-          </mesh>
-          {/* Light bulb */}
-          <mesh position={[0.5, 2.4, 0]}>
-            <sphereGeometry args={[0.1, 6, 4]} />
-            <meshStandardMaterial color="#fff8d0" emissive="#f0e0a0" emissiveIntensity={0.4} />
-          </mesh>
-          {/* Base */}
-          <mesh position={[0, 0.03, 0]}>
-            <cylinderGeometry args={[0.12, 0.14, 0.06, 6]} />
-            <meshStandardMaterial color="#404040" metalness={0.4} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={poleRef} args={[poleGeo, poleMat, count]} castShadow />
+      <instancedMesh ref={bulbRef} args={[bulbGeo, bulbMat, count]} />
     </group>
   );
 }
@@ -1358,120 +1262,31 @@ function Lamps() {
 // ─── Ambient life ────────────────────────────────────────────────
 
 function AmbientPerson({ position, color, rot = 0 }: { position: [number, number, number]; color: string; rot?: number }) {
-  if (IS_MOBILE) {
-    // Mobile: 2 meshes only
-    return (
-      <group position={position} rotation={[0, rot, 0]} scale={2.5}>
-        <mesh position={[0, 0.6, 0]} castShadow><capsuleGeometry args={[0.18, 0.45, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
-        <mesh position={[0, 1.15, 0]}><sphereGeometry args={[0.16, 5, 4]} /><meshStandardMaterial color="#e8c8a0" /></mesh>
-      </group>
-    );
-  }
-  const skinColor = "#e8c8a0";
-  const pantsColor = "#404858";
+  // Simplified: 2 meshes (body + head) on all platforms
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.5}>
-      <mesh position={[0, 0.65, 0]} castShadow><capsuleGeometry args={[0.16, 0.35, 4, 6]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0, 1.15, 0]}><sphereGeometry args={[0.16, 6, 5]} /><meshStandardMaterial color={skinColor} /></mesh>
-      <mesh position={[0, 1.25, -0.02]}><sphereGeometry args={[0.14, 5, 3, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color="#3a2818" /></mesh>
-      <mesh position={[-0.22, 0.7, 0]} rotation={[0, 0, 0.15]}><capsuleGeometry args={[0.055, 0.3, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.22, 0.7, 0]} rotation={[0, 0, -0.15]}><capsuleGeometry args={[0.055, 0.3, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[-0.08, 0.28, 0]}><capsuleGeometry args={[0.065, 0.25, 3, 4]} /><meshStandardMaterial color={pantsColor} /></mesh>
-      <mesh position={[0.08, 0.28, 0]}><capsuleGeometry args={[0.065, 0.25, 3, 4]} /><meshStandardMaterial color={pantsColor} /></mesh>
+      <mesh position={[0, 0.6, 0]} castShadow><capsuleGeometry args={[0.18, 0.45, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0, 1.15, 0]}><sphereGeometry args={[0.16, 5, 4]} /><meshStandardMaterial color="#e8c8a0" /></mesh>
     </group>
   );
 }
 
 function AmbientDog({ position, color = "#a07040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
-  if (IS_MOBILE) {
-    return (
-      <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-        <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
-        <mesh position={[0.35, 0.32, 0]}><sphereGeometry args={[0.13, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
-      </group>
-    );
-  }
-  const darkerColor = "#704820";
+  // Simplified: 2 meshes (body + head) on all platforms
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 4, 5]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.15, 0.27, 0]}><sphereGeometry args={[0.15, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.38, 0.35, 0]}><sphereGeometry args={[0.13, 5, 4]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[0.48, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}><capsuleGeometry args={[0.05, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
-      <mesh position={[0.35, 0.44, 0.1]} rotation={[0.3, 0, 0.5]}><capsuleGeometry args={[0.035, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
-      <mesh position={[0.35, 0.44, -0.1]} rotation={[-0.3, 0, 0.5]}><capsuleGeometry args={[0.035, 0.08, 3, 3]} /><meshStandardMaterial color={darkerColor} /></mesh>
-      <mesh position={[-0.32, 0.38, 0]} rotation={[0, 0, -0.8]}><capsuleGeometry args={[0.02, 0.16, 3, 3]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0, 0.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.14, 0.4, 3, 4]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.35, 0.32, 0]}><sphereGeometry args={[0.13, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
     </group>
   );
 }
 
 function AmbientCat({ position, color = "#404040", rot = 0 }: { position: [number, number, number]; color?: string; rot?: number }) {
-  if (IS_MOBILE) {
-    return (
-      <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-        <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.09, 0.22, 3, 3]} /><meshStandardMaterial color={color} /></mesh>
-        <mesh position={[0.22, 0.24, 0]}><sphereGeometry args={[0.1, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
-      </group>
-    );
-  }
+  // Simplified: 2 meshes (body + head) on all platforms
   return (
     <group position={position} rotation={[0, rot, 0]} scale={2.2}>
-      {/* Body */}
-      <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <capsuleGeometry args={[0.09, 0.22, 4, 6]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0.22, 0.24, 0]}>
-        <sphereGeometry args={[0.1, 6, 5]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Eyes */}
-      <mesh position={[0.28, 0.26, 0.04]}>
-        <sphereGeometry args={[0.02, 4, 3]} />
-        <meshStandardMaterial color="#a0e040" emissive="#80c030" emissiveIntensity={0.2} />
-      </mesh>
-      <mesh position={[0.28, 0.26, -0.04]}>
-        <sphereGeometry args={[0.02, 4, 3]} />
-        <meshStandardMaterial color="#a0e040" emissive="#80c030" emissiveIntensity={0.2} />
-      </mesh>
-      {/* Ears (pointed triangles) */}
-      <mesh position={[0.22, 0.35, 0.06]} rotation={[0.3, 0, 0.2]}>
-        <coneGeometry args={[0.035, 0.08, 3]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      <mesh position={[0.22, 0.35, -0.06]} rotation={[-0.3, 0, 0.2]}>
-        <coneGeometry args={[0.035, 0.08, 3]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      {/* Nose */}
-      <mesh position={[0.31, 0.23, 0]}>
-        <sphereGeometry args={[0.015, 3, 3]} />
-        <meshStandardMaterial color="#e08080" />
-      </mesh>
-      {/* Whiskers (tiny lines on each side) */}
-      {[-1, 1].map((side) => (
-        <mesh key={side} position={[0.3, 0.22, side * 0.06]} rotation={[0, side * 0.5, 0]}>
-          <boxGeometry args={[0.08, 0.003, 0.003]} />
-          <meshStandardMaterial color="#888" />
-        </mesh>
-      ))}
-      {/* Legs */}
-      {[[-0.1, 0.06], [0.1, 0.06], [-0.1, -0.06], [0.1, -0.06]].map(([ox, oz], i) => (
-        <mesh key={i} position={[ox, 0.05, oz]}>
-          <capsuleGeometry args={[0.03, 0.06, 3, 4]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
-      ))}
-      {/* Tail (curved up) */}
-      <mesh position={[-0.22, 0.28, 0]} rotation={[0, 0, 0.9]}>
-        <capsuleGeometry args={[0.015, 0.18, 4, 4]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-      <mesh position={[-0.28, 0.38, 0]} rotation={[0, 0, 1.5]}>
-        <capsuleGeometry args={[0.013, 0.06, 3, 3]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
+      <mesh position={[0, 0.17, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><capsuleGeometry args={[0.09, 0.22, 3, 3]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[0.22, 0.24, 0]}><sphereGeometry args={[0.1, 4, 3]} /><meshStandardMaterial color={color} /></mesh>
     </group>
   );
 }
@@ -1950,10 +1765,10 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
         {/* Sky — skip on mobile (heavy shader) */}
         {!IS_MOBILE && <Sky sunPosition={[80, 40, 30]} turbidity={2} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />}
         {IS_MOBILE && <color attach="background" args={["#8ab0c8"]} />}
-        {!IS_MOBILE && <fog attach="fog" args={["#8aa8c0", 80, 180]} />}
+        {!IS_MOBILE && <fog attach="fog" args={["#8aa8c0", 100, 200]} />}
 
         {/* Lighting — simplified on mobile */}
-        <ambientLight intensity={IS_MOBILE ? 0.7 : 0.5} color="#e8e0d8" />
+        <ambientLight intensity={IS_MOBILE ? 0.7 : 0.65} color="#e8e0d8" />
         {IS_MOBILE ? (
           <directionalLight position={[40, 60, 25]} intensity={1.3} color="#fff0c0" />
         ) : (
@@ -1962,8 +1777,8 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
             intensity={1.5}
             color="#fff0c0"
             castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
             shadow-camera-left={-90}
             shadow-camera-right={90}
             shadow-camera-top={70}
