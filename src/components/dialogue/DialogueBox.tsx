@@ -389,95 +389,72 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#0a1628] flex flex-col relative overflow-hidden">
-      {/* 3D Avatar — fullscreen background */}
-      <div className="absolute inset-0 z-0">
+    <div className="h-screen w-screen bg-[#0a1628] flex flex-col overflow-hidden">
+      {/* Top: 3D Avatar area */}
+      <div className="relative" style={{ height: "45vh", minHeight: 280 }}>
+        {/* Header overlay */}
+        <div className="absolute top-0 left-0 right-0 z-10 safe-area">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => router.push("/map")}
+              className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
+            >
+              <span className="text-white text-sm">← Back</span>
+            </button>
+            <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5">
+              <span className="text-amber-400 text-xs">⭐</span>
+              <span className="text-white text-sm font-semibold">{score}</span>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="px-4">
+            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                style={{ width: `${(exchanges / MAX_EXCHANGES) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3D Canvas */}
         <AvatarCanvas isSpeaking={npcSpeaking} />
-      </div>
 
-      {/* Dark gradient overlay at bottom for chat readability */}
-      <div
-        className="absolute inset-0 z-[1] pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, transparent 20%, rgba(10,22,40,0.5) 45%, rgba(10,22,40,0.95) 65%, rgba(10,22,40,1) 80%)",
-        }}
-      />
-
-      {/* Header — floating over avatar */}
-      <div className="safe-area relative z-10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => router.push("/map")}
-            className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
-          >
-            <span className="text-white text-sm">← Back</span>
-          </button>
-          <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5">
-            <span className="text-amber-400 text-xs">⭐</span>
-            <span className="text-white text-sm font-semibold">{score}</span>
-          </div>
+        {/* Speaking indicator at bottom of avatar area */}
+        <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center pointer-events-none z-10">
+          {npcSpeaking && (
+            <div className="flex gap-0.5 items-end mb-1">
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Speaking indicator — floating over avatar */}
-      {npcSpeaking && (
-        <div className="absolute top-1/3 left-0 right-0 z-10 flex flex-col items-center pointer-events-none">
-          <div className="flex gap-0.5 items-end mb-1.5">
-            <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-            <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-            <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
-            <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-            <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-          </div>
-          <p className="text-white/80 text-xs font-medium">{npc.name} is speaking...</p>
-        </div>
-      )}
-
-      {/* Progress — subtle, at top */}
-      <div className="px-4 relative z-10">
-        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
-            style={{ width: `${(exchanges / MAX_EXCHANGES) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Spacer to push chat to bottom half */}
-      <div className="flex-1 relative z-10" />
 
       {/* Correction toast */}
       {lastCorrection && (
-        <div className="mx-4 mb-2 bg-amber-900/40 border border-amber-500/30 rounded-xl px-3 py-2 animate-in slide-in-from-top duration-300">
+        <div className="mx-4 mb-2 bg-amber-900/40 border border-amber-500/30 rounded-xl px-3 py-2 animate-in slide-in-from-top duration-300 relative z-10">
           <p className="text-amber-300 text-xs font-medium">💡 {lastCorrection}</p>
         </div>
       )}
 
       {/* Chat messages */}
-      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-2.5 pb-4">
+      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 space-y-2 pb-3 relative z-10">
         {messages.map((msg, i) => (
           <div
             key={i}
             className={`flex ${msg.role === "player" ? "justify-end" : "justify-start"}`}
           >
-            {msg.role === "npc" && (
-              npc.image ? (
-                <div className="w-7 h-7 rounded-full overflow-hidden mr-1.5 shrink-0 self-end border border-white/20">
-                  <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
-                </div>
-              ) : (
-                <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
-              )
-            )}
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+              className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
                 msg.role === "player"
-                  ? "bg-blue-600 text-white rounded-br-md"
-                  : "bg-white/10 text-white rounded-bl-md"
+                  ? "bg-blue-600 text-white rounded-br-sm"
+                  : "bg-white/10 backdrop-blur-sm text-white rounded-bl-sm"
               }`}
-              style={{
-                animation: `msg-in 0.3s ease-out both`,
-              }}
+              style={{ animation: `msg-in 0.3s ease-out both` }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
             </div>
@@ -486,14 +463,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
         {loading && (
           <div className="flex justify-start">
-            {npc.image ? (
-              <div className="w-7 h-7 rounded-full overflow-hidden mr-1.5 shrink-0 self-end border border-white/20">
-                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
-              </div>
-            ) : (
-              <span className="text-lg mr-1.5 shrink-0 self-end">{npc.emoji}</span>
-            )}
-            <div className="bg-white/10 rounded-2xl rounded-bl-md px-4 py-2.5">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl rounded-bl-sm px-3.5 py-2">
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -506,7 +476,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
       {/* Options + Mic */}
       {options.length > 0 && !loading && !npcSpeaking && (
-        <div className="px-4 pb-6 space-y-2">
+        <div className="px-4 pb-6 space-y-2 relative z-10">
           {options.map((option, i) => (
             <button
               key={i}
