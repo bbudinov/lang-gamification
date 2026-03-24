@@ -114,7 +114,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const { getRecentFacts, addFact } = useNPCMemoryStore();
 
   const npc = getNPC(topic.id);
-  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage, { continuous: true, silenceMs: 1500 });
+  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage, { continuous: true, silenceMs: 60000 }); // No auto-stop — user presses Done
   const [messages, setMessages] = useState<Message[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -395,7 +395,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-4 px-6">
         <ProfessorGlobe size={80} emotion="thinking" />
         <p className="text-white text-lg text-center">No character available for this topic yet!</p>
-        <button onClick={() => router.push("/map")} className="text-blue-400 text-sm mt-4">
+        <button onClick={() => router.back()} className="text-blue-400 text-sm mt-4">
           ← Back to Map
         </button>
       </div>
@@ -443,7 +443,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             Chat Again
           </button>
           <button
-            onClick={() => router.push("/map")}
+            onClick={() => router.back()}
             className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors"
           >
             Back to Map
@@ -482,7 +482,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         <div className="absolute top-0 left-0 right-0 z-10 safe-area">
           <div className="flex items-center justify-between px-4 py-3">
             <button
-              onClick={() => router.push("/map")}
+              onClick={() => router.back()}
               className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
             >
               <span className="text-white text-sm">← Back</span>
@@ -560,8 +560,36 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         )}
       </div>
 
-      {/* Options + Mic */}
-      {options.length > 0 && !loading && !npcSpeaking && (
+      {/* Listening mode — show live transcript + Done button */}
+      {isListening && (
+        <div className="px-4 pb-6 space-y-3 relative z-10">
+          {/* Live transcript */}
+          {transcript && (
+            <div className="bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3">
+              <p className="text-white text-sm">{transcript}</p>
+            </div>
+          )}
+          {!transcript && (
+            <p className="text-blue-400 text-sm text-center animate-pulse">Listening... speak now!</p>
+          )}
+          {/* Done button */}
+          <button
+            onClick={() => stopMic()}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3.5 rounded-xl font-bold text-base active:scale-95 transition-transform shadow-lg shadow-green-500/30"
+          >
+            Done ✓
+          </button>
+          <button
+            onClick={() => { stopMic(); processedTranscriptRef.current = transcript || "skip"; }}
+            className="text-slate-500 text-xs text-center w-full"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Options + Mic (when not listening) */}
+      {!isListening && options.length > 0 && !loading && !npcSpeaking && (
         <div className="px-4 pb-6 space-y-2 relative z-10">
           {options.map((option, i) => (
             <button
@@ -580,17 +608,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             <div className="flex flex-col items-center pt-2 gap-1">
               <button
                 onClick={handleMicToggle}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-                  isListening
-                    ? "bg-red-500 shadow-lg shadow-red-500/40 animate-pulse"
-                    : "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30"
-                }`}
+                className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30"
               >
-                <span className="text-xl">{isListening ? "⏹️" : "🎤"}</span>
+                <span className="text-xl">🎤</span>
               </button>
-              <p className="text-slate-500 text-[10px]">
-                {isListening ? "Listening..." : "or say your own!"}
-              </p>
+              <p className="text-slate-500 text-[10px]">or say your own!</p>
             </div>
           )}
         </div>

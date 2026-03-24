@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useFrame, useGraph } from "@react-three/fiber";
-import { useGLTF, useAnimations, useFBX } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 
 // Rhubarb phoneme → Oculus viseme mapping
@@ -74,19 +74,19 @@ export function TalkingAvatar({
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as any;
 
-  // Idle animation — slowed down to reduce distracting arm gestures
-  const { animations: idleAnimation } = useFBX("/animations/Idle.fbx");
-  idleAnimation[0].name = "Idle";
-  const { actions } = useAnimations([idleAnimation[0]], groupRef);
-
+  // Rotate arms down from T-pose (no FBX animation — it causes arm gestures)
   useEffect(() => {
-    if (actions["Idle"]) {
-      const action = actions["Idle"];
-      action.reset().fadeIn(0.5).play();
-      action.timeScale = 0.3; // Very slow — subtle breathing, minimal arm movement
-    }
-    return () => { actions["Idle"]?.fadeOut(0.5); };
-  }, [actions]);
+    if (!groupRef.current) return;
+    const leftArm = groupRef.current.getObjectByName("LeftArm");
+    const rightArm = groupRef.current.getObjectByName("RightArm");
+    const leftForeArm = groupRef.current.getObjectByName("LeftForeArm");
+    const rightForeArm = groupRef.current.getObjectByName("RightForeArm");
+    // Rotate arms down to a natural resting position
+    if (leftArm) leftArm.rotation.set(0, 0, 1.2); // down + slightly forward
+    if (rightArm) rightArm.rotation.set(0, 0, -1.2);
+    if (leftForeArm) leftForeArm.rotation.set(0, 0, 0.15); // slight bend
+    if (rightForeArm) rightForeArm.rotation.set(0, 0, -0.15);
+  }, [nodes]);
 
   // Setup WebAudio analyser for realtime lip sync
   useEffect(() => {
