@@ -115,9 +115,9 @@ export default function Home() {
 
           <button
             onClick={handleSkip}
-            className="text-slate-500 text-xs active:text-white transition-colors"
+            className="text-slate-400 text-sm py-2.5 px-6 rounded-full border border-white/10 active:bg-white/10 transition-colors"
           >
-            Skip story →
+            Skip →
           </button>
         </div>
       )}
