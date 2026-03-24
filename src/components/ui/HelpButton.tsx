@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { playPhraseAudio, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
-import { ProfessorGlobe, ProfessorOverlay3D } from "@/components/character/ProfessorGlobe";
+import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+
+const AvatarCanvas = dynamic(() => import("@/components/avatar/AvatarCanvas"), { ssr: false });
 
 type RulesLang = "en" | "bg";
 
@@ -157,7 +160,12 @@ const RULES = {
   },
 };
 
-export function HelpButton() {
+interface HelpButtonProps {
+  onOpen?: () => void;
+  onClose?: () => void;
+}
+
+export function HelpButton({ onOpen, onClose }: HelpButtonProps) {
   const [showRules, setShowRules] = useState(false);
   const [lang, setLang] = useState<RulesLang>("en");
   const [activeSection, setActiveSection] = useState<number | null>(null);
@@ -167,6 +175,7 @@ export function HelpButton() {
 
   const handleOpen = async () => {
     setShowRules(true);
+    onOpen?.();
     setActiveSection(null);
     setGlobeSpeaking(true);
     await playPhraseAudioAndWait(`rules-greeting-${lang}`, 15000);
@@ -177,6 +186,7 @@ export function HelpButton() {
     stopAudio();
     setGlobeSpeaking(false);
     setShowRules(false);
+    onClose?.();
   };
 
   const switchLang = async (newLang: RulesLang) => {
@@ -204,21 +214,30 @@ export function HelpButton() {
         <ProfessorGlobe size={38} />
       </button>
 
-      {/* 3D overlay — always mounted (hidden), so no delay when Help opens */}
-      <ProfessorOverlay3D speaking={showRules && globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
-
       {showRules && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-end sm:justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+          className="fixed inset-0 z-50 flex flex-col bg-[#0a1628]"
           onClick={handleClose}
         >
-          {/* Globe floating ABOVE the modal */}
-          <div className="relative z-10 mb-[-28px] animate-in zoom-in-75 duration-500">
-            <ProfessorGlobe size={80} speaking={globeSpeaking} emotion={globeSpeaking ? "happy" : "idle"} />
+          {/* 3D Avatar — top portion */}
+          <div className="relative" style={{ height: "40vh", minHeight: 240 }}>
+            <AvatarCanvas isSpeaking={globeSpeaking} />
+            {globeSpeaking && (
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none z-10">
+                <div className="flex gap-0.5 items-end">
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" style={{ height: 8 }} />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" style={{ height: 14 }} />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-3" style={{ height: 8 }} />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-2" style={{ height: 14 }} />
+                  <div className="w-1 bg-blue-400 rounded-full animate-sound-1" style={{ height: 8 }} />
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Modal content — bottom portion */}
           <div
-            className="bg-[#1a2744]/95 rounded-2xl p-5 pt-12 w-full max-w-sm shadow-2xl border border-white/10 max-h-[65vh] overflow-y-auto backdrop-blur-md"
+            className="flex-1 w-full max-w-sm mx-auto bg-[#1a2744]/95 rounded-t-2xl p-5 border border-white/10 border-b-0 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header — name + lang toggle (Globe is above) */}
@@ -285,6 +304,13 @@ export function HelpButton() {
               {r.gotIt}
             </button>
           </div>
+
+          <style jsx>{`
+            @keyframes sound-wave { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+            .animate-sound-1 { animation: sound-wave 0.4s ease-in-out infinite; }
+            .animate-sound-2 { animation: sound-wave 0.4s ease-in-out 0.1s infinite; }
+            .animate-sound-3 { animation: sound-wave 0.4s ease-in-out 0.2s infinite; }
+          `}</style>
         </div>
       )}
     </>

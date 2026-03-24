@@ -26,6 +26,7 @@ export default function MapPage() {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [introTopicId, setIntroTopicId] = useState<TopicId | null>(null);
   const [showMissions, setShowMissions] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const { targetLanguage, gameResults, hasSeenIntro } = useProgressStore();
 
   // Check if Memory Mix is unlocked (2+ topics with Memory Match played)
@@ -59,9 +60,9 @@ export default function MapPage() {
     >
       <TopBar />
 
-      <WorldMap onSelectCity={handleSelectCity} />
+      {!helpOpen && <WorldMap onSelectCity={handleSelectCity} />}
 
-      <HelpButton />
+      <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
 
       {/* Left sidebar buttons */}
