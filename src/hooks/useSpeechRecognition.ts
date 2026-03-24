@@ -32,7 +32,12 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
   const [confidence, setConfidence] = useState(0);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  const [isSupported, setIsSupported] = useState(false);
+
+  // Detect support on client only (SSR has no window)
+  useEffect(() => {
+    setIsSupported("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  }, []);
   const continuousMode = opts?.continuous ?? false;
   const silenceMs = opts?.silenceMs ?? 1500;
 
