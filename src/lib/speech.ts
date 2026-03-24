@@ -291,10 +291,12 @@ const MALE_HINTS = [
   "male", "puck",
   // EN
   "daniel", "aaron", "guy", "james", "thomas", "alex", "fred", "ralph", "lee",
+  // Android common
+  "en-us-x-iob", "en-us-x-iom", "en-gb-x-rjs", "en-us-x-tpd", "en-us-x-sfg",
   // BG
   "ivan",
   // ES
-  "jorge", "andrés", "diego", "pablo", "juan",
+  "jorge", "andrés", "diego", "pablo", "juan", "es-us-x-sfb",
   // IT
   "luca", "marco", "giorgio",
   // DE
@@ -426,10 +428,10 @@ export function speakAndWaitGendered(
     utterance.pitch = gender === "female" ? 1.1 : 0.9;
     utterance.volume = 1;
 
-    const voice = gender === "female"
-      ? findFemaleVoice(voices, language)
-      : findBestVoice(voices, language);
+    // Always use male voice — Professor Globe
+    const voice = findBestVoice(voices, language);
     if (voice) utterance.voice = voice;
+    utterance.pitch = 0.75; // force deeper pitch on all devices
 
     let resolved = false;
     const done = () => {
