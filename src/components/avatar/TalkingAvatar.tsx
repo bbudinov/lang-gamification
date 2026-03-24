@@ -130,10 +130,11 @@ export function TalkingAvatar({
       const RA = groupRef.current.getObjectByName("RightArm");
       const LF = groupRef.current.getObjectByName("LeftForeArm");
       const RF = groupRef.current.getObjectByName("RightForeArm");
-      if (LA) { LA.rotation.z = 2.2; LA.rotation.x = 0.2; }
-      if (RA) { RA.rotation.z = -2.2; RA.rotation.x = 0.2; }
-      if (LF) { LF.rotation.z = 0.3; LF.rotation.y = 0.3; }
-      if (RF) { RF.rotation.z = -0.3; RF.rotation.y = -0.3; }
+      // Arms straight down along body
+      if (LA) { LA.rotation.set(0, 0, 0); }
+      if (RA) { RA.rotation.set(0, 0, 0); }
+      if (LF) { LF.rotation.set(0, 0, 0); }
+      if (RF) { RF.rotation.set(0, 0, 0); }
     }
 
     const head = headRef.current;
