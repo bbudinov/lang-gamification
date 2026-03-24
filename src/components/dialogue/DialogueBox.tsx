@@ -123,6 +123,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const [score, setScore] = useState(0);
   const [npcSpeaking, setNpcSpeaking] = useState(false);
   const [lastCorrection, setLastCorrection] = useState<string | null>(null);
+  const [started, setStarted] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const aiHistoryRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const speakingRef = useRef(false);
@@ -132,6 +133,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     speakingRef.current = true;
     setNpcSpeaking(true);
     const gender = npc?.gender || "male";
+    // Cancel any stuck speech
+    window.speechSynthesis?.cancel();
     await speakAndWaitGendered(text, targetLanguage, gender);
     if (speakingRef.current) {
       setNpcSpeaking(false);
@@ -144,22 +147,30 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     return () => {
       speakingRef.current = false;
       stopAudio();
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
-  // Initialize with NPC greeting + voice
-  useEffect(() => {
-    if (!npc) return;
+  // Start conversation after user tap (required for speech on desktop Chrome)
+  const handleStart = useCallback(async () => {
+    if (!npc || started) return;
+    setStarted(true);
+
+    // Unlock speech synthesis with a silent utterance (user gesture context)
+    if ("speechSynthesis" in window) {
+      const unlock = new SpeechSynthesisUtterance("");
+      unlock.volume = 0;
+      window.speechSynthesis.speak(unlock);
+    }
+
     const greeting = npc.greeting[targetLanguage];
     setMessages([{ role: "npc", text: greeting }]);
 
-    // Speak greeting THEN generate options (sequential, not parallel)
-    const init = async () => {
-      await speakNPC(greeting);
-      generateOptions(greeting);
-    };
-    init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Small delay to let speech engine initialize
+    await new Promise(r => setTimeout(r, 300));
+    await speakNPC(greeting);
+    generateOptions(greeting);
+  }, [npc, started, targetLanguage, speakNPC]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -383,6 +394,27 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
           >
             Back to Map
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // "Tap to start" screen — needed for speech synthesis on desktop
+  if (!started) {
+    return (
+      <div className="h-screen w-screen bg-[#0a1628] flex flex-col overflow-hidden">
+        <div className="relative flex-1">
+          <AvatarCanvas isSpeaking={false} />
+          {/* Tap overlay */}
+          <div
+            className="absolute inset-0 z-20 flex flex-col items-center justify-end pb-20 cursor-pointer"
+            onClick={handleStart}
+          >
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/30 active:scale-95 transition-transform">
+              <p className="text-lg font-bold">Tap to start talking</p>
+            </div>
+            <p className="text-slate-500 text-xs mt-3">{topic.emoji} {topic.name[targetLanguage]}</p>
+          </div>
         </div>
       </div>
     );
