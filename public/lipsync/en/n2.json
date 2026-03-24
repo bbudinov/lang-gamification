@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_n2.wav",
+    "duration": 1.53
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.65, "value": "X" },
+    { "start": 0.65, "end": 1.13, "value": "F" },
+    { "start": 1.13, "end": 1.53, "value": "X" }
+  ]
+}

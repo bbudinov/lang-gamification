@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_sc5.wav",
+    "duration": 0.81
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.11, "value": "X" },
+    { "start": 0.11, "end": 0.16, "value": "B" },
+    { "start": 0.16, "end": 0.21, "value": "C" },
+    { "start": 0.21, "end": 0.28, "value": "B" },
+    { "start": 0.28, "end": 0.36, "value": "A" },
+    { "start": 0.36, "end": 0.63, "value": "C" },
+    { "start": 0.63, "end": 0.77, "value": "B" },
+    { "start": 0.77, "end": 0.81, "value": "X" }
+  ]
+}

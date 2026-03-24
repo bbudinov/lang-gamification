@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_wk1.wav",
+    "duration": 1.53
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.54, "value": "X" },
+    { "start": 0.54, "end": 0.69, "value": "B" },
+    { "start": 0.69, "end": 0.83, "value": "D" },
+    { "start": 0.83, "end": 0.97, "value": "B" },
+    { "start": 0.97, "end": 1.25, "value": "E" },
+    { "start": 1.25, "end": 1.53, "value": "X" }
+  ]
+}

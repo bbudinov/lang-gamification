@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_mu14.wav",
+    "duration": 1.41
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.38, "value": "X" },
+    { "start": 0.38, "end": 0.58, "value": "B" },
+    { "start": 0.58, "end": 0.66, "value": "A" },
+    { "start": 0.66, "end": 0.84, "value": "E" },
+    { "start": 0.84, "end": 0.91, "value": "F" },
+    { "start": 0.91, "end": 0.98, "value": "B" },
+    { "start": 0.98, "end": 1.19, "value": "E" },
+    { "start": 1.19, "end": 1.41, "value": "X" }
+  ]
+}

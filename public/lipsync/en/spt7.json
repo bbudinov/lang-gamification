@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_spt7.wav",
+    "duration": 0.62
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.03, "value": "X" },
+    { "start": 0.03, "end": 0.26, "value": "E" },
+    { "start": 0.26, "end": 0.33, "value": "F" },
+    { "start": 0.33, "end": 0.54, "value": "H" },
+    { "start": 0.54, "end": 0.62, "value": "X" }
+  ]
+}

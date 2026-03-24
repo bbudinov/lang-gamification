@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_b14.wav",
+    "duration": 0.40
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.04, "value": "X" },
+    { "start": 0.04, "end": 0.36, "value": "B" },
+    { "start": 0.36, "end": 0.40, "value": "X" }
+  ]
+}

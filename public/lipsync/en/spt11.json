@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "soundFile": "/tmp/lipsync_spt11.wav",
+    "duration": 1.41
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.63, "value": "X" },
+    { "start": 0.63, "end": 0.80, "value": "B" },
+    { "start": 0.80, "end": 0.87, "value": "C" },
+    { "start": 0.87, "end": 1.08, "value": "B" },
+    { "start": 1.08, "end": 1.22, "value": "C" },
+    { "start": 1.22, "end": 1.36, "value": "A" },
+    { "start": 1.36, "end": 1.41, "value": "X" }
+  ]
+}
