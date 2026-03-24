@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
@@ -10,6 +11,9 @@ import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { playPopSound, playDingSound, speak, speakAndWait, speakAndWaitGendered, stopAudio } from "@/lib/speech";
 import type { Topic, Language } from "@/types";
 import { getNPC, type NPCData } from "@/data/npcs";
+
+// Lazy-load 3D avatar to avoid SSR issues
+const AvatarCanvas = dynamic(() => import("@/components/avatar/AvatarCanvas"), { ssr: false });
 
 const POINTS_PER_EXCHANGE = 10;
 const COMPLETION_BONUS = 50;
@@ -420,100 +424,24 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* NPC Full Body Overlay — fixed fullscreen, identical to ProfessorOverlay3D */}
-      {npc.imageFull && (
-        <div
-          className="fixed inset-0 z-[200] pointer-events-none"
-          style={{
-            opacity: npcSpeaking ? 1 : 0,
-            transition: npcSpeaking
-              ? "opacity 0.4s ease, visibility 0s 0s"
-              : "opacity 0.4s ease, visibility 0s 0.4s",
-            visibility: npcSpeaking ? "visible" : "hidden",
-          }}
-        >
-          {/* Dark background overlay — same as Professor */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "radial-gradient(ellipse at center, rgba(10,22,40,0.92) 0%, rgba(10,22,40,0.6) 50%, rgba(10,22,40,0.3) 100%)",
-            }}
-          />
-          {/* Floating particles — same as Professor */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => {
-              const rng = (seed: number) => { let s = (seed * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
-              const left = rng(i * 7 + 1) * 100;
-              const delay = rng(i * 13 + 5) * 5;
-              const dur = 3 + rng(i * 19 + 11) * 4;
-              const size = 1 + rng(i * 23 + 3) * 3;
-              return (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
-                  style={{
-                    left: `${left}%`,
-                    bottom: "-5%",
-                    width: size,
-                    height: size,
-                    backgroundColor: "#38bdf8",
-                    opacity: 0.3,
-                    animation: `particle-float ${dur}s ease-in-out ${delay}s infinite`,
-                  }}
-                />
-              );
-            })}
-          </div>
-          {/* Character — video with edge mask, or transparent PNG */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {npc.videoTalking ? (
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{
-                  height: "75%",
-                  maxHeight: "80vh",
-                  width: "auto",
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4))",
-                  WebkitMaskImage: "radial-gradient(ellipse 55% 70% at center, black 50%, transparent 90%)",
-                  maskImage: "radial-gradient(ellipse 55% 70% at center, black 50%, transparent 90%)",
-                }}
-              >
-                <source src={npc.videoTalking} type="video/mp4" />
-              </video>
-            ) : npc.imageFull ? (
-              <img
-                src={npc.imageFull}
-                alt={npc.name}
-                style={{
-                  height: "75%",
-                  maxHeight: "80vh",
-                  width: "auto",
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 0 20px rgba(56,189,248,0.4)) drop-shadow(0 0 40px rgba(56,189,248,0.15))",
-                  animation: "npc-speak 0.6s ease-in-out infinite",
-                }}
-                draggable={false}
-              />
-            ) : null}
-          </div>
-          {/* Name + sound waves at bottom */}
-          <div className="absolute bottom-16 left-0 right-0 flex flex-col items-center">
-            <div className="flex gap-0.5 items-end mb-2">
+      {/* 3D Avatar — always visible, lip syncs when speaking */}
+      <div className="relative w-full" style={{ height: "35vh", minHeight: 200 }}>
+        <AvatarCanvas isSpeaking={npcSpeaking} />
+        {/* Name + speaking indicator */}
+        <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center pointer-events-none">
+          {npcSpeaking && (
+            <div className="flex gap-0.5 items-end mb-1">
               <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
               <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
             </div>
-            <p className="text-white font-semibold text-base">{npc.name}</p>
-            <p className="text-slate-400 text-xs">{npc.role[targetLanguage]}</p>
-          </div>
+          )}
+          <p className="text-white font-semibold text-sm">{npc.name}</p>
+          <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
         </div>
-      )}
+      </div>
 
       {/* Correction toast */}
       {lastCorrection && (
