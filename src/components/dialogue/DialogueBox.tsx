@@ -131,12 +131,37 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const aiHistoryRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const speakingRef = useRef(false);
 
-  // Speak NPC message with mouth-sync state (gender-matched voice)
+  // Speak NPC message using Google Cloud TTS (same voice on all devices)
+  const npcAudioRef = useRef<HTMLAudioElement | null>(null);
   const speakNPC = useCallback(async (text: string) => {
     speakingRef.current = true;
     setNpcSpeaking(true);
-    window.speechSynthesis?.cancel();
-    await speakAndWaitGendered(text, targetLanguage, "male"); // Always male — avatar is Professor Globe
+
+    // Strip emoji before sending to TTS
+    const clean = text.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]/gu, "").replace(/\s{2,}/g, " ").trim();
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: clean, language: targetLanguage }),
+      });
+      if (res.ok) {
+        const { audioContent } = await res.json();
+        const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+        npcAudioRef.current = audio;
+        await new Promise<void>((resolve) => {
+          audio.onended = () => resolve();
+          audio.onerror = () => resolve();
+          audio.play().catch(() => resolve());
+        });
+      }
+    } catch {
+      // Fallback to Web Speech API if Google TTS fails
+      window.speechSynthesis?.cancel();
+      await speakAndWaitGendered(clean, targetLanguage, "male");
+    }
+
     if (speakingRef.current) {
       setNpcSpeaking(false);
       speakingRef.current = false;
@@ -149,6 +174,10 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       speakingRef.current = false;
       stopAudio();
       window.speechSynthesis?.cancel();
+      if (npcAudioRef.current) {
+        npcAudioRef.current.pause();
+        npcAudioRef.current = null;
+      }
     };
   }, []);
 
