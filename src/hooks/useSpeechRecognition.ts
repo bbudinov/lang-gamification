@@ -32,6 +32,8 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
   const [confidence, setConfidence] = useState(0);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stoppedManuallyRef = useRef(false);
+  const accumulatedTranscriptRef = useRef("");
   const [isSupported, setIsSupported] = useState(false);
 
   // Detect support on client only (SSR has no window)
@@ -63,6 +65,8 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
 
     setTranscript("");
     setConfidence(0);
+    stoppedManuallyRef.current = false;
+    accumulatedTranscriptRef.current = "";
 
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
@@ -77,7 +81,6 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      // Build full transcript from all results
       let fullTranscript = "";
       let lastConfidence = 0;
       for (let i = 0; i < event.results.length; i++) {
@@ -86,31 +89,55 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
           lastConfidence = event.results[i][0].confidence;
         }
       }
-      setTranscript(fullTranscript.trim());
+      // In continuous mode, accumulate across restarts
+      const combined = accumulatedTranscriptRef.current
+        ? accumulatedTranscriptRef.current + " " + fullTranscript.trim()
+        : fullTranscript.trim();
+      setTranscript(combined);
       if (lastConfidence > 0) setConfidence(lastConfidence);
 
-      // In continuous mode, reset silence timer on each result
-      if (continuousMode) {
-        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = setTimeout(() => {
-          // User stopped speaking — stop recognition
-          recognition.stop();
-        }, silenceMs);
-      }
+      // No silence timer in continuous mode — user presses Done manually
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      // "no-speech" and "aborted" are expected, don't treat as errors
       if (event.error !== "no-speech" && event.error !== "aborted") {
         console.warn("Speech recognition error:", event.error);
       }
-      setIsListening(false);
+      // In continuous mode, auto-restart on error (unless manually stopped)
+      if (continuousMode && !stoppedManuallyRef.current) {
+        accumulatedTranscriptRef.current = accumulatedTranscriptRef.current || "";
+        setTimeout(() => {
+          if (!stoppedManuallyRef.current) {
+            try { recognition.start(); } catch { setIsListening(false); }
+          }
+        }, 300);
+      } else {
+        setIsListening(false);
+      }
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+
+      // In continuous mode, auto-restart if not manually stopped
+      if (continuousMode && !stoppedManuallyRef.current) {
+        // Save current transcript before restart
+        const currentTranscript = accumulatedTranscriptRef.current || "";
+        // Get latest from state (may have updated)
+        setTranscript((prev) => {
+          accumulatedTranscriptRef.current = prev || currentTranscript;
+          return prev;
+        });
+        // Restart recognition
+        setTimeout(() => {
+          if (!stoppedManuallyRef.current && recognitionRef.current) {
+            try { recognition.start(); } catch { setIsListening(false); }
+          }
+        }, 100);
+      } else {
+        setIsListening(false);
+        recognitionRef.current = null;
+      }
     };
 
     recognitionRef.current = recognition;
@@ -118,9 +145,14 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
   }, [isSupported, language, continuousMode, silenceMs]);
 
   const stop = useCallback(() => {
+    stoppedManuallyRef.current = true;
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
+    setIsListening(false);
+    accumulatedTranscriptRef.current = "";
   }, []);
 
   return { isListening, transcript, confidence, isSupported, start, stop };
