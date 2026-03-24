@@ -74,24 +74,8 @@ export function TalkingAvatar({
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as any;
 
-  // Rotate arms down from T-pose to natural resting position
-  useEffect(() => {
-    if (!groupRef.current) return;
-    const leftShoulder = groupRef.current.getObjectByName("LeftShoulder");
-    const rightShoulder = groupRef.current.getObjectByName("RightShoulder");
-    const leftArm = groupRef.current.getObjectByName("LeftArm");
-    const rightArm = groupRef.current.getObjectByName("RightArm");
-    const leftForeArm = groupRef.current.getObjectByName("LeftForeArm");
-    const rightForeArm = groupRef.current.getObjectByName("RightForeArm");
-
-    // Inverted approach — rotate OPPOSITE direction from T-pose
-    if (leftShoulder) leftShoulder.rotation.set(0, 0, -0.15);
-    if (rightShoulder) rightShoulder.rotation.set(0, 0, 0.15);
-    if (leftArm) leftArm.rotation.set(-0.3, 0, -1.1);
-    if (rightArm) rightArm.rotation.set(-0.3, 0, 1.1);
-    if (leftForeArm) leftForeArm.rotation.set(0, -0.3, -0.3);
-    if (rightForeArm) rightForeArm.rotation.set(0, 0.3, 0.3);
-  }, [nodes]);
+  // Force arms down by directly setting bone quaternions every frame
+  const armsFixedRef = useRef(false);
 
   // Setup WebAudio analyser for realtime lip sync
   useEffect(() => {
@@ -140,6 +124,18 @@ export function TalkingAvatar({
   }, [nodes]);
 
   useFrame((state, delta) => {
+    // --- FORCE ARMS DOWN every frame ---
+    if (groupRef.current) {
+      const LA = groupRef.current.getObjectByName("LeftArm");
+      const RA = groupRef.current.getObjectByName("RightArm");
+      const LF = groupRef.current.getObjectByName("LeftForeArm");
+      const RF = groupRef.current.getObjectByName("RightForeArm");
+      if (LA) { LA.rotation.z = 1.2; LA.rotation.x = 0.2; }
+      if (RA) { RA.rotation.z = -1.2; RA.rotation.x = 0.2; }
+      if (LF) { LF.rotation.z = 0.15; LF.rotation.y = 0.2; }
+      if (RF) { RF.rotation.z = -0.15; RF.rotation.y = -0.2; }
+    }
+
     const head = headRef.current;
     const teeth = teethRef.current;
     const eyeL = eyeLeftRef.current;
