@@ -133,7 +133,6 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     speakingRef.current = true;
     setNpcSpeaking(true);
     const gender = npc?.gender || "male";
-    // Cancel any stuck speech
     window.speechSynthesis?.cancel();
     await speakAndWaitGendered(text, targetLanguage, gender);
     if (speakingRef.current) {

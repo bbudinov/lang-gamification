@@ -400,6 +400,11 @@ export function initSpeech(): void {
   ensureVoices();
 }
 
+/** Strip emoji from text so TTS doesn't read them aloud */
+function stripEmoji(text: string): string {
+  return text.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]/gu, "").replace(/\s{2,}/g, " ").trim();
+}
+
 /** Speak with explicit gender voice selection (for intros) */
 export function speakAndWaitGendered(
   text: string,
@@ -415,7 +420,7 @@ export function speakAndWaitGendered(
 
     const voices = await ensureVoices();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(stripEmoji(text));
     utterance.lang = LANG_MAP[language];
     utterance.rate = RATE_MAP[language];
     utterance.pitch = gender === "female" ? 1.1 : 0.9;
@@ -450,7 +455,7 @@ export async function speak(text: string, language: Language): Promise<void> {
 
   const voices = await ensureVoices();
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(stripEmoji(text));
   utterance.lang = LANG_MAP[language];
   utterance.rate = RATE_MAP[language];
   utterance.pitch = 0.9;
@@ -477,7 +482,7 @@ export async function speakWithVoice(
     (v) => v.name === voiceName && v.lang.startsWith(langPrefix)
   );
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(stripEmoji(text));
   utterance.lang = LANG_MAP[language];
   utterance.rate = RATE_MAP[language];
   utterance.pitch = 0.9;
@@ -500,7 +505,7 @@ export function speakAndWait(
 
     const voices = await ensureVoices();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(stripEmoji(text));
     utterance.lang = LANG_MAP[language];
     utterance.rate = RATE_MAP[language];
     utterance.pitch = 0.9;
