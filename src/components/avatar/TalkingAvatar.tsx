@@ -140,9 +140,9 @@ export function TalkingAvatar({
       }
       // Quaternion: rotate both arms down around local X axis
       if (LA) { LA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 1.2); }
-      if (RA) { RA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -1.2); }
+      if (RA) { RA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 1.2); }
       if (LF) { LF.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.15); }
-      if (RF) { RF.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.15); }
+      if (RF) { RF.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.15); }
     }
 
     const head = headRef.current;
