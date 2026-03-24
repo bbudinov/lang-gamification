@@ -2,8 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { initSpeech, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+
+const AvatarCanvas = dynamic(() => import("@/components/avatar/AvatarCanvas"), { ssr: false });
 
 const STORY_PARTS = [
   "A long, long time ago, in the middle of an endless ocean, there was a magical world — LangWorld.",
@@ -82,45 +85,55 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a1628] px-6">
-      {/* Single Professor Globe — idle or speaking */}
-      <div className={narrating ? "mb-4" : "mb-6 animate-bounce"}>
-        <ProfessorGlobe
-          size={96}
-          speaking={isSpeaking}
-          emotion={globeEmotion}
-        />
+    <div className="h-screen w-screen bg-[#0a1628] flex flex-col items-center relative overflow-hidden">
+      {/* 3D Avatar — fullscreen background */}
+      <div className="absolute inset-0 z-0">
+        <AvatarCanvas isSpeaking={isSpeaking} />
       </div>
 
-      {!narrating ? (
-        <>
-          <h1 className="text-4xl font-bold text-white mb-2">LangWorld</h1>
-          <p className="text-slate-400 text-sm mb-10">Learn languages through play</p>
-          <button
-            onClick={handleStart}
-            className={`bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
-              ready ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            }`}
-          >
-            Start Playing
-          </button>
-        </>
-      ) : (
-        <div className="w-full max-w-md space-y-6 text-center">
-          <div className="bg-white/5 rounded-2xl p-4 min-h-[80px] w-full">
-            <p className="text-white text-sm leading-relaxed text-center">
-              {storyLine}
-            </p>
-          </div>
+      {/* Gradient overlay for text readability */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, rgba(10,22,40,0.3) 0%, transparent 30%, transparent 50%, rgba(10,22,40,0.7) 65%, rgba(10,22,40,0.95) 80%)",
+        }}
+      />
 
-          <button
-            onClick={handleSkip}
-            className="text-slate-500 text-xs active:text-white transition-colors"
-          >
-            Skip story →
-          </button>
-        </div>
-      )}
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Content at bottom */}
+      <div className="relative z-10 w-full px-6 pb-12">
+        {!narrating ? (
+          <div className="flex flex-col items-center">
+            <h1 className="text-4xl font-bold text-white mb-2">LangWorld</h1>
+            <p className="text-slate-400 text-sm mb-10">Learn languages through play</p>
+            <button
+              onClick={handleStart}
+              className={`bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold px-10 py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
+                ready ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              }`}
+            >
+              Start Playing
+            </button>
+          </div>
+        ) : (
+          <div className="w-full max-w-md mx-auto space-y-6 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-h-[80px] w-full">
+              <p className="text-white text-sm leading-relaxed text-center">
+                {storyLine}
+              </p>
+            </div>
+
+            <button
+              onClick={handleSkip}
+              className="text-slate-500 text-xs active:text-white transition-colors"
+            >
+              Skip story →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

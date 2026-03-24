@@ -12,10 +12,14 @@ const ProfessorGlobe3D = dynamic(
   () => loader3D().then((m) => ({ default: m.ProfessorGlobe3D })),
   { ssr: false }
 );
+const ProfessorGlobeHeadshot3D = dynamic(
+  () => loader3D().then((m) => ({ default: m.ProfessorGlobeHeadshot })),
+  { ssr: false }
+);
 
 // Preload GLB models on page load
 if (typeof window !== "undefined") {
-  ["/models/professor-globe.glb", "/models/animations.glb"].forEach((url) => {
+  ["/models/professor-globe.glb", "/models/animations.glb", "/models/professor-avatar.glb"].forEach((url) => {
     const link = document.createElement("link");
     link.rel = "preload";
     link.as = "fetch";
@@ -128,24 +132,18 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle avatar — static headshot */}
+        {/* Circle avatar — 3D headshot */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
             boxShadow: `0 0 ${glowSize}px ${glow}50, 0 0 ${glowSizeLg}px ${glow}25`,
+            background: "#0a1628",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/globe/professor-head.png"
-            alt="Professor Globe"
-            className="w-full h-full object-cover"
-            style={{ transform: "scale(0.85)", objectPosition: "center 30%" }}
-            draggable={false}
-          />
+          <ProfessorGlobeHeadshot3D size={size} />
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{ boxShadow: "inset 0 0 12px 6px #0a1628" }}
+            style={{ boxShadow: "inset 0 0 8px 4px #0a1628" }}
           />
         </div>
       </div>
