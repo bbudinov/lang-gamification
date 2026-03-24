@@ -130,11 +130,19 @@ export function TalkingAvatar({
       const RA = groupRef.current.getObjectByName("RightArm");
       const LF = groupRef.current.getObjectByName("LeftForeArm");
       const RF = groupRef.current.getObjectByName("RightForeArm");
-      // T-pose is 0. Negative Y should rotate arms down.
-      if (LA) { LA.rotation.set(0, -1.4, 0); }
-      if (RA) { RA.rotation.set(0, 1.4, 0); }
-      if (LF) { LF.rotation.set(0, 0, 0); }
-      if (RF) { RF.rotation.set(0, 0, 0); }
+      // Debug: log arm bone parent chain once
+      if (!armsFixedRef.current && LA) {
+        armsFixedRef.current = true;
+        console.log("[ARMS] LeftArm rotation:", LA.rotation.x.toFixed(2), LA.rotation.y.toFixed(2), LA.rotation.z.toFixed(2));
+        console.log("[ARMS] LeftArm parent:", (LA as any).parent?.name);
+        // Try using quaternion to rotate from T-pose to arms-down
+        // T-pose = arms horizontal. We need to rotate the arm bone ~80° around its local forward axis
+      }
+      // Use quaternion: rotate around local X axis (which points forward in T-pose)
+      if (LA) { LA.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 1.2); }
+      if (RA) { RA.quaternion.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), 1.2); }
+      if (LF) { LF.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.3); }
+      if (RF) { RF.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, -1), 0.3); }
     }
 
     const head = headRef.current;
