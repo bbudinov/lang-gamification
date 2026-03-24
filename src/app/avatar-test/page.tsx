@@ -75,7 +75,7 @@ function AvatarScene() {
       {/* 3D Canvas */}
       <div className="flex-1 relative">
         <Canvas
-          camera={{ position: [0, 0, 2.2], fov: 35 }}
+          camera={{ position: [0, -0.8, 4.8], fov: 30 }}
           style={{ background: "linear-gradient(180deg, #1a2744 0%, #0a1628 100%)" }}
         >
           <ambientLight intensity={0.7} color="#e8e0d8" />
@@ -89,13 +89,13 @@ function AvatarScene() {
               isSpeaking={isSpeaking}
               smoothing={0.5}
               headFollow={true}
-              scale={1.5}
-              position={[0, -2.2, 0]}
+              scale={1}
+              position={[0, -1.65, 0]}
             />
           </Suspense>
 
           <OrbitControls
-            target={[0, -0.3, 0]}
+            target={[0, -0.6, 0]}
             enableZoom={true}
             enablePan={false}
             minDistance={1}
