@@ -1,8 +1,30 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useState, useRef, useEffect } from "react";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import { TalkingAvatar } from "./TalkingAvatar";
+
+// Animated camera that zooms in when speaking
+function AnimatedCamera({ isSpeaking }: { isSpeaking: boolean }) {
+  const { camera } = useThree();
+  const targetZ = useRef(3.0);
+
+  useEffect(() => {
+    targetZ.current = isSpeaking ? 2.2 : 3.0;
+  }, [isSpeaking]);
+
+  useFrame(() => {
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ.current, 0.03);
+    camera.position.y = THREE.MathUtils.lerp(
+      camera.position.y,
+      isSpeaking ? -0.1 : -0.3,
+      0.03
+    );
+  });
+
+  return null;
+}
 
 interface AvatarCanvasProps {
   isSpeaking?: boolean;
@@ -23,7 +45,7 @@ export default function AvatarCanvas({ isSpeaking = false }: AvatarCanvasProps) 
       )}
 
       <Canvas
-        camera={{ position: [0, -0.6, 4.2], fov: 30 }}
+        camera={{ position: [0, -0.3, 3.0], fov: 30 }}
         style={{ background: "transparent" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         onCreated={() => {
@@ -35,13 +57,15 @@ export default function AvatarCanvas({ isSpeaking = false }: AvatarCanvasProps) 
         <directionalLight position={[-2, 1, -1]} intensity={0.3} color="#6090c0" />
         <hemisphereLight intensity={0.3} color="#87ceeb" groundColor="#c0a880" />
 
+        <AnimatedCamera isSpeaking={isSpeaking} />
+
         <Suspense fallback={null}>
           <TalkingAvatar
             isSpeaking={isSpeaking}
             smoothing={0.5}
             headFollow={true}
-            scale={1.1}
-            position={[0, -1.65, 0]}
+            scale={1}
+            position={[0, -1.5, 0]}
           />
         </Suspense>
       </Canvas>

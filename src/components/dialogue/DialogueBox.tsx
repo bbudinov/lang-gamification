@@ -34,7 +34,7 @@ function buildSystemPrompt(npc: NPCData, lang: Language, memories: string[], top
     ? `\n\nYou remember these facts from previous conversations:\n${memories.map((m) => `- ${m}`).join("\n")}\nRefer to these naturally when relevant (e.g., "Last time you said you like dogs!").`
     : "";
 
-  return `You are ${npc.name}, a ${npc.role[lang]}. ${npc.personality}
+  return `You are Professor Globe, a friendly language teacher. You are currently playing the role of a ${npc.role[lang]} to make the lesson fun and immersive. ${npc.personality}
 
 Your goal in this conversation: ${npc.goal[lang]}
 
@@ -163,13 +163,28 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       window.speechSynthesis.speak(unlock);
     }
 
-    const greeting = npc.greeting[targetLanguage];
+    // Generate a contextual greeting via AI instead of hardcoded NPC greeting
+    const topicWords = topic.words.map((w) => w[targetLanguage]);
+    const memories = getRecentFacts(npc.id);
+    const systemPrompt = buildSystemPrompt(npc, targetLanguage, memories, topicWords);
+
+    setLoading(true);
+    const greetingResponse = await askAI(
+      [{ role: "user", content: "[System: Start the conversation. Greet the learner warmly and introduce today's topic. Do NOT mention your name. Just say hello and get started. Include OPTIONS.]" }],
+      systemPrompt,
+      80
+    );
+    setLoading(false);
+
+    const parsed = parseAIResponse(greetingResponse || "Hello! 😊 Let's learn together today!");
+    const greeting = parsed.message;
     setMessages([{ role: "npc", text: greeting }]);
+    if (parsed.options.length > 0) setOptions(parsed.options);
 
     // Small delay to let speech engine initialize
     await new Promise(r => setTimeout(r, 300));
     await speakNPC(greeting);
-    generateOptions(greeting);
+    if (parsed.options.length === 0) generateOptions(greeting);
   }, [npc, started, targetLanguage, speakNPC]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom
@@ -423,7 +438,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   return (
     <div className="h-screen w-screen bg-[#0a1628] flex flex-col overflow-hidden">
       {/* Top: 3D Avatar area */}
-      <div className="relative" style={{ height: "45vh", minHeight: 280 }}>
+      <div className="relative" style={{ height: "55vh", minHeight: 320 }}>
         {/* Header overlay */}
         <div className="absolute top-0 left-0 right-0 z-10 safe-area">
           <div className="flex items-center justify-between px-4 py-3">
