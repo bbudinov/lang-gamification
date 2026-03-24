@@ -128,8 +128,12 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     }
   };
 
-  // Not supported
-  if (!isSupported) {
+  // Wait for client-side detection before showing "not supported"
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
+
+  // Not supported (only show after client is ready)
+  if (clientReady && !isSupported) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-4 px-6">
         <ProfessorGlobe size={80} emotion="thinking" />
