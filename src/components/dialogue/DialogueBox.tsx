@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useProgressStore } from "@/stores/progressStore";
 import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { askAI } from "@/lib/ai";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
 import { playPopSound, playDingSound, speak, speakAndWait, speakAndWaitGendered, stopAudio } from "@/lib/speech";
@@ -306,6 +306,42 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     }
   }, [loading, npc, npcSpeaking, exchanges, score, targetLanguage, topic, addFact, addGameResult, addPoints, getRecentFacts, speakNPC]);
 
+  // Fuzzy-fix misheard words using topic vocabulary
+  const topicWordsRef = useRef<string[]>([]);
+  useEffect(() => {
+    if (topic?.words) {
+      topicWordsRef.current = topic.words.map((w) => w[targetLanguage].toLowerCase());
+    }
+  }, [topic?.words, targetLanguage]);
+
+  const fuzzyFixTranscript = useCallback((text: string): string => {
+    const words = text.split(/\s+/);
+    const fixed = words.map((word) => {
+      const lower = word.toLowerCase().replace(/[.,!?]/g, "");
+      if (lower.length < 3) return word; // skip short words (a, I, to, etc.)
+
+      // Check if this word is close to any topic word
+      let bestMatch = "";
+      let bestScore = 0;
+      for (const topicWord of topicWordsRef.current) {
+        // Only compare words of similar length
+        if (Math.abs(lower.length - topicWord.length) > 2) continue;
+        const score = similarityScore(lower, topicWord);
+        if (score > bestScore && score >= 0.7) {
+          bestScore = score;
+          bestMatch = topicWord;
+        }
+      }
+
+      if (bestMatch && bestScore < 1) {
+        // Preserve original casing style
+        return bestMatch.charAt(0).toUpperCase() + bestMatch.slice(1);
+      }
+      return word;
+    });
+    return fixed.join(" ");
+  }, []);
+
   // Process speech recognition result — only when mic STOPS (user finished talking)
   const processedTranscriptRef = useRef("");
   const pendingTranscriptRef = useRef("");
@@ -328,7 +364,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
     processedTranscriptRef.current = finalText;
     pendingTranscriptRef.current = "";
-    handlePlayerChoice(finalText);
+    // Fix misheard words (e.g. "bigs" → "pigs") using topic vocabulary
+    const correctedText = fuzzyFixTranscript(finalText);
+    handlePlayerChoice(correctedText);
   }, [isListening]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMicToggle = () => {
