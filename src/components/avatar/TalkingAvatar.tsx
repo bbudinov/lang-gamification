@@ -84,15 +84,13 @@ export function TalkingAvatar({
     const leftForeArm = groupRef.current.getObjectByName("LeftForeArm");
     const rightForeArm = groupRef.current.getObjectByName("RightForeArm");
 
-    // Shoulders slightly down
-    if (leftShoulder) leftShoulder.rotation.set(0, 0, 0.15);
-    if (rightShoulder) rightShoulder.rotation.set(0, 0, -0.15);
-    // Upper arms down along body (Z rotation from T-pose)
-    if (leftArm) leftArm.rotation.set(0.3, 0, 1.1);
-    if (rightArm) rightArm.rotation.set(0.3, 0, -1.1);
-    // Forearms slightly bent inward
-    if (leftForeArm) leftForeArm.rotation.set(0, 0.3, 0.3);
-    if (rightForeArm) rightForeArm.rotation.set(0, -0.3, -0.3);
+    // Inverted approach — rotate OPPOSITE direction from T-pose
+    if (leftShoulder) leftShoulder.rotation.set(0, 0, -0.15);
+    if (rightShoulder) rightShoulder.rotation.set(0, 0, 0.15);
+    if (leftArm) leftArm.rotation.set(-0.3, 0, -1.1);
+    if (rightArm) rightArm.rotation.set(-0.3, 0, 1.1);
+    if (leftForeArm) leftForeArm.rotation.set(0, -0.3, -0.3);
+    if (rightForeArm) rightForeArm.rotation.set(0, 0.3, 0.3);
   }, [nodes]);
 
   // Setup WebAudio analyser for realtime lip sync
