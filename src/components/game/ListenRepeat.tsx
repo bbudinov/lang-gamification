@@ -182,9 +182,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
         <div className="bg-white/5 rounded-2xl p-6 w-full max-w-xs space-y-3">
           <div className="flex justify-between text-slate-300">
             <span>Stars</span>
-            <span className="text-amber-400 font-bold">
-              {"⭐".repeat(Math.min(totalStars, 10))} {totalStars}/{maxStars}
-            </span>
+            <span className="text-amber-400 font-bold">⭐ {totalStars}/{maxStars}</span>
           </div>
           <div className="flex justify-between text-slate-300">
             <span>Points</span>
