@@ -387,36 +387,53 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a1628] flex flex-col">
-      {/* Header */}
-      <div className="safe-area">
+    <div className="h-screen w-screen bg-[#0a1628] flex flex-col relative overflow-hidden">
+      {/* 3D Avatar — fullscreen background */}
+      <div className="absolute inset-0 z-0">
+        <AvatarCanvas isSpeaking={npcSpeaking} />
+      </div>
+
+      {/* Dark gradient overlay at bottom for chat readability */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, transparent 20%, rgba(10,22,40,0.5) 45%, rgba(10,22,40,0.95) 65%, rgba(10,22,40,1) 80%)",
+        }}
+      />
+
+      {/* Header — floating over avatar */}
+      <div className="safe-area relative z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => router.push("/map")}
-            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
+            className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
           >
             <span className="text-white text-sm">← Back</span>
           </button>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-            {npc.image ? (
-              <div className="w-6 h-6 rounded-full overflow-hidden border border-white/30">
-                <img src={npc.image} alt={npc.name} className="w-full h-full object-cover object-top" />
-              </div>
-            ) : (
-              <span>{npc.emoji}</span>
-            )}
-            <span className="text-white text-sm font-medium">{npc.name}</span>
-          </div>
-          <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
+          <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5">
             <span className="text-amber-400 text-xs">⭐</span>
             <span className="text-white text-sm font-semibold">{score}</span>
           </div>
         </div>
       </div>
 
-      {/* Progress */}
-      <div className="px-4 mb-2">
-        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+      {/* Speaking indicator — floating over avatar */}
+      {npcSpeaking && (
+        <div className="absolute top-1/3 left-0 right-0 z-10 flex flex-col items-center pointer-events-none">
+          <div className="flex gap-0.5 items-end mb-1.5">
+            <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+            <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+            <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
+            <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
+            <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
+          </div>
+          <p className="text-white/80 text-xs font-medium">{npc.name} is speaking...</p>
+        </div>
+      )}
+
+      {/* Progress — subtle, at top */}
+      <div className="px-4 relative z-10">
+        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
             style={{ width: `${(exchanges / MAX_EXCHANGES) * 100}%` }}
@@ -424,24 +441,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       </div>
 
-      {/* 3D Avatar — always visible, lip syncs when speaking */}
-      <div className="relative w-full" style={{ height: "35vh", minHeight: 200 }}>
-        <AvatarCanvas isSpeaking={npcSpeaking} />
-        {/* Name + speaking indicator */}
-        <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center pointer-events-none">
-          {npcSpeaking && (
-            <div className="flex gap-0.5 items-end mb-1">
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-3" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-2" />
-              <div className="w-1 bg-blue-400 rounded-full animate-sound-1" />
-            </div>
-          )}
-          <p className="text-white font-semibold text-sm">{npc.name}</p>
-          <p className="text-slate-500 text-[10px]">{npc.role[targetLanguage]}</p>
-        </div>
-      </div>
+      {/* Spacer to push chat to bottom half */}
+      <div className="flex-1 relative z-10" />
 
       {/* Correction toast */}
       {lastCorrection && (
