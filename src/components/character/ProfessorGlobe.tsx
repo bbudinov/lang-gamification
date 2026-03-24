@@ -132,15 +132,20 @@ export function ProfessorGlobe({
           }}
         />
 
-        {/* Circle avatar — 3D headshot */}
+        {/* Circle avatar — headshot image */}
         <div
           className="relative w-full h-full rounded-full overflow-hidden"
           style={{
             boxShadow: `0 0 ${glowSize}px ${glow}50, 0 0 ${glowSizeLg}px ${glow}25`,
-            background: "#0a1628",
           }}
         >
-          <ProfessorGlobeHeadshot3D size={size} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/globe/professor-head-3d.png"
+            alt="Professor Globe"
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 0 8px 4px #0a1628" }}
