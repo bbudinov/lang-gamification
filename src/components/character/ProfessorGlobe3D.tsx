@@ -30,7 +30,7 @@ function AnimatedCamera({ speaking }: { speaking: boolean }) {
 export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
   return (
     <Canvas
-      camera={{ position: [0, 0.15, 0.5], fov: 22 }}
+      camera={{ position: [0, 0.15, 0.55], fov: 22 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         width: size,
@@ -48,7 +48,7 @@ export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
           smoothing={0.5}
           headFollow={false}
           scale={1}
-          position={[0, -0.15, 0]}
+          position={[0, 0.35, 0]}
         />
       </Suspense>
     </Canvas>
