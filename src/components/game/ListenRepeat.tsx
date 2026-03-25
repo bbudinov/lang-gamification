@@ -73,10 +73,12 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     }
   }, [currentIndex, phrase, roundKey, feedback, targetLanguage]);
 
-  // Process speech result
+  // Process speech result — wait until recognition stops (final result)
   useEffect(() => {
-    if (!transcript || feedback !== "listening") return;
+    if (feedback !== "listening") return;
     if (!phrase) return;
+    // Only score when recognition has stopped and we have a transcript
+    if (isListening || !transcript) return;
 
     // Build full sentence (replace ___ with answer) for comparison
     const fullSentence = phrase.sentence[targetLanguage].replace("___", phrase.answer[targetLanguage]);
@@ -93,7 +95,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     } else {
       playPopSound();
     }
-  }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [transcript, isListening]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advance = useCallback(() => {
     if (currentIndex + 1 >= phrases.length) {
@@ -144,7 +146,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
           Try using Chrome on Android for the best experience!
         </p>
         <button
-          onClick={() => router.push("/map")}
+          onClick={() => router.back()}
           className="text-blue-400 text-sm mt-4"
         >
           ← Back to Map
@@ -159,7 +161,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
         <ProfessorGlobe size={80} emotion="thinking" />
         <p className="text-white text-lg text-center">No phrases available for this topic yet!</p>
         <button
-          onClick={() => router.push("/map")}
+          onClick={() => router.back()}
           className="text-blue-400 text-sm mt-4"
         >
           ← Back to Map
@@ -212,7 +214,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
             Play Again
           </button>
           <button
-            onClick={() => router.push("/map")}
+            onClick={() => router.back()}
             className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors"
           >
             Back to Map
@@ -242,7 +244,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={() => router.push("/map")}
+            onClick={() => router.back()}
             className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
           >
             <span className="text-white text-sm">← Back</span>
