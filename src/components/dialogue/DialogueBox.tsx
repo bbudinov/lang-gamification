@@ -157,9 +157,20 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         // NOW start lip sync — audio is ready
         setNpcSpeaking(true);
         await new Promise<void>((resolve) => {
-          audio.onended = () => resolve();
-          audio.onerror = () => resolve();
-          audio.play().catch(() => resolve());
+          let resolved = false;
+          const done = () => { if (!resolved) { resolved = true; resolve(); } };
+          // Safety timeout in case onended never fires (Android Chrome issue)
+          const timeout = setTimeout(done, 12000);
+          audio.onended = () => { clearTimeout(timeout); done(); };
+          audio.onerror = () => { clearTimeout(timeout); done(); };
+          // Also use timeupdate to detect when audio finishes
+          audio.ontimeupdate = () => {
+            if (audio.currentTime >= audio.duration - 0.1) {
+              clearTimeout(timeout);
+              done();
+            }
+          };
+          audio.play().catch(() => { clearTimeout(timeout); done(); });
         });
       } else {
         setAudioLoading(false);
