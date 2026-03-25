@@ -312,9 +312,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     const systemPrompt = buildSystemPrompt(npc, targetLanguage, memories, topicWords);
 
     const exchangeNum = exchanges + 1;
-    // End game if max exchanges reached OR player says goodbye
-    const farewellPattern = /\b(bye|goodbye|see you|gotta go|go home|have to go|leaving|farewell|ciao|adios|чао|довиждане)\b/i;
-    const isLast = exchangeNum >= MAX_EXCHANGES || (exchangeNum >= 3 && farewellPattern.test(choice));
+    const isLast = exchangeNum >= MAX_EXCHANGES;
 
     let extraInstruction = "";
     if (isLast) {
@@ -500,6 +498,32 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     accumulatedUserRef.current = "";
     setDisplayTranscript("");
   };
+
+  // End chat early — player wants to leave
+  const handleEndChat = useCallback(() => {
+    if (npcAudioRef.current) { npcAudioRef.current.pause(); npcAudioRef.current = null; }
+    window.speechSynthesis?.cancel();
+    speakingRef.current = false;
+    setNpcSpeaking(false);
+    stopMic();
+    setMicActive(false);
+    setOptions([]);
+    setLoading(false);
+
+    playDingSound();
+    const finalScore = exchanges * POINTS_PER_EXCHANGE + COMPLETION_BONUS;
+    setScore(finalScore);
+    addGameResult({
+      topicId: topic.id,
+      gameType: "npc-talk",
+      score: finalScore,
+      maxScore: MAX_EXCHANGES * POINTS_PER_EXCHANGE + COMPLETION_BONUS,
+      mistakes: 0,
+      completedAt: new Date().toISOString(),
+    });
+    addPoints(finalScore);
+    setGameCompleted(true);
+  }, [exchanges, topic.id, addGameResult, addPoints, stopMic]);
 
   // No NPC for this topic
   if (!npc) {
@@ -774,6 +798,15 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               </button>
               <p className="text-slate-500 text-[10px]">or say your own!</p>
             </div>
+          )}
+          {/* End Chat button — available after 3+ exchanges */}
+          {exchanges >= 3 && (
+            <button
+              onClick={handleEndChat}
+              className="w-full text-slate-500 text-xs text-center py-2 active:text-slate-300 transition-colors"
+            >
+              End Chat
+            </button>
           )}
         </div>
       )}
