@@ -134,9 +134,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
   // Speak NPC message using Google Cloud TTS (same voice on all devices)
   const npcAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
+
   const speakNPC = useCallback(async (text: string) => {
     speakingRef.current = true;
-    setNpcSpeaking(true);
+    setAudioLoading(true);
 
     // Strip emoji before sending to TTS
     const clean = text.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]/gu, "").replace(/\s{2,}/g, " ").trim();
@@ -151,14 +153,21 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         const { audioContent } = await res.json();
         const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
         npcAudioRef.current = audio;
+        setAudioLoading(false);
+        // NOW start lip sync — audio is ready
+        setNpcSpeaking(true);
         await new Promise<void>((resolve) => {
           audio.onended = () => resolve();
           audio.onerror = () => resolve();
           audio.play().catch(() => resolve());
         });
+      } else {
+        setAudioLoading(false);
       }
     } catch {
+      setAudioLoading(false);
       // Fallback to Web Speech API if Google TTS fails
+      setNpcSpeaking(true);
       window.speechSynthesis?.cancel();
       await speakAndWaitGendered(clean, targetLanguage, "male");
     }
@@ -168,6 +177,19 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       speakingRef.current = false;
     }
   }, [targetLanguage]);
+
+  // Pause audio when screen goes off (phone locked/minimized)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && npcAudioRef.current) {
+        npcAudioRef.current.pause();
+        speakingRef.current = false;
+        setNpcSpeaking(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -578,6 +600,10 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               style={{ animation: `msg-in 0.3s ease-out both` }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
+              {/* Audio loading indicator on last NPC message */}
+              {msg.role === "npc" && i === messages.length - 1 && audioLoading && (
+                <span className="inline-block ml-1 text-blue-400 text-xs animate-pulse">🔊</span>
+              )}
             </div>
           </div>
         ))}
