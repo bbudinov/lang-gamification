@@ -805,24 +805,15 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               <p className="text-slate-500 text-[10px]">or say your own!</p>
             </div>
           )}
-          {/* End Chat button — available after 3+ exchanges */}
-          {exchanges >= 3 && (
-            <button
-              onClick={handleEndChat}
-              className="w-full text-slate-500 text-xs text-center py-2 active:text-slate-300 transition-colors"
-            >
-              End Chat
-            </button>
-          )}
         </div>
       )}
 
-      {/* Standalone End Chat — always visible after 3+ exchanges when stuck (no options, not loading, not mic) */}
-      {!micActive && options.length === 0 && !loading && exchanges >= 3 && !gameCompleted && (
-        <div className="px-4 pb-6 relative z-10">
+      {/* End Chat — always visible after 3+ exchanges, no matter what state */}
+      {exchanges >= 3 && !gameCompleted && !micActive && (
+        <div className="px-4 pb-2 relative z-10">
           <button
             onClick={handleEndChat}
-            className="w-full bg-white/5 border border-white/10 text-slate-400 text-sm text-center py-3 rounded-xl active:bg-white/10 transition-colors"
+            className="w-full text-slate-500 text-xs text-center py-2 active:text-slate-300 transition-colors"
           >
             End Chat
           </button>
