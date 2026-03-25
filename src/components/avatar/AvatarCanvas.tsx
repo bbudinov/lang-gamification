@@ -30,6 +30,9 @@ interface AvatarCanvasProps {
   isSpeaking?: boolean;
 }
 
+// Detect iOS for performance tuning
+const IS_IOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+
 export default function AvatarCanvas({ isSpeaking = false }: AvatarCanvasProps) {
   const [ready, setReady] = useState(false);
 
@@ -47,7 +50,8 @@ export default function AvatarCanvas({ isSpeaking = false }: AvatarCanvasProps) 
       <Canvas
         camera={{ position: [0, -0.3, 3.0], fov: 30 }}
         style={{ background: "transparent", pointerEvents: "none" }}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        dpr={IS_IOS ? Math.min(window.devicePixelRatio, 1.5) : undefined}
+        gl={{ alpha: true, antialias: !IS_IOS, powerPreference: "high-performance" }}
         onCreated={() => {
           setTimeout(() => setReady(true), 800);
         }}

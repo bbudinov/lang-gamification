@@ -1,5 +1,30 @@
 import type { Language } from "@/types";
 
+// ─── iOS Audio Unlock ───────────────────────────────────────────
+// iOS Safari blocks audio until a user gesture triggers playback.
+// We unlock on the very first tap/click anywhere in the app.
+
+let audioUnlocked = false;
+
+function unlockAudio(): void {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+
+  // Unlock HTMLAudioElement
+  const silence = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlp2NIAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlp2NIAAAAAAAAAAAAAAAAAAAA");
+  silence.play().then(() => silence.pause()).catch(() => {});
+
+  // Unlock AudioContext
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+if (typeof window !== "undefined") {
+  document.addEventListener("touchstart", unlockAudio, { once: true });
+  document.addEventListener("click", unlockAudio, { once: true });
+}
+
 // ─── Audio player (pre-generated MP3 files) ─────────────────────
 
 let currentAudio: HTMLAudioElement | null = null;

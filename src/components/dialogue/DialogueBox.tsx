@@ -439,16 +439,24 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }, [confidence]);
 
   // Auto-restart recognition when it stops but user hasn't pressed Done
+  // Limit restarts to avoid iOS permission prompt loops
+  const micRestartsRef = useRef(0);
   useEffect(() => {
     if (micActive && !isListening) {
       // Recognition ended naturally (Android pause) — save current and restart
       if (transcript) {
         accumulatedUserRef.current = (accumulatedUserRef.current + " " + transcript).trim();
       }
-      const timer = setTimeout(() => {
-        if (micActive) startMic();
-      }, 300);
-      return () => clearTimeout(timer);
+      // Max 5 auto-restarts per session (iOS may re-prompt permissions)
+      if (micRestartsRef.current < 5) {
+        const timer = setTimeout(() => {
+          if (micActive) {
+            micRestartsRef.current++;
+            startMic();
+          }
+        }, 300);
+        return () => clearTimeout(timer);
+      }
     }
   }, [isListening, micActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -463,6 +471,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     lastTranscriptRef.current = "";
     accumulatedUserRef.current = "";
     lastConfidenceRef.current = 0;
+    micRestartsRef.current = 0;
     setDisplayTranscript("");
     setMicActive(true);
     startMic();
@@ -589,7 +598,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   // "Tap to start" screen — needed for speech synthesis on desktop
   if (!started) {
     return (
-      <div className="h-screen w-screen bg-[#0a1628] flex flex-col overflow-hidden">
+      <div className="h-screen-safe w-screen bg-[#0a1628] flex flex-col overflow-hidden">
         <div className="relative flex-1">
           <AvatarCanvas isSpeaking={false} />
           {/* Tap overlay */}
@@ -608,7 +617,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#0a1628] flex flex-col overflow-hidden">
+    <div className="h-screen-safe w-screen bg-[#0a1628] flex flex-col overflow-hidden">
       {/* Top: 3D Avatar area */}
       <div className="relative" style={{ height: "55vh", minHeight: 320 }}>
         {/* Header overlay */}

@@ -93,7 +93,12 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
       // Store latest complete transcript (replaces, doesn't accumulate)
       accumulatedTranscriptRef.current = fullTranscript.trim();
       setTranscript(fullTranscript.trim());
-      if (lastConfidence > 0) setConfidence(lastConfidence);
+      // iOS Safari often returns confidence = 0; use 0.75 as fallback for final results
+      if (lastConfidence > 0) {
+        setConfidence(lastConfidence);
+      } else if (event.results.length > 0 && event.results[event.results.length - 1].isFinal) {
+        setConfidence(0.75);
+      }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
