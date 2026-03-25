@@ -200,11 +200,16 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     }
   }, [targetLanguage]);
 
-  // Pause audio when screen goes off (phone locked/minimized)
+  // Pause audio when screen goes off — also force-end the audio so speakNPC resolves
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden && npcAudioRef.current) {
+        // Force end the audio — this triggers onended which resolves the speakNPC promise
         npcAudioRef.current.pause();
+        npcAudioRef.current.currentTime = npcAudioRef.current.duration || 0;
+        // Dispatch ended event in case onended doesn't fire from currentTime change
+        npcAudioRef.current.dispatchEvent(new Event("ended"));
+        npcAudioRef.current = null;
         speakingRef.current = false;
         setNpcSpeaking(false);
       }
@@ -809,6 +814,18 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               End Chat
             </button>
           )}
+        </div>
+      )}
+
+      {/* Standalone End Chat — always visible after 3+ exchanges when stuck (no options, not loading, not mic) */}
+      {!micActive && options.length === 0 && !loading && exchanges >= 3 && !gameCompleted && (
+        <div className="px-4 pb-6 relative z-10">
+          <button
+            onClick={handleEndChat}
+            className="w-full bg-white/5 border border-white/10 text-slate-400 text-sm text-center py-3 rounded-xl active:bg-white/10 transition-colors"
+          >
+            End Chat
+          </button>
         </div>
       )}
 
