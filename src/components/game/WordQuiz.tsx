@@ -170,7 +170,10 @@ export function WordQuiz({ topic }: WordQuizProps) {
       // Move to next round after delay
       setTimeout(() => {
         if (currentRound + 1 >= rounds.length) {
-          const finalScore = (correct ? score + CORRECT_POINTS : Math.max(0, score - WRONG_PENALTY)) + COMPLETION_BONUS;
+          // Calculate from scratch to avoid stale state in setTimeout closure
+          const correctCount = (correct ? 1 : 0) + currentRound - mistakes;
+          const wrongCount = mistakes + (correct ? 0 : 1);
+          const finalScore = Math.max(0, correctCount * CORRECT_POINTS - wrongCount * WRONG_PENALTY) + COMPLETION_BONUS;
           addPoints(finalScore);
           addGameResult({
             topicId: topic.id,

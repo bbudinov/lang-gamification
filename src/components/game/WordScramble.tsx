@@ -141,7 +141,7 @@ export function WordScramble({ topic }: WordScrambleProps) {
 
         setTimeout(() => {
           if (currentWord + 1 >= words.length) {
-            const finalScore = score + CORRECT_POINTS + COMPLETION_BONUS;
+            const finalScore = (currentWord + 1) * CORRECT_POINTS + COMPLETION_BONUS;
             addPoints(finalScore);
             addGameResult({
               topicId: topic.id,
