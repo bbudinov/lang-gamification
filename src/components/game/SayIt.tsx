@@ -384,10 +384,10 @@ export function SayIt({ topic }: SayItProps) {
             Play Again
           </button>
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/map?topic=${topic.id}`)}
             className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors"
           >
-            Back to Map
+            More Games
           </button>
         </div>
       </div>

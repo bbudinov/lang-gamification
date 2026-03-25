@@ -279,10 +279,10 @@ export function TrueFalse({ topic }: TrueFalseProps) {
                 Play Again
               </button>
               <button
-                onClick={() => router.push("/map")}
+                onClick={() => router.push(`/map?topic=${topic.id}`)}
                 className="bg-white/10 text-white px-6 py-2.5 rounded-full font-medium active:bg-white/20 transition-colors"
               >
-                Back to Map
+                More Games
               </button>
             </div>
           </div>
