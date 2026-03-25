@@ -239,9 +239,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     // Add to AI history so it doesn't repeat itself
     aiHistoryRef.current.push({ role: "assistant", content: greeting });
 
-    // Speak FIRST, then show text + options
-    await speakNPC(greeting);
+    // Show text immediately, options after voice ends
     setMessages([{ role: "npc", text: greeting }]);
+    await speakNPC(greeting);
     if (parsed.options.length > 0) {
       setOptions(parsed.options);
     } else {
