@@ -183,7 +183,7 @@ export function WordQuiz({ topic }: WordQuizProps) {
             mistakes: mistakes + (correct ? 0 : 1),
             completedAt: new Date().toISOString(),
           });
-          setScore((s) => s + COMPLETION_BONUS);
+          setScore(finalScore);
           setGameCompleted(true);
           setTimeout(checkForChest, 500);
         } else {
