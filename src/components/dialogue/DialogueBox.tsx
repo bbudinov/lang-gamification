@@ -392,51 +392,42 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     return fixed.join(" ");
   }, []);
 
-  // Process speech recognition result — only when mic STOPS (user finished talking)
-  const processedTranscriptRef = useRef("");
-  const pendingTranscriptRef = useRef("");
+  // Track mic session
+  const [micActive, setMicActive] = useState(false);
+  const lastTranscriptRef = useRef("");
 
-  // Track the latest transcript while listening
+  // Track latest transcript
   useEffect(() => {
-    if (transcript && isListening) {
-      pendingTranscriptRef.current = transcript;
+    if (transcript) lastTranscriptRef.current = transcript;
+  }, [transcript]);
+
+  const handleMicStart = () => {
+    if (speakingRef.current || npcSpeaking) {
+      // Stop NPC audio first
+      if (npcAudioRef.current) { npcAudioRef.current.pause(); }
+      window.speechSynthesis?.cancel();
+      speakingRef.current = false;
+      setNpcSpeaking(false);
     }
-  }, [transcript, isListening]);
+    lastTranscriptRef.current = "";
+    setMicActive(true);
+    startMic();
+  };
 
-  // When mic stops → process the full answer
-  useEffect(() => {
-    if (isListening) return; // still listening, wait
-    const finalText = pendingTranscriptRef.current || transcript;
-    if (!finalText || loading || gameCompleted) return;
-    if (finalText === processedTranscriptRef.current) return;
-    if (finalText.trim().length < 2) return;
-    if (speakingRef.current || npcSpeaking) return;
-
-    processedTranscriptRef.current = finalText;
-    pendingTranscriptRef.current = "";
-    // Fix misheard words (e.g. "bigs" → "pigs") using topic vocabulary
-    const correctedText = fuzzyFixTranscript(finalText);
-    handlePlayerChoice(correctedText);
-  }, [isListening]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleMicToggle = () => {
-    if (isListening) {
-      stopMic();
-    } else {
-      // Don't allow mic while NPC is speaking — it picks up the speaker audio
-      if (speakingRef.current || npcSpeaking) {
-        stopAudio();
-        setTimeout(() => {
-          processedTranscriptRef.current = "";
-          pendingTranscriptRef.current = "";
-          startMic();
-        }, 300);
-        return;
-      }
-      processedTranscriptRef.current = "";
-      pendingTranscriptRef.current = "";
-      startMic();
+  const handleMicDone = () => {
+    stopMic();
+    setMicActive(false);
+    const text = lastTranscriptRef.current.trim();
+    if (text.length >= 2 && !loading && !gameCompleted) {
+      const corrected = fuzzyFixTranscript(text);
+      handlePlayerChoice(corrected);
     }
+  };
+
+  const handleMicCancel = () => {
+    stopMic();
+    setMicActive(false);
+    lastTranscriptRef.current = "";
   };
 
   // No NPC for this topic
@@ -614,10 +605,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         )}
       </div>
 
-      {/* Listening mode — show live transcript + Done button */}
-      {isListening && (
+      {/* Mic active — show live transcript + Done button */}
+      {micActive && (
         <div className="px-4 pb-6 space-y-3 relative z-10">
-          {/* Live transcript */}
           {transcript && (
             <div className="bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3">
               <p className="text-white text-sm">{transcript}</p>
@@ -626,15 +616,14 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
           {!transcript && (
             <p className="text-blue-400 text-sm text-center animate-pulse">Listening... speak now!</p>
           )}
-          {/* Done button */}
           <button
-            onClick={() => stopMic()}
+            onClick={handleMicDone}
             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3.5 rounded-xl font-bold text-base active:scale-95 transition-transform shadow-lg shadow-green-500/30"
           >
             Done ✓
           </button>
           <button
-            onClick={() => { stopMic(); processedTranscriptRef.current = transcript || "skip"; }}
+            onClick={handleMicCancel}
             className="text-slate-500 text-xs text-center w-full"
           >
             Cancel
@@ -642,8 +631,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         </div>
       )}
 
-      {/* Options + Mic (when not listening) */}
-      {!isListening && options.length > 0 && !loading && !npcSpeaking && (
+      {/* Options + Mic (when not in mic mode) */}
+      {!micActive && options.length > 0 && !loading && !npcSpeaking && (
         <div className="px-4 pb-6 space-y-2 relative z-10">
           {options.map((option, i) => (
             <button
@@ -661,7 +650,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
           {micSupported && (
             <div className="flex flex-col items-center pt-2 gap-1">
               <button
-                onClick={handleMicToggle}
+                onClick={handleMicStart}
                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30"
               >
                 <span className="text-xl">🎤</span>
