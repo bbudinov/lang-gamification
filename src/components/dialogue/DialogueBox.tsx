@@ -312,7 +312,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     const systemPrompt = buildSystemPrompt(npc, targetLanguage, memories, topicWords);
 
     const exchangeNum = exchanges + 1;
-    const isLast = exchangeNum >= MAX_EXCHANGES;
+    // End game if max exchanges reached OR player says goodbye
+    const farewellPattern = /\b(bye|goodbye|see you|gotta go|go home|have to go|leaving|farewell|ciao|adios|чао|довиждане)\b/i;
+    const isLast = exchangeNum >= MAX_EXCHANGES || (exchangeNum >= 3 && farewellPattern.test(choice));
 
     let extraInstruction = "";
     if (isLast) {
@@ -361,7 +363,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     if (isLast) {
       // Game complete
       playDingSound();
-      const finalScore = score + POINTS_PER_EXCHANGE + COMPLETION_BONUS;
+      const finalScore = exchangeNum * POINTS_PER_EXCHANGE + COMPLETION_BONUS;
       setScore(finalScore);
       addGameResult({
         topicId: topic.id,
