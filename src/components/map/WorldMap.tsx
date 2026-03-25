@@ -7,6 +7,7 @@ import { OrbitControls, Html, PerformanceMonitor, Sky } from "@react-three/drei"
 import * as THREE from "three";
 import { TOUCH, MOUSE } from "three";
 import { CITIES, type City } from "@/data/cities";
+import { WORLDS } from "@/data/worlds";
 import { useProgressStore } from "@/stores/progressStore";
 import type { Language } from "@/types";
 
@@ -245,12 +246,12 @@ function Streets() {
 
 // ─── Connection roads between cities ─────────────────────────────
 
-function CityRoads({ unlockedIds }: { unlockedIds: Set<string> }) {
+function CityRoads({ unlockedIds, cities }: { unlockedIds: Set<string>; cities: City[] }) {
   const roads = useMemo(() => {
     const result: THREE.Mesh[] = [];
-    for (const city of CITIES) {
+    for (const city of cities) {
       for (const targetId of city.connectsTo) {
-        const target = CITIES.find((c) => c.id === targetId);
+        const target = cities.find((c) => c.id === targetId);
         if (!target) continue;
         const unlocked = unlockedIds.has(city.id) && unlockedIds.has(target.id);
         const [x1, , z1] = cityToWorld(city);
@@ -1730,16 +1731,20 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayHidden, setOverlayHidden] = useState(false);
 
+  // Only show Land world cities on this map
+  const landTopicIds = WORLDS.find((w) => w.id === "land")?.topicIds ?? [];
+  const landCities = useMemo(() => CITIES.filter((c) => landTopicIds.includes(c.topicId)), []);
+
   const unlockedIds = useMemo(
-    () => new Set(CITIES.filter((c) => totalPoints >= c.requiredXP).map((c) => c.id)),
-    [totalPoints]
+    () => new Set(landCities.filter((c) => totalPoints >= c.requiredXP).map((c) => c.id)),
+    [totalPoints, landCities]
   );
 
   const nextCityId = useMemo(() => {
-    const lastUnlocked = [...CITIES].reverse().find(
+    const lastUnlocked = [...landCities].reverse().find(
       (c) => unlockedIds.has(c.id) && getTopicCompletedLevels(c.topicId) < 3
     );
-    const firstLocked = CITIES.find((c) => !unlockedIds.has(c.id));
+    const firstLocked = landCities.find((c) => !unlockedIds.has(c.id));
     return lastUnlocked?.id || firstLocked?.id;
   }, [unlockedIds, getTopicCompletedLevels]);
 
@@ -1794,7 +1799,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
         <Suspense fallback={null}>
           <Ground />
           <Streets />
-          <CityRoads unlockedIds={unlockedIds} />
+          <CityRoads unlockedIds={unlockedIds} cities={landCities} />
           <Plazas />
           <CityBlocks />
           {IS_MOBILE && <MobileGreenery />}
@@ -1809,7 +1814,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
             <Clouds />
           </>}
 
-          {CITIES.map((city) => (
+          {landCities.map((city) => (
             <CityMarker
               key={city.id}
               city={city}
