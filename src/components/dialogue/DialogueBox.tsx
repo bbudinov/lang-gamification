@@ -22,6 +22,7 @@ const MAX_EXCHANGES = 6;
 interface Message {
   role: "npc" | "player";
   text: string;
+  pronScore?: number; // Pronunciation confidence 0-100 (player only)
 }
 
 interface DialogueBoxProps {
@@ -118,7 +119,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const { getRecentFacts, addFact } = useNPCMemoryStore();
 
   const npc = getNPC(topic.id);
-  const { isListening, transcript, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage); // Single recognition — no continuous, no restart, no duplication
+  const { isListening, transcript, confidence, isSupported: micSupported, start: startMic, stop: stopMic } = useSpeechRecognition(targetLanguage);
   const [messages, setMessages] = useState<Message[]>([]);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -285,15 +286,15 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     setLoading(false);
   }, [npc, targetLanguage, topic.words, getRecentFacts]);
 
-  const handlePlayerChoice = useCallback(async (choice: string) => {
+  const handlePlayerChoice = useCallback(async (choice: string, pronScore?: number) => {
     if (loading || !npc || npcSpeaking || speakingRef.current) return;
 
     playPopSound();
     setLoading(true);
     setOptions([]);
 
-    // Add player message
-    setMessages((prev) => [...prev, { role: "player", text: choice }]);
+    // Add player message (with pronunciation score if from mic)
+    setMessages((prev) => [...prev, { role: "player", text: choice, pronScore }]);
     aiHistoryRef.current.push({ role: "user", content: choice });
 
     // Get AI response
@@ -410,6 +411,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const [micActive, setMicActive] = useState(false);
   const [displayTranscript, setDisplayTranscript] = useState(""); // What user sees
   const lastTranscriptRef = useRef("");
+  const lastConfidenceRef = useRef(0);
   const accumulatedUserRef = useRef(""); // Accumulate across recognition restarts
 
   // Track latest transcript (accumulated + current session)
@@ -420,6 +422,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setDisplayTranscript(full);
     }
   }, [transcript]);
+
+  // Track confidence
+  useEffect(() => {
+    if (confidence > 0) lastConfidenceRef.current = confidence;
+  }, [confidence]);
 
   // Auto-restart recognition when it stops but user hasn't pressed Done
   useEffect(() => {
@@ -445,6 +452,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     }
     lastTranscriptRef.current = "";
     accumulatedUserRef.current = "";
+    lastConfidenceRef.current = 0;
     setDisplayTranscript("");
     setMicActive(true);
     startMic();
@@ -456,9 +464,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     const text = lastTranscriptRef.current.trim();
     if (text.length >= 2 && !loading && !gameCompleted) {
       const corrected = fuzzyFixTranscript(text);
-      handlePlayerChoice(corrected);
+      const score = Math.round(lastConfidenceRef.current * 100);
+      handlePlayerChoice(corrected, score > 0 ? score : undefined);
     }
     accumulatedUserRef.current = "";
+    lastConfidenceRef.current = 0;
   };
 
   const handleMicCancel = () => {
@@ -630,6 +640,14 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               style={{ animation: `msg-in 0.3s ease-out both` }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
+              {/* Pronunciation score on player messages */}
+              {msg.role === "player" && msg.pronScore != null && (
+                <p className={`text-[10px] mt-0.5 font-medium ${
+                  msg.pronScore >= 80 ? "text-green-300" : msg.pronScore >= 50 ? "text-amber-300" : "text-red-300"
+                }`}>
+                  {msg.pronScore >= 80 ? "Great" : msg.pronScore >= 50 ? "Good" : "Keep trying"} · {msg.pronScore}%
+                </p>
+              )}
               {/* Audio loading indicator on last NPC message */}
               {msg.role === "npc" && i === messages.length - 1 && audioLoading && (
                 <span className="inline-block ml-1 text-blue-400 text-xs animate-pulse">🔊</span>
