@@ -611,7 +611,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             Chat Again
           </button>
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/map")}
             className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors"
           >
             Back to Map
@@ -647,7 +647,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       {/* Top: 3D Avatar area */}
       <div className="relative" style={{ height: "55vh", minHeight: 320 }}>
         {/* Header overlay */}
-        <div className="absolute top-0 left-0 right-0 z-10 safe-area">
+        <div className="absolute top-0 left-0 right-0 z-10 safe-area pointer-events-auto">
           <div className="flex items-center justify-between px-4 py-3">
             <button
               onClick={() => {
