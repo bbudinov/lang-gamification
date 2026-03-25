@@ -170,17 +170,15 @@ export function WordQuiz({ topic }: WordQuizProps) {
       // Move to next round after delay
       setTimeout(() => {
         if (currentRound + 1 >= rounds.length) {
-          // Calculate from scratch to avoid stale state in setTimeout closure
-          const correctCount = (correct ? 1 : 0) + currentRound - mistakes;
-          const wrongCount = mistakes + (correct ? 0 : 1);
-          const finalScore = Math.max(0, correctCount * CORRECT_POINTS - wrongCount * WRONG_PENALTY) + COMPLETION_BONUS;
+          const totalMistakes = mistakes + (correct ? 0 : 1);
+          const finalScore = Math.max(0, (ROUNDS - totalMistakes) * CORRECT_POINTS - totalMistakes * WRONG_PENALTY) + COMPLETION_BONUS;
           addPoints(finalScore);
           addGameResult({
             topicId: topic.id,
             gameType: "word-quiz",
             score: finalScore,
             maxScore: ROUNDS * CORRECT_POINTS + COMPLETION_BONUS,
-            mistakes: mistakes + (correct ? 0 : 1),
+            mistakes: totalMistakes,
             completedAt: new Date().toISOString(),
           });
           setScore(finalScore);
@@ -277,12 +275,14 @@ export function WordQuiz({ topic }: WordQuizProps) {
       )}
 
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
-        {gameCompleted ? (
+        {gameCompleted ? (() => {
+          const displayScore = Math.max(0, (ROUNDS - mistakes) * CORRECT_POINTS - mistakes * WRONG_PENALTY) + COMPLETION_BONUS;
+          return (
           <div className="text-center space-y-4 animate-in fade-in">
-            <StarDisplay score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
+            <StarDisplay score={displayScore} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-2">
-              <GameRewardSummary score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
+              <GameRewardSummary score={displayScore} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
               <p className="text-slate-400 text-sm">
                 {ROUNDS} questions · {mistakes} mistakes
               </p>
@@ -302,7 +302,8 @@ export function WordQuiz({ topic }: WordQuizProps) {
               </button>
             </div>
           </div>
-        ) : (
+          );
+        })() : (
           <div className="w-full max-w-sm space-y-8">
             {/* Progress bar with walking emoji */}
             <div className="flex items-center gap-2 relative">

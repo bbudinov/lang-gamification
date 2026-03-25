@@ -168,17 +168,16 @@ export function TrueFalse({ topic }: TrueFalseProps) {
       setTimeout(() => {
         setPressedBtn(null);
         if (currentRound + 1 >= rounds.length) {
-          // Calculate from scratch to avoid stale state in setTimeout closure
-          const correctCount = (isRight ? 1 : 0) + currentRound - mistakes;
-          const wrongCount = mistakes + (isRight ? 0 : 1);
-          const finalScore = Math.max(0, correctCount * CORRECT_POINTS - wrongCount * WRONG_PENALTY) + COMPLETION_BONUS;
+          // Calculate from scratch — mistakes is the FINAL count (already updated if wrong)
+          const totalMistakes = mistakes + (isRight ? 0 : 1);
+          const finalScore = Math.max(0, (ROUNDS - totalMistakes) * CORRECT_POINTS - totalMistakes * WRONG_PENALTY) + COMPLETION_BONUS;
           addPoints(finalScore);
           addGameResult({
             topicId: topic.id,
             gameType: "true-false",
             score: finalScore,
             maxScore: ROUNDS * CORRECT_POINTS + COMPLETION_BONUS,
-            mistakes: mistakes + (isRight ? 0 : 1),
+            mistakes: totalMistakes,
             completedAt: new Date().toISOString(),
           });
           setScore(finalScore);
@@ -262,12 +261,15 @@ export function TrueFalse({ topic }: TrueFalseProps) {
       )}
 
       <div className="pt-16 pb-8 px-4 flex flex-col items-center justify-center min-h-screen">
-        {gameCompleted ? (
+        {gameCompleted ? (() => {
+          // Calculate display score fresh to avoid stale state issues
+          const displayScore = Math.max(0, (ROUNDS - mistakes) * CORRECT_POINTS - mistakes * WRONG_PENALTY) + COMPLETION_BONUS;
+          return (
           <div className="text-center space-y-4 animate-in fade-in">
-            <StarDisplay score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
+            <StarDisplay score={displayScore} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} size="lg" />
             <h2 className="text-2xl font-bold text-white">Well done!</h2>
             <div className="space-y-2">
-              <GameRewardSummary score={score} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
+              <GameRewardSummary score={displayScore} maxScore={ROUNDS * CORRECT_POINTS + COMPLETION_BONUS} />
               <p className="text-slate-400 text-sm">
                 {ROUNDS} questions · {mistakes} mistakes
               </p>
@@ -287,7 +289,8 @@ export function TrueFalse({ topic }: TrueFalseProps) {
               </button>
             </div>
           </div>
-        ) : (
+          );
+        })() : (
           <div className="w-full max-w-sm space-y-8">
             {/* Progress bar with walking emoji */}
             <div className="flex items-center gap-2 relative">
