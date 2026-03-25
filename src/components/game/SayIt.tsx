@@ -11,6 +11,21 @@ import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
 import { playWordAudio, playDingSound, playPopSound } from "@/lib/speech";
 import type { Topic, WordEntry } from "@/types";
 
+// Speech recognition converts spoken numbers to digits — map them back
+const DIGIT_TO_WORD: Record<string, string> = {
+  "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+  "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
+  "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
+  "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
+  "18": "eighteen", "19": "nineteen", "20": "twenty", "30": "thirty",
+  "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+  "80": "eighty", "90": "ninety", "100": "hundred",
+};
+
+function normalizeDigits(text: string): string {
+  return text.replace(/\b\d+\b/g, (match) => DIGIT_TO_WORD[match] || match);
+}
+
 const WORDS_PER_ROUND = 8;
 const ATTEMPT_POINTS = 5;
 const GOOD_POINTS = 10;
@@ -224,20 +239,23 @@ export function SayIt({ topic }: SayItProps) {
     if (isListening) return; // Wait until recognition stops (final result)
 
     const expected = word[targetLanguage];
-    const spoken = transcript.toLowerCase().trim();
-    const sim = similarityScore(transcript, expected);
+    // Speech recognition often converts number words to digits ("four" → "4")
+    // Normalize digits back to words for comparison
+    const normalized = normalizeDigits(transcript.toLowerCase().trim());
+    const spoken = normalized;
+    const sim = similarityScore(normalized, expected);
 
     // Check if it's a completely wrong word (not even close)
     const lengthRatio = Math.min(spoken.length, expected.length) / Math.max(spoken.length, expected.length);
     const isWrongWord = sim < 0.3 || (lengthRatio < 0.4 && sim < 0.5);
 
-    const sylResult = scoreSyllables(transcript, syllables);
+    const sylResult = scoreSyllables(normalized, syllables);
     const effectiveSim = isWrongWord ? 0 : sim;
 
     const result: AttemptResult = {
       scores: isWrongWord ? syllables.map(() => 0) : sylResult.scores,
       overall: Math.round(effectiveSim * 100),
-      spoken: transcript,
+      spoken: normalized,
     };
     setAttemptResult(result);
     setShowBreakdown(!isWrongWord); // Don't show syllable breakdown for wrong words

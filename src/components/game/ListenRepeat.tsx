@@ -80,13 +80,19 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
     // Only score when recognition has stopped and we have a transcript
     if (isListening || !transcript) return;
 
+    // Normalize digits back to words (speech recognition converts "four" → "4")
+    const normalized = transcript.replace(/\b\d+\b/g, (m) => {
+      const map: Record<string, string> = {"0":"zero","1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","7":"seven","8":"eight","9":"nine","10":"ten","11":"eleven","12":"twelve","13":"thirteen","14":"fourteen","15":"fifteen","16":"sixteen","17":"seventeen","18":"eighteen","19":"nineteen","20":"twenty","30":"thirty","40":"forty","50":"fifty","60":"sixty","70":"seventy","80":"eighty","90":"ninety","100":"hundred"};
+      return map[m] || m;
+    });
+
     // Build full sentence (replace ___ with answer) for comparison
     const fullSentence = phrase.sentence[targetLanguage].replace("___", phrase.answer[targetLanguage]);
     const answerWord = phrase.answer[targetLanguage].toLowerCase();
-    let score = similarityScore(transcript, fullSentence);
+    let score = similarityScore(normalized, fullSentence);
 
     // Penalize if the key answer word is missing from what user said
-    const spokenLower = transcript.toLowerCase();
+    const spokenLower = normalized.toLowerCase();
     const answerPresent = similarityScore(
       // Find the closest word in transcript to the answer
       spokenLower.split(/\s+/).reduce((best, w) => similarityScore(w, answerWord) > similarityScore(best, answerWord) ? w : best, ""),
