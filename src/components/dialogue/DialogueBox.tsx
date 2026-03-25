@@ -95,10 +95,13 @@ function parseAIResponse(text: string): { message: string; options: string[]; me
     message = message.replace(memoryMatch[0], "").trim();
   }
 
-  // Extract OPTIONS line
-  const optionsMatch = message.match(/\n?OPTIONS:\s*(.+)/i);
+  // Extract OPTIONS line (handles "OPTIONS: a|b|c" or "OPTIONS:" alone or multiline)
+  const optionsMatch = message.match(/\n?OPTIONS:\s*(.*)/i);
   if (optionsMatch) {
-    options = optionsMatch[1].split("|").map((o) => o.trim()).filter(Boolean);
+    const optText = optionsMatch[1].trim();
+    if (optText) {
+      options = optText.split("|").map((o) => o.trim()).filter(Boolean);
+    }
     message = message.replace(optionsMatch[0], "").trim();
   }
 
@@ -640,14 +643,6 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               style={{ animation: `msg-in 0.3s ease-out both` }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
-              {/* Pronunciation score on player messages */}
-              {msg.role === "player" && msg.pronScore != null && (
-                <p className={`text-[10px] mt-0.5 font-medium ${
-                  msg.pronScore >= 80 ? "text-green-300" : msg.pronScore >= 50 ? "text-amber-300" : "text-red-300"
-                }`}>
-                  {msg.pronScore >= 80 ? "Great" : msg.pronScore >= 50 ? "Good" : "Keep trying"} · {msg.pronScore}%
-                </p>
-              )}
               {/* Audio loading indicator on last NPC message */}
               {msg.role === "npc" && i === messages.length - 1 && audioLoading && (
                 <span className="inline-block ml-1 text-blue-400 text-xs animate-pulse">🔊</span>
