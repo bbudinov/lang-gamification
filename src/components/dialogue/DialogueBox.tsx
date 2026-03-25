@@ -327,10 +327,12 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setTimeout(() => setLastCorrection(null), 4000);
     }
 
-    // Add NPC response + speak it
+    // Add NPC response — speak first, then show text + options
     aiHistoryRef.current.push({ role: "assistant", content: parsed.message });
+    // Don't show text yet — wait for TTS to start
+    await speakNPC(parsed.message);
+    // NOW show the text (after voice played)
     setMessages((prev) => [...prev, { role: "npc", text: parsed.message }]);
-    speakNPC(parsed.message);
     setScore((s) => s + POINTS_PER_EXCHANGE);
     setExchanges(exchangeNum);
 
@@ -607,7 +609,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
       {/* Mic active — show live transcript + Done button */}
       {micActive && (
-        <div className="px-4 pb-6 space-y-3 relative z-10">
+        <div className="px-4 pb-10 space-y-3 relative z-10">
           {transcript && (
             <div className="bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3">
               <p className="text-white text-sm">{transcript}</p>
@@ -633,7 +635,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
       {/* Options + Mic (when not in mic mode) */}
       {!micActive && options.length > 0 && !loading && !npcSpeaking && (
-        <div className="px-4 pb-6 space-y-2 relative z-10">
+        <div className="px-4 pb-10 space-y-2 relative z-10">
           {options.map((option, i) => (
             <button
               key={i}
