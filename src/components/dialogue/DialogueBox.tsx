@@ -330,12 +330,10 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setTimeout(() => setLastCorrection(null), 4000);
     }
 
-    // Add NPC response — speak first, then show text + options
+    // Add NPC response — show text immediately, options after voice
     aiHistoryRef.current.push({ role: "assistant", content: parsed.message });
-    // Don't show text yet — wait for TTS to start
-    await speakNPC(parsed.message);
-    // NOW show the text (after voice played)
     setMessages((prev) => [...prev, { role: "npc", text: parsed.message }]);
+    await speakNPC(parsed.message);
     setScore((s) => s + POINTS_PER_EXCHANGE);
     setExchanges(exchangeNum);
 
