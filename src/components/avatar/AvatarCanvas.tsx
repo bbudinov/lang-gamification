@@ -46,7 +46,7 @@ export default function AvatarCanvas({ isSpeaking = false }: AvatarCanvasProps) 
 
       <Canvas
         camera={{ position: [0, -0.3, 3.0], fov: 30 }}
-        style={{ background: "transparent" }}
+        style={{ background: "transparent", pointerEvents: "none" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         onCreated={() => {
           setTimeout(() => setReady(true), 800);

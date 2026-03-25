@@ -537,7 +537,14 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         <div className="absolute top-0 left-0 right-0 z-10 safe-area">
           <div className="flex items-center justify-between px-4 py-3">
             <button
-              onClick={() => router.back()}
+              onClick={() => {
+                // Stop any playing audio before navigating back
+                if (npcAudioRef.current) { npcAudioRef.current.pause(); npcAudioRef.current = null; }
+                window.speechSynthesis?.cancel();
+                speakingRef.current = false;
+                stopMic();
+                router.back();
+              }}
               className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
             >
               <span className="text-white text-sm">← Back</span>
