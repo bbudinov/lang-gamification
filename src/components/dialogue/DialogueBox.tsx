@@ -224,15 +224,18 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
     const parsed = parseAIResponse(greetingResponse || "Hello! Let's learn together today!");
     const greeting = parsed.message;
-    setMessages([{ role: "npc", text: greeting }]);
-    if (parsed.options.length > 0) setOptions(parsed.options);
 
-    // Add greeting to AI history so it doesn't repeat itself
+    // Add to AI history so it doesn't repeat itself
     aiHistoryRef.current.push({ role: "assistant", content: greeting });
 
-    // Await TTS — greeting must play properly
+    // Speak FIRST, then show text + options
     await speakNPC(greeting);
-    if (parsed.options.length === 0) generateOptions(greeting);
+    setMessages([{ role: "npc", text: greeting }]);
+    if (parsed.options.length > 0) {
+      setOptions(parsed.options);
+    } else {
+      generateOptions(greeting);
+    }
   }, [npc, started, targetLanguage, speakNPC]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom
