@@ -52,6 +52,7 @@ RULES:
 - Keep responses SHORT: maximum 30 words.
 - Stay IN CHARACTER at all times. You are a real ${npc.role.en} in your location, not a language teacher.
 - NEVER restrict what the learner can ask about. Be curious and enthusiastic about EVERYTHING they want to know.
+- NEVER repeat your greeting or welcome message. Each response must be fresh and different.
 
 CONSEQUENCES & CORRECTION (very important):
 - If the learner says something that doesn't make sense in context, react naturally IN CHARACTER.
@@ -206,14 +207,16 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     );
     setLoading(false);
 
-    const parsed = parseAIResponse(greetingResponse || "Hello! 😊 Let's learn together today!");
+    const parsed = parseAIResponse(greetingResponse || "Hello! Let's learn together today!");
     const greeting = parsed.message;
     setMessages([{ role: "npc", text: greeting }]);
     if (parsed.options.length > 0) setOptions(parsed.options);
 
-    // Small delay to let speech engine initialize
-    await new Promise(r => setTimeout(r, 300));
-    await speakNPC(greeting);
+    // Add greeting to AI history so it doesn't repeat itself
+    aiHistoryRef.current.push({ role: "assistant", content: greeting });
+
+    // Start TTS (no delay needed — Google Cloud TTS doesn't need speech unlock)
+    speakNPC(greeting); // Don't await — let it play while user reads
     if (parsed.options.length === 0) generateOptions(greeting);
   }, [npc, started, targetLanguage, speakNPC]); // eslint-disable-line react-hooks/exhaustive-deps
 
