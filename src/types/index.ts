@@ -1,6 +1,11 @@
 export type Language = "en" | "bg" | "es" | "it" | "de" | "fr";
 
-export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "library" | "sports" | "music";
+export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "work" | "family" | "body" | "weather" | "school" | "library" | "sports" | "music"
+  | "ocean-sailing" | "ocean-fishing" | "ocean-lighthouse" | "ocean-sailing-school" | "ocean-cruise" | "ocean-storm" | "ocean-pirates" | "ocean-shipping"
+  | "underwater-reef" | "underwater-creatures" | "underwater-exploration" | "underwater-kelp" | "underwater-submarine" | "underwater-abyss" | "underwater-bubbles" | "underwater-treasure" | "underwater-volcano"
+  | "air-flying" | "air-birds" | "air-weather-sky" | "air-airport" | "air-storm-clouds" | "air-mountain" | "air-balloon" | "air-wind";
+
+export type WorldId = "land" | "ocean" | "underwater" | "air";
 
 export interface WordEntry {
   id: string;
