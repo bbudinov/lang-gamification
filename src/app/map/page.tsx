@@ -16,9 +16,22 @@ import { topics } from "@/data/words";
 import type { City } from "@/data/cities";
 import type { TopicId, WorldId } from "@/types";
 import { WorldSelector } from "@/components/map/WorldSelector";
+import { WORLDS } from "@/data/worlds";
 
 const WorldMap = dynamic(
   () => import("@/components/map/WorldMap").then((m) => m.WorldMap),
+  { ssr: false }
+);
+const OceanMap = dynamic(
+  () => import("@/components/map/OceanMap").then((m) => m.OceanMap),
+  { ssr: false }
+);
+const AirMap = dynamic(
+  () => import("@/components/map/AirMap").then((m) => m.AirMap),
+  { ssr: false }
+);
+const UnderwaterMap = dynamic(
+  () => import("@/components/map/UnderwaterMap").then((m) => m.UnderwaterMap),
   { ssr: false }
 );
 
@@ -40,6 +53,8 @@ export default function MapPage() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeWorld, setActiveWorld] = useState<WorldId>("land");
   const { targetLanguage, gameResults, hasSeenIntro } = useProgressStore();
+  const activeWorldData = WORLDS.find((w) => w.id === activeWorld);
+  const bgColor = activeWorldData?.bgColor ?? "#7a9ab0";
 
   // Check if Memory Mix is unlocked (2+ topics with Memory Match played)
   const memoryTopicsPlayed = Array.from(
@@ -67,8 +82,8 @@ export default function MapPage() {
 
   return (
     <div
-      className="h-screen-safe w-screen overflow-hidden bg-[#7a9ab0] relative"
-      style={{ overscrollBehavior: "none" }}
+      className="h-screen-safe w-screen overflow-hidden relative transition-colors duration-700"
+      style={{ overscrollBehavior: "none", backgroundColor: bgColor }}
     >
       {/* Read ?topic= param to open game selector */}
       <Suspense fallback={null}>
@@ -77,45 +92,50 @@ export default function MapPage() {
 
       <TopBar />
 
-      {!helpOpen && <WorldMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "land" && <WorldMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "ocean" && <OceanMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "air" && <AirMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "underwater" && <UnderwaterMap onSelectCity={handleSelectCity} />}
 
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
 
-      {/* Left sidebar buttons */}
-      <div
-        className="absolute left-3 flex flex-col-reverse gap-2"
-        style={{ zIndex: 9999, bottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
-      >
-        {/* Daily Challenge (bottom) */}
-        <DailyChallengeButton />
-
-        {/* Rooms */}
-        <button
-          onClick={() => router.push("/rooms")}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
+      {/* Left sidebar buttons — only on land world */}
+      {activeWorld === "land" && (
+        <div
+          className="absolute left-3 flex flex-col-reverse gap-2"
+          style={{ zIndex: 9999, bottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
         >
-          <span className="text-xl">🚪</span>
-        </button>
+          {/* Daily Challenge (bottom) */}
+          <DailyChallengeButton />
 
-        {/* Missions */}
-        <button
-          onClick={() => setShowMissions(true)}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
-        >
-          <span className="text-xl">📋</span>
-        </button>
-
-        {/* Memory Mix */}
-        {mixUnlocked && (
+          {/* Rooms */}
           <button
-            onClick={() => router.push("/game/memory-mix")}
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+            onClick={() => router.push("/rooms")}
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
           >
-            <span className="text-xl">🌀</span>
+            <span className="text-xl">🚪</span>
           </button>
-        )}
-      </div>
+
+          {/* Missions */}
+          <button
+            onClick={() => setShowMissions(true)}
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
+          >
+            <span className="text-xl">📋</span>
+          </button>
+
+          {/* Memory Mix */}
+          {mixUnlocked && (
+            <button
+              onClick={() => router.push("/game/memory-mix")}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+            >
+              <span className="text-xl">🌀</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />
