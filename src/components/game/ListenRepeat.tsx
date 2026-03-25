@@ -82,7 +82,21 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
 
     // Build full sentence (replace ___ with answer) for comparison
     const fullSentence = phrase.sentence[targetLanguage].replace("___", phrase.answer[targetLanguage]);
-    const score = similarityScore(transcript, fullSentence);
+    const answerWord = phrase.answer[targetLanguage].toLowerCase();
+    let score = similarityScore(transcript, fullSentence);
+
+    // Penalize if the key answer word is missing from what user said
+    const spokenLower = transcript.toLowerCase();
+    const answerPresent = similarityScore(
+      // Find the closest word in transcript to the answer
+      spokenLower.split(/\s+/).reduce((best, w) => similarityScore(w, answerWord) > similarityScore(best, answerWord) ? w : best, ""),
+      answerWord
+    );
+    if (answerPresent < 0.6) {
+      // Key word is wrong/missing — cap score at 0.4 max
+      score = Math.min(score, 0.4);
+    }
+
     const stars = getStars(score);
 
     setMatchScore(score);
