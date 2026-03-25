@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
 import { HelpButton } from "@/components/ui/HelpButton";
@@ -20,6 +20,16 @@ const WorldMap = dynamic(
   () => import("@/components/map/WorldMap").then((m) => m.WorldMap),
   { ssr: false }
 );
+
+// Extract search params reader into its own component for Suspense boundary
+function TopicParamReader({ onTopic }: { onTopic: (id: string) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const topic = searchParams.get("topic");
+    if (topic) onTopic(topic);
+  }, [searchParams, onTopic]);
+  return null;
+}
 
 export default function MapPage() {
   const router = useRouter();
@@ -58,6 +68,11 @@ export default function MapPage() {
       className="h-screen-safe w-screen overflow-hidden bg-[#7a9ab0] relative"
       style={{ overscrollBehavior: "none" }}
     >
+      {/* Read ?topic= param to open game selector */}
+      <Suspense fallback={null}>
+        <TopicParamReader onTopic={setSelectedTopicId} />
+      </Suspense>
+
       <TopBar />
 
       {!helpOpen && <WorldMap onSelectCity={handleSelectCity} />}
