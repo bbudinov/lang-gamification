@@ -73,7 +73,7 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
 
     recognition.lang = LANG_MAP[language] || language;
     recognition.continuous = continuousMode;
-    recognition.interimResults = continuousMode;
+    recognition.interimResults = true; // Always show words in real-time
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {

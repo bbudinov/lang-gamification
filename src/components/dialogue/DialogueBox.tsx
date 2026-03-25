@@ -408,12 +408,32 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
   // Track mic session
   const [micActive, setMicActive] = useState(false);
+  const [displayTranscript, setDisplayTranscript] = useState(""); // What user sees
   const lastTranscriptRef = useRef("");
+  const accumulatedUserRef = useRef(""); // Accumulate across recognition restarts
 
-  // Track latest transcript
+  // Track latest transcript (accumulated + current session)
   useEffect(() => {
-    if (transcript) lastTranscriptRef.current = transcript;
+    if (transcript) {
+      const full = (accumulatedUserRef.current + " " + transcript).trim();
+      lastTranscriptRef.current = full;
+      setDisplayTranscript(full);
+    }
   }, [transcript]);
+
+  // Auto-restart recognition when it stops but user hasn't pressed Done
+  useEffect(() => {
+    if (micActive && !isListening) {
+      // Recognition ended naturally (Android pause) — save current and restart
+      if (transcript) {
+        accumulatedUserRef.current = (accumulatedUserRef.current + " " + transcript).trim();
+      }
+      const timer = setTimeout(() => {
+        if (micActive) startMic();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isListening, micActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMicStart = () => {
     if (speakingRef.current || npcSpeaking) {
@@ -424,24 +444,29 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       setNpcSpeaking(false);
     }
     lastTranscriptRef.current = "";
+    accumulatedUserRef.current = "";
+    setDisplayTranscript("");
     setMicActive(true);
     startMic();
   };
 
   const handleMicDone = () => {
+    setMicActive(false); // Stop auto-restart first
     stopMic();
-    setMicActive(false);
     const text = lastTranscriptRef.current.trim();
     if (text.length >= 2 && !loading && !gameCompleted) {
       const corrected = fuzzyFixTranscript(text);
       handlePlayerChoice(corrected);
     }
+    accumulatedUserRef.current = "";
   };
 
   const handleMicCancel = () => {
+    setMicActive(false); // Stop auto-restart first
     stopMic();
-    setMicActive(false);
     lastTranscriptRef.current = "";
+    accumulatedUserRef.current = "";
+    setDisplayTranscript("");
   };
 
   // No NPC for this topic
@@ -629,12 +654,11 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
       {/* Mic active — show live transcript + Done button */}
       {micActive && (
         <div className="px-4 pb-10 space-y-3 relative z-10">
-          {transcript && (
+          {displayTranscript ? (
             <div className="bg-white/5 border border-blue-500/30 rounded-xl px-4 py-3">
-              <p className="text-white text-sm">{transcript}</p>
+              <p className="text-white text-sm">{displayTranscript}</p>
             </div>
-          )}
-          {!transcript && (
+          ) : (
             <p className="text-blue-400 text-sm text-center animate-pulse">Listening... speak now!</p>
           )}
           <button
