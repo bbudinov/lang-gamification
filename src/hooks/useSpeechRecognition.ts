@@ -81,22 +81,28 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let fullTranscript = "";
+      // Separate final (confirmed) from interim (still changing) results
+      let finalParts = "";
+      let interimPart = "";
       let lastConfidence = 0;
       for (let i = 0; i < event.results.length; i++) {
-        fullTranscript += event.results[i][0].transcript;
         if (event.results[i].isFinal) {
+          finalParts += event.results[i][0].transcript;
           lastConfidence = event.results[i][0].confidence;
+        } else {
+          interimPart += event.results[i][0].transcript;
         }
       }
-      // In continuous mode, accumulate across restarts
-      const combined = accumulatedTranscriptRef.current
-        ? accumulatedTranscriptRef.current + " " + fullTranscript.trim()
-        : fullTranscript.trim();
-      setTranscript(combined);
-      if (lastConfidence > 0) setConfidence(lastConfidence);
 
-      // No silence timer in continuous mode — user presses Done manually
+      // Accumulate only final parts across recognition restarts
+      if (finalParts) {
+        accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + finalParts).trim();
+      }
+
+      // Display = accumulated finals + current interim
+      const display = (accumulatedTranscriptRef.current + " " + interimPart).trim();
+      setTranscript(display);
+      if (lastConfidence > 0) setConfidence(lastConfidence);
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -121,14 +127,7 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
 
       // In continuous mode, auto-restart if not manually stopped
       if (continuousMode && !stoppedManuallyRef.current) {
-        // Save current transcript before restart
-        const currentTranscript = accumulatedTranscriptRef.current || "";
-        // Get latest from state (may have updated)
-        setTranscript((prev) => {
-          accumulatedTranscriptRef.current = prev || currentTranscript;
-          return prev;
-        });
-        // Restart recognition
+        // accumulatedTranscriptRef already has all final parts — just restart
         setTimeout(() => {
           if (!stoppedManuallyRef.current && recognitionRef.current) {
             try { recognition.start(); } catch { setIsListening(false); }
