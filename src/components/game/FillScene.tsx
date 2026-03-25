@@ -72,7 +72,11 @@ export function FillScene({ topic }: FillSceneProps) {
     addGameResult,
     updateWordMastery,
     wordMastery,
+    gameResults,
   } = useProgressStore();
+
+  // First time playing = read the answer word aloud. After that, only the sentence (harder).
+  const hasPlayedBefore = gameResults.some((r) => r.topicId === topic.id && r.gameType === "fill-scene");
 
   const { chestReward, checkForChest, collectReward } = useTreasureChest();
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -99,10 +103,19 @@ export function FillScene({ topic }: FillSceneProps) {
   const round = rounds[currentRound];
 
   // Play sentence audio when round starts
+  // First playthrough: also read the answer word after the sentence (easier)
   useEffect(() => {
     if (round && selected === null) {
       const timer = setTimeout(() => {
         playPhraseAudio(`sentence-${round.phrase.id}-${targetLanguage}`);
+        // On first playthrough, also say the answer word after a delay
+        if (!hasPlayedBefore) {
+          const answerText = round.phrase.answer[targetLanguage];
+          const matchedWord = topic.words.find((w) => w[targetLanguage] === answerText);
+          if (matchedWord) {
+            setTimeout(() => playWordAudio(matchedWord.id, targetLanguage), 2500);
+          }
+        }
       }, 500);
       return () => clearTimeout(timer);
     }
