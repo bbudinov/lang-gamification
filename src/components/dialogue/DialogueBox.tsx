@@ -8,6 +8,7 @@ import { useNPCMemoryStore } from "@/stores/npcMemoryStore";
 import { useSpeechRecognition, similarityScore } from "@/hooks/useSpeechRecognition";
 import { askAI } from "@/lib/ai";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { StarDisplay, GameRewardSummary } from "@/components/game/StarDisplay";
 import { playPopSound, playDingSound, speak, speakAndWait, speakAndWaitGendered, stopAudio } from "@/lib/speech";
 import type { Topic, Language } from "@/types";
 import { getNPC, type NPCData } from "@/data/npcs";
@@ -504,45 +505,60 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
 
   // Completed screen
   if (gameCompleted) {
+    const maxScore = MAX_EXCHANGES * POINTS_PER_EXCHANGE + COMPLETION_BONUS;
+    const pct = Math.round((score / maxScore) * 100);
+    const pronAvg = pronScoresRef.current.length > 0
+      ? Math.round(pronScoresRef.current.reduce((a, b) => a + b, 0) / pronScoresRef.current.length)
+      : null;
+    const pronGrade = pronAvg !== null
+      ? (pronAvg >= 90 ? "A+" : pronAvg >= 80 ? "A" : pronAvg >= 70 ? "B" : pronAvg >= 60 ? "C" : "D")
+      : null;
+    const pronColor = pronAvg !== null
+      ? (pronAvg >= 80 ? "text-green-400" : pronAvg >= 60 ? "text-amber-400" : "text-red-400")
+      : "";
+
     return (
-      <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-6 px-6">
-        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-          <img src="/images/globe/professor-head-3d.png" alt="Professor Globe" className="w-full h-full object-cover" />
-        </div>
-        <h2 className="text-3xl font-bold text-white">Great Chat!</h2>
-        <p className="text-slate-300 text-center">
-          Great conversation! Keep practicing!
+      <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-5 px-6">
+        <StarDisplay score={score} maxScore={maxScore} size="lg" />
+        <h2 className="text-3xl font-bold text-white">
+          {pct >= 90 ? "Amazing Chat!" : pct >= 70 ? "Great Chat!" : "Good Try!"}
+        </h2>
+        <p className="text-slate-400 text-sm text-center">
+          You completed {exchanges} exchanges with {npc.name}!
         </p>
-        <div className="bg-white/5 rounded-2xl p-6 w-full max-w-xs space-y-3">
-          <div className="flex justify-between text-slate-300">
-            <span>Score</span>
-            <span className="text-amber-400 font-bold">⭐ {score}</span>
+        <GameRewardSummary score={score} maxScore={maxScore} />
+
+        {/* Stats card */}
+        <div className="bg-white/5 rounded-2xl p-5 w-full max-w-xs space-y-2.5">
+          <div className="flex justify-between text-slate-300 text-sm">
+            <span>Conversation</span>
+            <span className="text-white font-semibold">{exchanges}/{MAX_EXCHANGES} exchanges</span>
           </div>
-          <div className="flex justify-between text-slate-300">
-            <span>Exchanges</span>
-            <span className="text-white font-bold">{exchanges}</span>
+          <div className="flex justify-between text-slate-300 text-sm">
+            <span>Completion</span>
+            <span className="text-green-400 font-semibold">{pct}%</span>
           </div>
-          <div className="flex justify-between text-slate-300">
-            <span>Bonus</span>
-            <span className="text-green-400 font-bold">+{COMPLETION_BONUS}</span>
-          </div>
-          {pronScoresRef.current.length > 0 && (() => {
-            const avg = Math.round(pronScoresRef.current.reduce((a, b) => a + b, 0) / pronScoresRef.current.length);
-            const grade = avg >= 90 ? "A+" : avg >= 80 ? "A" : avg >= 70 ? "B" : avg >= 60 ? "C" : "D";
-            const gradeColor = avg >= 80 ? "text-green-400" : avg >= 60 ? "text-amber-400" : "text-red-400";
-            return (
-              <div className="border-t border-white/10 pt-3 mt-1">
-                <div className="flex justify-between text-slate-300">
-                  <span>Pronunciation</span>
-                  <span className={`font-bold ${gradeColor}`}>{grade} ({avg}%)</span>
-                </div>
-                <p className="text-slate-500 text-[10px] mt-1">
-                  Based on {pronScoresRef.current.length} spoken {pronScoresRef.current.length === 1 ? "response" : "responses"}
-                </p>
+          {pronAvg !== null && (
+            <div className="border-t border-white/10 pt-2.5 mt-1">
+              <div className="flex justify-between text-slate-300 text-sm">
+                <span>Speaking Grade</span>
+                <span className={`font-bold text-base ${pronColor}`}>{pronGrade}</span>
               </div>
-            );
-          })()}
+              <div className="mt-1.5 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    pronAvg >= 80 ? "bg-green-500" : pronAvg >= 60 ? "bg-amber-500" : "bg-red-500"
+                  }`}
+                  style={{ width: `${pronAvg}%` }}
+                />
+              </div>
+              <p className="text-slate-500 text-[10px] mt-1 text-right">
+                {pronScoresRef.current.length} spoken {pronScoresRef.current.length === 1 ? "response" : "responses"}
+              </p>
+            </div>
+          )}
         </div>
+
         <div className="flex gap-3 w-full max-w-xs">
           <button
             onClick={() => {
