@@ -416,6 +416,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
   const lastTranscriptRef = useRef("");
   const lastConfidenceRef = useRef(0);
   const accumulatedUserRef = useRef(""); // Accumulate across recognition restarts
+  const pronScoresRef = useRef<number[]>([]); // All pronunciation scores for final recap
 
   // Track latest transcript (accumulated + current session)
   useEffect(() => {
@@ -467,8 +468,9 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     const text = lastTranscriptRef.current.trim();
     if (text.length >= 2 && !loading && !gameCompleted) {
       const corrected = fuzzyFixTranscript(text);
-      const score = Math.round(lastConfidenceRef.current * 100);
-      handlePlayerChoice(corrected, score > 0 ? score : undefined);
+      const pronScore = Math.round(lastConfidenceRef.current * 100);
+      if (pronScore > 0) pronScoresRef.current.push(pronScore);
+      handlePlayerChoice(corrected, pronScore > 0 ? pronScore : undefined);
     }
     accumulatedUserRef.current = "";
     lastConfidenceRef.current = 0;
@@ -519,6 +521,22 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             <span>Bonus</span>
             <span className="text-green-400 font-bold">+{COMPLETION_BONUS}</span>
           </div>
+          {pronScoresRef.current.length > 0 && (() => {
+            const avg = Math.round(pronScoresRef.current.reduce((a, b) => a + b, 0) / pronScoresRef.current.length);
+            const grade = avg >= 90 ? "A+" : avg >= 80 ? "A" : avg >= 70 ? "B" : avg >= 60 ? "C" : "D";
+            const gradeColor = avg >= 80 ? "text-green-400" : avg >= 60 ? "text-amber-400" : "text-red-400";
+            return (
+              <div className="border-t border-white/10 pt-3 mt-1">
+                <div className="flex justify-between text-slate-300">
+                  <span>Pronunciation</span>
+                  <span className={`font-bold ${gradeColor}`}>{grade} ({avg}%)</span>
+                </div>
+                <p className="text-slate-500 text-[10px] mt-1">
+                  Based on {pronScoresRef.current.length} spoken {pronScoresRef.current.length === 1 ? "response" : "responses"}
+                </p>
+              </div>
+            );
+          })()}
         </div>
         <div className="flex gap-3 w-full max-w-xs">
           <button
@@ -529,6 +547,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               setExchanges(0);
               setScore(0);
               aiHistoryRef.current = [];
+              pronScoresRef.current = [];
               generateOptions(npc.greeting[targetLanguage]);
             }}
             className="flex-1 bg-white/10 text-white py-3 rounded-xl font-medium active:bg-white/20 transition-colors"
@@ -643,6 +662,14 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
               style={{ animation: `msg-in 0.3s ease-out both` }}
             >
               <p className="text-sm leading-relaxed">{msg.text}</p>
+              {/* Pronunciation score on player mic messages */}
+              {msg.role === "player" && msg.pronScore != null && (
+                <p className={`text-[10px] mt-0.5 font-medium text-right ${
+                  msg.pronScore >= 80 ? "text-green-300/70" : msg.pronScore >= 50 ? "text-amber-300/70" : "text-red-300/70"
+                }`}>
+                  🎤 {msg.pronScore}%
+                </p>
+              )}
               {/* Audio loading indicator on last NPC message */}
               {msg.role === "npc" && i === messages.length - 1 && audioLoading && (
                 <span className="inline-block ml-1 text-blue-400 text-xs animate-pulse">🔊</span>
