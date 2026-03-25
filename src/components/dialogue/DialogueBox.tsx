@@ -169,13 +169,14 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
         await new Promise<void>((resolve) => {
           let resolved = false;
           const done = () => { if (!resolved) { resolved = true; resolve(); } };
-          // Safety timeout in case onended never fires (Android Chrome issue)
-          const timeout = setTimeout(done, 12000);
+          // Safety timeout based on actual audio duration (+ buffer), min 12s
+          const safetyMs = Math.max(12000, (audio.duration || 30) * 1000 + 3000);
+          const timeout = setTimeout(done, safetyMs);
           audio.onended = () => { clearTimeout(timeout); done(); };
           audio.onerror = () => { clearTimeout(timeout); done(); };
           // Also use timeupdate to detect when audio finishes
           audio.ontimeupdate = () => {
-            if (audio.currentTime >= audio.duration - 0.1) {
+            if (audio.duration > 0 && audio.currentTime >= audio.duration - 0.1) {
               clearTimeout(timeout);
               done();
             }
@@ -611,10 +612,10 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
             Chat Again
           </button>
           <button
-            onClick={() => router.push("/map")}
+            onClick={() => router.push(`/map?topic=${topic.id}`)}
             className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors"
           >
-            Back to Map
+            More Games
           </button>
         </div>
       </div>
