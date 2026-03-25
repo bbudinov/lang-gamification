@@ -81,21 +81,23 @@ function parseAIResponse(text: string): { message: string; options: string[]; me
   let memory: string | null = null;
   let correction: string | null = null;
 
-  // Extract CORRECTION line
-  const correctionMatch = message.match(/\n?CORRECTION:\s*(.+)/i);
+  // Extract CORRECTION line (with or without content after it)
+  const correctionMatch = message.match(/\n?CORRECTION:\s*(.*)/i);
   if (correctionMatch) {
-    correction = correctionMatch[1].trim();
+    const val = correctionMatch[1].trim();
+    if (val) correction = val;
     message = message.replace(correctionMatch[0], "").trim();
   }
 
-  // Extract MEMORY line
-  const memoryMatch = message.match(/\n?MEMORY:\s*(.+)/i);
+  // Extract MEMORY line (with or without content after it)
+  const memoryMatch = message.match(/\n?MEMORY:\s*(.*)/i);
   if (memoryMatch) {
-    memory = memoryMatch[1].trim();
+    const val = memoryMatch[1].trim();
+    if (val) memory = val;
     message = message.replace(memoryMatch[0], "").trim();
   }
 
-  // Extract OPTIONS line (handles "OPTIONS: a|b|c" or "OPTIONS:" alone or multiline)
+  // Extract OPTIONS line (with or without content after it)
   const optionsMatch = message.match(/\n?OPTIONS:\s*(.*)/i);
   if (optionsMatch) {
     const optText = optionsMatch[1].trim();
@@ -106,7 +108,10 @@ function parseAIResponse(text: string): { message: string; options: string[]; me
   }
 
   // Strip action/emotion text like *smiles*, *laughs kindly*, etc.
+  // Also strip any remaining metadata tags the AI might have added
   message = message.replace(/\*[^*]+\*/g, "").replace(/\s{2,}/g, " ").trim();
+  // Safety: strip any leftover "TAG:" patterns at end of message
+  message = message.replace(/\s*(MEMORY|OPTIONS|CORRECTION):\s*$/i, "").trim();
 
   // Fallback options
   if (options.length === 0) {
