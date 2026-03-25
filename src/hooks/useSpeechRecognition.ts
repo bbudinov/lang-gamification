@@ -81,27 +81,18 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      // Separate final (confirmed) from interim (still changing) results
-      let finalParts = "";
-      let interimPart = "";
+      // Just take the full transcript as-is — don't accumulate across restarts
+      let fullTranscript = "";
       let lastConfidence = 0;
       for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalParts += event.results[i][0].transcript;
           lastConfidence = event.results[i][0].confidence;
-        } else {
-          interimPart += event.results[i][0].transcript;
         }
       }
-
-      // Accumulate only final parts across recognition restarts
-      if (finalParts) {
-        accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + finalParts).trim();
-      }
-
-      // Display = accumulated finals + current interim
-      const display = (accumulatedTranscriptRef.current + " " + interimPart).trim();
-      setTranscript(display);
+      // Store latest complete transcript (replaces, doesn't accumulate)
+      accumulatedTranscriptRef.current = fullTranscript.trim();
+      setTranscript(fullTranscript.trim());
       if (lastConfidence > 0) setConfidence(lastConfidence);
     };
 
