@@ -14,7 +14,8 @@ import dynamic from "next/dynamic";
 import { useProgressStore } from "@/stores/progressStore";
 import { topics } from "@/data/words";
 import type { City } from "@/data/cities";
-import type { TopicId } from "@/types";
+import type { TopicId, WorldId } from "@/types";
+import { WorldSelector } from "@/components/map/WorldSelector";
 
 const WorldMap = dynamic(
   () => import("@/components/map/WorldMap").then((m) => m.WorldMap),
@@ -37,6 +38,7 @@ export default function MapPage() {
   const [introTopicId, setIntroTopicId] = useState<TopicId | null>(null);
   const [showMissions, setShowMissions] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [activeWorld, setActiveWorld] = useState<WorldId>("land");
   const { targetLanguage, gameResults, hasSeenIntro } = useProgressStore();
 
   // Check if Memory Mix is unlocked (2+ topics with Memory Match played)
@@ -131,6 +133,8 @@ export default function MapPage() {
           }}
         />
       )}
+
+      <WorldSelector activeWorld={activeWorld} onSelectWorld={setActiveWorld} />
 
       {selectedTopic && (
         <GameSelector
