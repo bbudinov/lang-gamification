@@ -209,14 +209,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     if (!npc || started) return;
     setStarted(true);
 
-    // Unlock speech synthesis with a silent utterance (user gesture context)
-    if ("speechSynthesis" in window) {
-      const unlock = new SpeechSynthesisUtterance("");
-      unlock.volume = 0;
-      window.speechSynthesis.speak(unlock);
-    }
-
-    // Generate a contextual greeting via AI instead of hardcoded NPC greeting
+    // Generate a contextual greeting via AI
     const topicWords = topic.words.map((w) => w[targetLanguage]);
     const memories = getRecentFacts(npc.id);
     const systemPrompt = buildSystemPrompt(npc, targetLanguage, memories, topicWords);
@@ -237,8 +230,8 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
     // Add greeting to AI history so it doesn't repeat itself
     aiHistoryRef.current.push({ role: "assistant", content: greeting });
 
-    // Start TTS (no delay needed — Google Cloud TTS doesn't need speech unlock)
-    speakNPC(greeting); // Don't await — let it play while user reads
+    // Await TTS — greeting must play properly
+    await speakNPC(greeting);
     if (parsed.options.length === 0) generateOptions(greeting);
   }, [npc, started, targetLanguage, speakNPC]); // eslint-disable-line react-hooks/exhaustive-deps
 
