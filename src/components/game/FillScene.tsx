@@ -106,7 +106,7 @@ export function FillScene({ topic }: FillSceneProps) {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentRound, roundKey, targetLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [round, currentRound, roundKey, targetLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advance = useCallback(() => {
     if (currentRound + 1 >= rounds.length) {
