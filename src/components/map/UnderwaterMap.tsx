@@ -130,7 +130,7 @@ function UnderwaterDust({ count }: { count: number }) {
     }));
     for (let i = 0; i < count; i++) {
       pos[i * 3]     = (Math.random() - 0.5) * 100;
-      pos[i * 3 + 1] = -16 + Math.random() * 20;
+      pos[i * 3 + 1] = -15 + Math.random() * 23; // span y=-15 to y=8 (full water column)
       pos[i * 3 + 2] = (Math.random() - 0.5) * 100;
     }
     return { positions: pos, velocities: vel };
@@ -146,8 +146,8 @@ function UnderwaterDust({ count }: { count: number }) {
       arr[i * 3 + 2] += velocities[i].vz;
       if (arr[i * 3] > 50) arr[i * 3] = -50;
       if (arr[i * 3] < -50) arr[i * 3] = 50;
-      if (arr[i * 3 + 1] > 4) arr[i * 3 + 1] = -16;
-      if (arr[i * 3 + 1] < -16) arr[i * 3 + 1] = 4;
+      if (arr[i * 3 + 1] > 8) arr[i * 3 + 1] = -15;
+      if (arr[i * 3 + 1] < -15) arr[i * 3 + 1] = 8;
       if (arr[i * 3 + 2] > 50) arr[i * 3 + 2] = -50;
       if (arr[i * 3 + 2] < -50) arr[i * 3 + 2] = 50;
     }
@@ -1204,7 +1204,7 @@ function Bubbles({ count }: { count: number }) {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     bubbles.forEach((b, i) => {
-      const y = ((t * b.speed + b.offset) % 40) - 18;
+      const y = ((t * b.speed + b.offset) % 26) - 18; // rise from y=-18 to y=8 (full column)
       dummy.position.set(
         b.x + Math.sin(t * b.wobble + b.offset) * 2,
         y,
@@ -1301,7 +1301,7 @@ function BackgroundFish({ count }: { count: number }) {
     const rng = seededRandom(999);
     return Array.from({ length: count }, () => ({
       x: (rng() - 0.5) * 100,
-      y: -15 + rng() * 18,
+      y: -12 + rng() * 18, // spread from y=-12 to y=6
       z: (rng() - 0.5) * 100,
       vx: (rng() - 0.5) * 0.03,
       vy: (rng() - 0.5) * 0.01,
@@ -1320,8 +1320,8 @@ function BackgroundFish({ count }: { count: number }) {
       f.z += f.vz;
       if (f.x > 50) f.x = -50;
       if (f.x < -50) f.x = 50;
-      if (f.y > 3) f.vy = -Math.abs(f.vy);
-      if (f.y < -16) f.vy = Math.abs(f.vy);
+      if (f.y > 6) f.vy = -Math.abs(f.vy);
+      if (f.y < -12) f.vy = Math.abs(f.vy);
       if (f.z > 50) f.z = -50;
       if (f.z < -50) f.z = 50;
       dummy.position.set(f.x, f.y, f.z);
@@ -1899,6 +1899,174 @@ function TreasureParticles({ position }: { position: [number, number, number] })
   );
 }
 
+// ─── Mid-Water Fish Schools (swim at camera level and above) ─────
+function MidWaterFishSchool({
+  anchor,
+  color,
+  fishCount,
+}: {
+  anchor: [number, number, number];
+  color: string;
+  fishCount: number;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const fishData = useMemo(
+    () =>
+      Array.from({ length: fishCount }, (_, i) => ({
+        offset: (i / fishCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4,
+        radius: 4 + Math.random() * 5,
+        yOff: (Math.random() - 0.5) * 2,
+        speed: 0.15 + Math.random() * 0.25,
+        scale: 0.12 + Math.random() * 0.1,
+      })),
+    [fishCount],
+  );
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    fishData.forEach((f, i) => {
+      const angle = t * f.speed + f.offset;
+      dummy.position.set(
+        anchor[0] + Math.cos(angle) * f.radius,
+        anchor[1] + f.yOff + Math.sin(t * 0.3 + f.offset) * 0.5,
+        anchor[2] + Math.sin(angle) * f.radius,
+      );
+      dummy.rotation.y = -angle + Math.PI / 2;
+      dummy.scale.set(f.scale * 2, f.scale, f.scale);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, fishCount]}>
+      <sphereGeometry args={[1, 6, 4]} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.1} metalness={0.5} roughness={0.4} />
+    </instancedMesh>
+  );
+}
+
+// ─── Passing Large Fish (cross scene at camera level) ────────────
+function PassingLargeFish({ isMobile }: { isMobile: boolean }) {
+  const fishCount = isMobile ? 1 : 3;
+  const FISH_DATA = useMemo(() => {
+    const rng = seededRandom(55555);
+    const colors = ["#C0C0C0", "#87CEEB", "#A0A0A0"];
+    return Array.from({ length: fishCount }, (_, idx) => {
+      // Long straight/gentle curve paths at camera level
+      const yLevel = 0.5 + idx * 1.2; // y=0.5, y=1.7, y=2.9
+      const zOffset = -5 + idx * 8;
+      const points = [
+        new THREE.Vector3(-50, yLevel, zOffset),
+        new THREE.Vector3(-20, yLevel + (rng() - 0.5) * 2, zOffset + (rng() - 0.5) * 10),
+        new THREE.Vector3(0, yLevel + (rng() - 0.5) * 1, zOffset + (rng() - 0.5) * 6),
+        new THREE.Vector3(20, yLevel + (rng() - 0.5) * 2, zOffset + (rng() - 0.5) * 10),
+        new THREE.Vector3(50, yLevel, zOffset),
+      ];
+      return {
+        curve: new THREE.CatmullRomCurve3(points, true),
+        color: colors[idx % colors.length],
+        speed: 0.004 + rng() * 0.003,
+        offset: rng(),
+        bodyScale: 1.5 + rng() * 0.8, // elongated body
+      };
+    });
+  }, [fishCount]);
+
+  const refs = useRef<(THREE.Group | null)[]>([]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    FISH_DATA.forEach((f, i) => {
+      const group = refs.current[i];
+      if (!group) return;
+      const progress = (t * f.speed + f.offset) % 1;
+      const pos = f.curve.getPointAt(progress);
+      const tangent = f.curve.getTangentAt(progress);
+      group.position.copy(pos);
+      group.lookAt(pos.clone().add(tangent));
+    });
+  });
+
+  return (
+    <>
+      {FISH_DATA.map((f, i) => (
+        <group key={`passing-${i}`} ref={(el) => { refs.current[i] = el; }}>
+          {/* Elongated ellipsoid body */}
+          <mesh scale={[f.bodyScale * 1.8, f.bodyScale * 0.6, f.bodyScale * 0.5]}>
+            <sphereGeometry args={[0.5, 8, 6]} />
+            <meshStandardMaterial color={f.color} metalness={0.5} roughness={0.4} />
+          </mesh>
+          {/* Tail fin */}
+          <mesh position={[-f.bodyScale * 0.9, 0, 0]}>
+            <coneGeometry args={[f.bodyScale * 0.2, f.bodyScale * 0.4, 4]} />
+            <meshStandardMaterial color={f.color} metalness={0.3} roughness={0.5} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Near-Camera Fish (swim close to viewer) ─────────────────────
+function NearCameraFish({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 2 : 4;
+  const FISH_COLORS_NEAR = ["#C0C0C0", "#87CEEB", "#FFD700", "#3B82F6"];
+
+  const fishData = useMemo(() => {
+    const rng = seededRandom(33333);
+    return Array.from({ length: count }, (_, idx) => ({
+      radius: 5 + rng() * 5,
+      yCenter: 0 + rng() * 2,
+      zCenter: (rng() - 0.5) * 10,
+      xCenter: (rng() - 0.5) * 10,
+      speed: 0.2 + rng() * 0.2,
+      phase: rng() * Math.PI * 2,
+      scale: 0.1 + rng() * 0.08,
+      color: FISH_COLORS_NEAR[idx % FISH_COLORS_NEAR.length],
+    }));
+  }, [count]);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < count; i++) {
+      const f = fishData[i];
+      const angle = t * f.speed + f.phase;
+      const child = children[i];
+      if (!child) continue;
+      child.position.set(
+        f.xCenter + Math.cos(angle) * f.radius,
+        f.yCenter + Math.sin(t * 0.4 + f.phase) * 0.8,
+        f.zCenter + Math.sin(angle) * f.radius,
+      );
+      child.rotation.y = -angle + Math.PI / 2;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {fishData.map((f, i) => (
+        <group key={`near-${i}`}>
+          <mesh scale={[f.scale * 3, f.scale * 1.2, f.scale]}>
+            <sphereGeometry args={[1, 6, 4]} />
+            <meshStandardMaterial color={f.color} emissive={f.color} emissiveIntensity={0.08} metalness={0.4} roughness={0.5} />
+          </mesh>
+          {/* Small tail */}
+          <mesh position={[-f.scale * 2, 0, 0]}>
+            <coneGeometry args={[f.scale * 0.5, f.scale * 1, 3]} />
+            <meshStandardMaterial color={f.color} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 // ─── Scene ───────────────────────────────────────────────────────
 function UnderwaterScene({
   onSelectCity,
@@ -2050,12 +2218,26 @@ function UnderwaterScene({
         </>
       )}
 
+      {/* Mid-water fish schools (camera level and above) */}
+      <MidWaterFishSchool anchor={[10, 2, -5]} color="#C0C0C0" fishCount={isMobile ? 6 : 12} />
+      <MidWaterFishSchool anchor={[-8, -1, 10]} color="#87CEEB" fishCount={isMobile ? 5 : 10} />
+      {!isMobile && <MidWaterFishSchool anchor={[0, 4, -15]} color="#C0C0C0" fishCount={15} />}
+
+      {/* Passing large fish at camera level */}
+      <PassingLargeFish isMobile={isMobile} />
+
+      {/* Near-camera fish (immersive close swimmers) */}
+      <NearCameraFish isMobile={isMobile} />
+
       {/* Jellyfish — improved with color variants */}
       {showJellyfish && (
         <>
           <Jellyfish startPos={[-18, -10, 5]} color="#FF69B4" />
           <Jellyfish startPos={[12, -6, -12]} color="#4169E1" />
           <Jellyfish startPos={[5, -12, 25]} color="#9B30FF" />
+          {/* Upper-water jellyfish (visible near surface) */}
+          <Jellyfish startPos={[-10, 3, -8]} color="#DA70D6" />
+          <Jellyfish startPos={[15, 5, 12]} color="#00CED1" />
         </>
       )}
 
