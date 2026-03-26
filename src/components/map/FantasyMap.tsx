@@ -31,6 +31,119 @@ const ISLAND_CONFIG: Record<string, { pos: [number, number, number]; radius: num
   "dark-dungeon":   { pos: [14, -4, 22],    radius: 4 },
 };
 
+// ─── Island emissive accents ────────────────────────────────────
+const ISLAND_EMISSIVE: Record<string, { color: string; intensity: number }> = {
+  "magic-forest":   { color: "#1a5a2a", intensity: 0.3 },
+  "wizard-tower":   { color: "#5a2cff", intensity: 0.4 },
+  "royal-castle":   { color: "#8a6020", intensity: 0.25 },
+  "dragon-cave":    { color: "#8a1a0a", intensity: 0.4 },
+  "village-tavern": { color: "#6a4a1a", intensity: 0.2 },
+  "quest-board":    { color: "#2a5a4a", intensity: 0.2 },
+  "potion-lab":     { color: "#1a5a1a", intensity: 0.35 },
+  "dark-dungeon":   { color: "#1a1a4a", intensity: 0.3 },
+};
+
+// ─── Island ring colors ─────────────────────────────────────────
+const ISLAND_RING_COLOR: Record<string, string> = {
+  "magic-forest": "#44ff66",
+  "wizard-tower": "#9944ff",
+  "royal-castle": "#ffcc44",
+  "dragon-cave": "#ff5500",
+  "village-tavern": "#ffaa44",
+  "quest-board": "#44ddaa",
+  "potion-lab": "#44ff44",
+  "dark-dungeon": "#5566cc",
+};
+
+// ─── Magic Aura Ring ────────────────────────────────────────────
+function MagicRing({ color, radius }: { color: string; radius: number }) {
+  const ref = useRef<THREE.Mesh>(null!);
+
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      const t = clock.getElapsedTime();
+      ref.current.rotation.z += 0.005;
+      const pulse = 1 + Math.sin(t * 1.5) * 0.08;
+      ref.current.scale.setScalar(pulse);
+    }
+  });
+
+  return (
+    <mesh ref={ref} rotation={[Math.PI / 3, 0, 0]}>
+      <torusGeometry args={[radius * 1.3, 0.06, 8, 32]} />
+      <meshBasicMaterial color={color} transparent opacity={0.4} />
+    </mesh>
+  );
+}
+
+// ─── Star-field Sky ─────────────────────────────────────────────
+function StarField() {
+  const count = IS_MOBILE ? 100 : 150;
+  const ref = useRef<THREE.Points>(null!);
+
+  const positions = useMemo(() => {
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI * 0.45; // upper dome
+      const r = 60 + Math.random() * 30;
+      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      arr[i * 3 + 1] = 20 + r * Math.cos(phi); // y 20-80
+      arr[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    }
+    return arr;
+  }, [count]);
+
+  const offsets = useMemo(() => Array.from({ length: count }, () => Math.random() * Math.PI * 2), [count]);
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const mat = ref.current.material as THREE.PointsMaterial;
+    const t = clock.getElapsedTime();
+    // Global twinkle — individual star twinkle handled via subtle opacity
+    mat.opacity = 0.6 + Math.sin(t * 0.8) * 0.15;
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial color="#ffffff" size={0.15} transparent opacity={0.7} sizeAttenuation={false} />
+    </points>
+  );
+}
+
+// ─── Nebula Clouds ──────────────────────────────────────────────
+function NebulaClouds() {
+  const clouds = useMemo(() => [
+    { pos: [-55, 30, -50] as [number, number, number], color: "#3a1a5a", radius: 20, opacity: 0.05 },
+    { pos: [60, 25, -45] as [number, number, number], color: "#1a2a5a", radius: 25, opacity: 0.04 },
+    { pos: [-40, 40, 55] as [number, number, number], color: "#4a1a3a", radius: 18, opacity: 0.06 },
+    { pos: [50, 35, 50] as [number, number, number], color: "#1a3a3a", radius: 22, opacity: 0.05 },
+    { pos: [0, 45, -60] as [number, number, number], color: "#2a1a4a", radius: 20, opacity: 0.04 },
+  ], []);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = clock.getElapsedTime() * 0.003;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {clouds.map((c, i) => (
+        <mesh key={i} position={c.pos}>
+          <sphereGeometry args={[c.radius, 12, 8]} />
+          <meshBasicMaterial color={c.color} transparent opacity={c.opacity} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // ─── Route connections ───────────────────────────────────────────
 const ROUTES: [string, string][] = [
   ["magic-forest", "royal-castle"],
@@ -81,11 +194,15 @@ function FloatingIsland({
   radius,
   topColor,
   bobOffset,
+  emissiveColor,
+  emissiveIntensity,
 }: {
   position: [number, number, number];
   radius: number;
   topColor: string;
   bobOffset: number;
+  emissiveColor?: string;
+  emissiveIntensity?: number;
 }) {
   const groupRef = useRef<THREE.Group>(null!);
 
@@ -109,7 +226,7 @@ function FloatingIsland({
       {/* Grass/terrain surface */}
       <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[radius, radius, radius * 0.2, 8]} />
-        <meshStandardMaterial color={topColor} roughness={0.7} />
+        <meshStandardMaterial color={topColor} roughness={0.7} emissive={emissiveColor ?? "#000000"} emissiveIntensity={emissiveIntensity ?? 0} />
       </mesh>
     </group>
   );
@@ -275,15 +392,15 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
         <boxGeometry args={[1.2, 2.4, 0.1]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      {/* Corner towers */}
+      {/* Corner towers — taller */}
       {towerPositions.slice(0, towerCount).map((tp, i) => (
         <group key={i} position={tp}>
-          <mesh position={[0, 5, 0]}>
-            <cylinderGeometry args={[1, 1, 10, 8]} />
+          <mesh position={[0, 5.5, 0]}>
+            <cylinderGeometry args={[1, 1, 11, 8]} />
             <meshStandardMaterial color="#7a7a6a" roughness={0.8} />
           </mesh>
-          <mesh position={[0, 10.5, 0]}>
-            <coneGeometry args={[1.3, 2, 8]} />
+          <mesh position={[0, 11.5, 0]}>
+            <coneGeometry args={[1.3, 2.5, 8]} />
             <meshStandardMaterial color="#8b2020" />
           </mesh>
         </group>
@@ -306,6 +423,18 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
         <boxGeometry args={[7, 1, 7]} />
         <meshStandardMaterial color="#6a6a5a" roughness={0.9} />
       </mesh>
+      {/* Castle windows — warm glow */}
+      {[[-1.2, 5, 2.01], [1.2, 5, 2.01], [-1.2, 3, 2.01], [1.2, 3, 2.01], [-1.2, 5, -2.01], [1.2, 5, -2.01]].map((wp, i) => (
+        <mesh key={`win${i}`} position={wp as [number, number, number]}>
+          <boxGeometry args={[0.4, 0.6, 0.05]} />
+          <meshStandardMaterial color="#ffcc44" emissive="#ffaa22" emissiveIntensity={1} />
+        </mesh>
+      ))}
+      {/* Gate warm glow */}
+      <mesh position={[0, 1.2, 1.95]}>
+        <planeGeometry args={[1, 2]} />
+        <meshStandardMaterial color="#ff8833" emissive="#ff6622" emissiveIntensity={0.8} transparent opacity={0.5} side={THREE.DoubleSide} />
+      </mesh>
       {/* Torches */}
       <Torch position={[-1, 0.5, 2.3]} />
       <Torch position={[1, 0.5, 2.3]} />
@@ -315,6 +444,8 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
           <Torch position={[3, 0.5, 0]} />
         </>
       )}
+      {/* Golden interior glow */}
+      <pointLight position={[0, 4, 0]} color="#ffcc66" intensity={0.6} distance={15} />
       <pointLight position={[0, 6, 0]} color="#ffcc66" intensity={0.8} distance={20} />
     </group>
   );
@@ -887,7 +1018,7 @@ function MagicSparkles({ count }: { count: number }) {
         z: (Math.random() - 0.5) * 80,
         speed: 0.2 + Math.random() * 0.3,
         phase: Math.random() * Math.PI * 2,
-        colorIdx: Math.floor(Math.random() * 4),
+        colorIdx: Math.floor(Math.random() * 6),
       })),
     [count],
   );
@@ -900,7 +1031,7 @@ function MagicSparkles({ count }: { count: number }) {
         p.y + Math.sin(t * 0.3 + p.phase) * 0.5,
         p.z + Math.cos(t * p.speed + p.phase) * 1,
       );
-      const twinkle = 0.03 + Math.sin(t * 2 + p.phase) * 0.015;
+      const twinkle = 0.08 + Math.sin(t * 2 + p.phase) * 0.04;
       dummy.scale.setScalar(twinkle);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
@@ -911,7 +1042,7 @@ function MagicSparkles({ count }: { count: number }) {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 6, 4]} />
-      <meshStandardMaterial color="#ffcc44" emissive="#ddaa22" emissiveIntensity={1} />
+      <meshStandardMaterial color="#ffcc44" emissive="#ddaa22" emissiveIntensity={1.5} transparent opacity={0.4} />
     </instancedMesh>
   );
 }
@@ -1022,15 +1153,23 @@ function FantasyScene({
   lang: Language;
   totalPoints: number;
 }) {
-  const sparkleCount = IS_MOBILE ? 30 : 80;
+  const sparkleCount = IS_MOBILE ? 50 : 120;
 
   return (
     <>
-      {/* Lighting — dim magical ambient */}
-      <ambientLight intensity={0.3} color="#1a0a2a" />
+      {/* Lighting — brighter magical ambient */}
+      <ambientLight intensity={0.5} color="#2a1a3a" />
+      {/* Fill light from above */}
+      <directionalLight position={[0, 40, 0]} color="#4a3a5a" intensity={0.3} />
 
-      {/* Fog */}
-      <fog attach="fog" args={["#1a0a2e", 30, 100]} />
+      {/* Fog — lighter purple, less dense */}
+      <fog attach="fog" args={["#1a0f2e", 40, 120]} />
+
+      {/* Star-field sky */}
+      <StarField />
+
+      {/* Nebula clouds */}
+      <NebulaClouds />
 
       {/* Crescent Moon */}
       <CrescentMoon />
@@ -1065,6 +1204,9 @@ function FantasyScene({
           "dark-dungeon": "#3a3a4a",
         };
 
+        const emissive = ISLAND_EMISSIVE[city.id];
+        const ringColor = ISLAND_RING_COLOR[city.id] ?? "#aa66ff";
+
         return (
           <React.Fragment key={city.id}>
             {/* Floating island */}
@@ -1073,7 +1215,14 @@ function FantasyScene({
               radius={radius}
               topColor={islandColors[city.id] ?? "#5a5a5a"}
               bobOffset={bobOffset}
+              emissiveColor={emissive?.color}
+              emissiveIntensity={emissive?.intensity}
             />
+
+            {/* Magic aura ring */}
+            <group position={pos}>
+              <MagicRing color={ringColor} radius={radius} />
+            </group>
 
             {/* Zone-specific buildings */}
             {city.id === "magic-forest" && <MagicForestZone position={pos} />}
