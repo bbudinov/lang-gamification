@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
+import { Canvas, useFrame, extend } from "@react-three/fiber";
+import { OrbitControls, Html, PerformanceMonitor, shaderMaterial } from "@react-three/drei";
 import { useProgressStore } from "@/stores/progressStore";
 import { CITIES, type City } from "@/data/cities";
 import { WORLDS } from "@/data/worlds";
@@ -40,41 +40,79 @@ function getDepthZone(y: number): "shallow" | "mid" | "abyss" {
 
 const DEPTH_LABELS: Record<string, string> = { shallow: "Shallow", mid: "Deep", abyss: "Abyss" };
 
-// ─── Coral palette ───────────────────────────────────────────────
-const CORAL_SHALLOW = ["#FF6B9D", "#FF8E53", "#C084FC", "#2DD4BF", "#FACC15"];
+// ─── Coral palette (upgraded — more vivid) ───────────────────────
+const CORAL_SHALLOW = ["#FF1493", "#9B30FF", "#FF6600", "#FFD700", "#FF4040", "#FF69B4", "#7B68EE", "#00FF7F"];
 const CORAL_DEEP    = ["#1E3A5F", "#0E4D6E", "#3B1F6E", "#0D9488", "#155E75"];
 
 function getCoralColors(y: number): string[] {
   return y > -3 ? CORAL_SHALLOW : y > -8
-    ? CORAL_SHALLOW.map((c, i) => i % 2 === 0 ? c : CORAL_DEEP[i])
+    ? CORAL_SHALLOW.map((c, i) => i % 2 === 0 ? c : CORAL_DEEP[i % CORAL_DEEP.length])
     : CORAL_DEEP;
+}
+
+// ─── Seeded random helper ────────────────────────────────────────
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+// ─── Background Gradient Shader ──────────────────────────────────
+const OceanGradientMaterial = shaderMaterial(
+  {},
+  // vertex
+  `varying vec2 vUv;
+   void main() {
+     vUv = uv;
+     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+   }`,
+  // fragment
+  `varying vec2 vUv;
+   void main() {
+     vec3 top    = vec3(0.102, 0.420, 0.541);   // #1a6b8a
+     vec3 mid    = vec3(0.051, 0.290, 0.420);   // #0d4a6b
+     vec3 bottom = vec3(0.012, 0.051, 0.094);   // #030d18
+     vec3 color;
+     if (vUv.y > 0.5) {
+       color = mix(mid, top, (vUv.y - 0.5) * 2.0);
+     } else {
+       color = mix(bottom, mid, vUv.y * 2.0);
+     }
+     gl_FragColor = vec4(color, 1.0);
+   }`
+);
+
+extend({ OceanGradientMaterial });
+
+// Type augmentation for R3F
+declare module "@react-three/fiber" {
+  interface ThreeElements {
+    oceanGradientMaterial: React.JSX.IntrinsicElements["shaderMaterial"];
+  }
+}
+
+function OceanBackground() {
+  return (
+    <mesh position={[0, 0, -80]} renderOrder={-1}>
+      <planeGeometry args={[300, 200]} />
+      <oceanGradientMaterial depthWrite={false} />
+    </mesh>
+  );
 }
 
 // ─── Depth Layer Planes ─────────────────────────────────────────
 function DepthLayers() {
   return (
     <>
-      {/* Shallow → Mid transition */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
         <planeGeometry args={[250, 250]} />
-        <meshBasicMaterial
-          color="#0A4D6E"
-          transparent
-          opacity={0.08}
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
+        <meshBasicMaterial color="#0A4D6E" transparent opacity={0.08} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      {/* Mid → Abyss transition */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -8, 0]}>
         <planeGeometry args={[250, 250]} />
-        <meshBasicMaterial
-          color="#061220"
-          transparent
-          opacity={0.1}
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
+        <meshBasicMaterial color="#061220" transparent opacity={0.1} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
     </>
   );
@@ -106,7 +144,6 @@ function UnderwaterDust({ count }: { count: number }) {
       arr[i * 3]     += velocities[i].vx;
       arr[i * 3 + 1] += velocities[i].vy;
       arr[i * 3 + 2] += velocities[i].vz;
-      // Wrap around bounds
       if (arr[i * 3] > 50) arr[i * 3] = -50;
       if (arr[i * 3] < -50) arr[i * 3] = 50;
       if (arr[i * 3 + 1] > 4) arr[i * 3 + 1] = -16;
@@ -120,25 +157,164 @@ function UnderwaterDust({ count }: { count: number }) {
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-          count={count}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
       </bufferGeometry>
-      <pointsMaterial
-        color="#ffffff"
-        size={0.05}
-        transparent
-        opacity={0.35}
-        depthWrite={false}
-        sizeAttenuation
-      />
+      <pointsMaterial color="#ffffff" size={0.05} transparent opacity={0.35} depthWrite={false} sizeAttenuation />
     </points>
   );
 }
 
-// ─── Sea Fan Props ──────────────────────────────────────────────
+// ─── Seagrass Meadow ────────────────────────────────────────────
+function SeagrassMeadow({ position, seed }: { position: [number, number, number]; seed: number }) {
+  const count = IS_MOBILE ? 8 : 20;
+  const groupRef = useRef<THREE.Group>(null!);
+  const GREENS = ["#2d8a4e", "#1e7a3a", "#3d9a5e", "#25804a", "#48a860"];
+
+  const blades = useMemo(() => {
+    const rng = seededRandom(seed);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 6,
+      z: (rng() - 0.5) * 6,
+      height: 1.5 + rng() * 1.5,
+      phase: rng() * Math.PI * 2,
+      speed: 0.4 + rng() * 0.4,
+      color: GREENS[Math.floor(rng() * GREENS.length)],
+    }));
+  }, [seed, count]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const b = blades[i];
+      children[i].rotation.x = Math.sin(t * b.speed + b.phase) * 0.12;
+      children[i].rotation.z = Math.sin(t * b.speed * 0.7 + b.phase + 1) * 0.06;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      {blades.map((b, i) => (
+        <mesh key={i} position={[b.x, b.height / 2, b.z]}>
+          <planeGeometry args={[0.15, b.height]} />
+          <meshStandardMaterial color={b.color} emissive={b.color} emissiveIntensity={0.1} side={THREE.DoubleSide} transparent opacity={0.85} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Fan Corals ─────────────────────────────────────────────────
+function FanCorals({ isMobile }: { isMobile: boolean }) {
+  const FAN_COLORS = ["#9B30FF", "#FF69B4", "#FF6600", "#E040FB", "#FF1493"];
+  const fans = useMemo(() => {
+    const count = isMobile ? 4 : 10;
+    const rng = seededRandom(777);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 80,
+      z: (rng() - 0.5) * 80,
+      y: -16.5 + rng() * 0.5,
+      rotY: rng() * Math.PI,
+      radius: 0.6 + rng() * 0.8,
+      color: FAN_COLORS[Math.floor(rng() * FAN_COLORS.length)],
+    }));
+  }, [isMobile]);
+
+  return (
+    <>
+      {fans.map((f, i) => (
+        <mesh key={i} position={[f.x, f.y + f.radius, f.z]} rotation={[0, f.rotY, 0]}>
+          <circleGeometry args={[f.radius, 12, 0, Math.PI]} />
+          <meshStandardMaterial color={f.color} emissive={f.color} emissiveIntensity={0.2} side={THREE.DoubleSide} transparent opacity={0.7} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Tube Sponges ───────────────────────────────────────────────
+function TubeSponges({ isMobile }: { isMobile: boolean }) {
+  const clusterCount = isMobile ? 2 : 5;
+  const SPONGE_COLORS = ["#FFA500", "#FFD700", "#FF8C00", "#DAA520"];
+  const clusters = useMemo(() => {
+    const rng = seededRandom(333);
+    return Array.from({ length: clusterCount }, () => {
+      const cx = (rng() - 0.5) * 70;
+      const cz = (rng() - 0.5) * 70;
+      const tubeCount = 3 + Math.floor(rng() * 3);
+      return Array.from({ length: tubeCount }, () => ({
+        x: cx + (rng() - 0.5) * 1.5,
+        z: cz + (rng() - 0.5) * 1.5,
+        height: 1 + rng() * 1,
+        radius: 0.1 + rng() * 0.1,
+        color: SPONGE_COLORS[Math.floor(rng() * SPONGE_COLORS.length)],
+      }));
+    });
+  }, [clusterCount]);
+
+  return (
+    <>
+      {clusters.flat().map((s, i) => (
+        <mesh key={i} position={[s.x, -16.5 + s.height / 2, s.z]}>
+          <cylinderGeometry args={[s.radius, s.radius * 1.2, s.height, 6]} />
+          <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.15} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Sea Anemones (pulsing) ─────────────────────────────────────
+function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
+  const clusterCount = isMobile ? 3 : 7;
+  const ANEMONE_COLORS = ["#FF69B4", "#9B30FF", "#FF6347", "#FF1493", "#DA70D6"];
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const clusters = useMemo(() => {
+    const rng = seededRandom(555);
+    return Array.from({ length: clusterCount }, () => {
+      const cx = (rng() - 0.5) * 70;
+      const cz = (rng() - 0.5) * 70;
+      const count = 3 + Math.floor(rng() * 4);
+      return Array.from({ length: count }, () => ({
+        x: cx + (rng() - 0.5) * 2,
+        z: cz + (rng() - 0.5) * 2,
+        stalkH: 0.3 + rng() * 0.4,
+        tipR: 0.06 + rng() * 0.06,
+        color: ANEMONE_COLORS[Math.floor(rng() * ANEMONE_COLORS.length)],
+        phase: rng() * Math.PI * 2,
+      }));
+    }).flat();
+  }, [clusterCount]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const pulse = 1 + Math.sin(t * 1.5 + clusters[i].phase) * 0.2;
+      children[i].scale.set(pulse, pulse, pulse);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {clusters.map((a, i) => (
+        <group key={i} position={[a.x, -16.5, a.z]}>
+          <mesh position={[0, a.stalkH / 2, 0]}>
+            <cylinderGeometry args={[0.02, 0.03, a.stalkH, 4]} />
+            <meshStandardMaterial color={a.color} />
+          </mesh>
+          <mesh position={[0, a.stalkH, 0]}>
+            <sphereGeometry args={[a.tipR, 6, 4]} />
+            <meshStandardMaterial color={a.color} emissive={a.color} emissiveIntensity={0.3} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Sea Fan Props (existing, on platforms) ─────────────────────
 function SeaFans({ position, index }: { position: [number, number, number]; index: number }) {
   const fans = useMemo(() => {
     const seed = index * 97;
@@ -160,21 +336,14 @@ function SeaFans({ position, index }: { position: [number, number, number]; inde
       {fans.map((f, i) => (
         <mesh key={i} position={[f.x, f.height / 2 + 0.1, f.z]} rotation={[0, f.rotY, 0]}>
           <planeGeometry args={[0.6, f.height]} />
-          <meshStandardMaterial
-            color={f.color}
-            emissive={f.color}
-            emissiveIntensity={0.15}
-            transparent
-            opacity={0.7}
-            side={THREE.DoubleSide}
-          />
+          <meshStandardMaterial color={f.color} emissive={f.color} emissiveIntensity={0.15} transparent opacity={0.7} side={THREE.DoubleSide} />
         </mesh>
       ))}
     </group>
   );
 }
 
-// ─── Anemone Clusters ───────────────────────────────────────────
+// ─── Anemone Clusters (on platforms — existing) ─────────────────
 function AnemoneCluster({ position, index }: { position: [number, number, number]; index: number }) {
   const anemones = useMemo(() => {
     const seed = index * 53;
@@ -191,18 +360,14 @@ function AnemoneCluster({ position, index }: { position: [number, number, number
       {anemones.map((a, i) => (
         <mesh key={i} position={[a.x, 0, a.z]}>
           <sphereGeometry args={[a.scale, 6, 4]} />
-          <meshStandardMaterial
-            color={a.color}
-            emissive={a.color}
-            emissiveIntensity={0.2}
-          />
+          <meshStandardMaterial color={a.color} emissive={a.color} emissiveIntensity={0.2} />
         </mesh>
       ))}
     </group>
   );
 }
 
-// ─── Coral Reef Platform ─────────────────────────────────────────
+// ─── Coral Reef Platform (upgraded coral variety) ────────────────
 function CoralPlatform({
   position,
   index,
@@ -215,8 +380,9 @@ function CoralPlatform({
   const zone = getDepthZone(position[1]);
   const palette = getCoralColors(position[1]);
   const isGlowing = zone === "abyss";
-  const coralCount = isMobile ? 3 : (zone === "shallow" ? 7 : 5);
-  const heightMultiplier = zone === "shallow" ? 1.5 : zone === "mid" ? 1.0 : 0.7;
+  const isShallow = zone === "shallow";
+  const coralCount = isMobile ? 3 : (isShallow ? 8 : 5);
+  const heightMultiplier = isShallow ? 1.5 : zone === "mid" ? 1.0 : 0.7;
 
   const corals = useMemo(() => {
     const seed = index * 137;
@@ -225,6 +391,8 @@ function CoralPlatform({
       const dist = 0.6 + (((seed + i * 7) % 10) / 10) * 0.9;
       const tiltX = ((seed + i * 11) % 60 - 30) * (Math.PI / 180);
       const tiltZ = ((seed + i * 17) % 60 - 30) * (Math.PI / 180);
+      // Variety: 0=branch, 1=round, 2=flat disc
+      const shapeType = i % 3;
       return {
         x: Math.cos(angle) * dist,
         z: Math.sin(angle) * dist,
@@ -233,11 +401,11 @@ function CoralPlatform({
         tiltX,
         tiltZ,
         color: palette[(seed + i) % palette.length],
-        // Extra branch for shallow zone variety
-        hasBranch: zone === "shallow" && i % 2 === 0,
+        hasBranch: isShallow && i % 2 === 0,
+        shapeType,
       };
     });
-  }, [index, coralCount, palette, heightMultiplier, zone]);
+  }, [index, coralCount, palette, heightMultiplier, isShallow]);
 
   return (
     <group position={position}>
@@ -246,43 +414,47 @@ function CoralPlatform({
         <cylinderGeometry args={[2.2, 3, 1.4, 7]} />
         <meshStandardMaterial color="#2D3748" roughness={0.95} />
       </mesh>
-      {/* Secondary rock bump */}
       <mesh position={[1.2, -0.2, 0.5]} rotation={[0.1, 0.4, 0]}>
         <cylinderGeometry args={[1, 1.5, 0.8, 6]} />
         <meshStandardMaterial color="#374151" roughness={0.95} />
       </mesh>
 
-      {/* Coral branches */}
+      {/* Coral branches with variety */}
       {corals.map((c, i) => (
         <group key={i} position={[c.x, 0.2, c.z]} rotation={[c.tiltX, 0, c.tiltZ]}>
-          {/* Main branch */}
-          <mesh position={[0, c.height / 2, 0]}>
-            <cylinderGeometry args={[c.radius * 0.5, c.radius, c.height, 6]} />
-            <meshStandardMaterial
-              color={c.color}
-              emissive={c.color}
-              emissiveIntensity={isGlowing ? 0.6 : 0.12}
-            />
-          </mesh>
-          {/* Tip cone */}
-          <mesh position={[0, c.height + 0.1, 0]}>
-            <coneGeometry args={[c.radius * 0.7, 0.3, 5]} />
-            <meshStandardMaterial
-              color={c.color}
-              emissive={c.color}
-              emissiveIntensity={isGlowing ? 0.8 : 0.2}
-            />
-          </mesh>
-          {/* Extra side branch for shallow corals */}
-          {c.hasBranch && (
+          {c.shapeType === 0 && (
+            <>
+              {/* Branch coral */}
+              <mesh position={[0, c.height / 2, 0]}>
+                <cylinderGeometry args={[c.radius * 0.5, c.radius, c.height, 6]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.6 : isShallow ? 0.25 : 0.12} />
+              </mesh>
+              <mesh position={[0, c.height + 0.1, 0]}>
+                <coneGeometry args={[c.radius * 0.7, 0.3, 5]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.8 : isShallow ? 0.3 : 0.2} />
+              </mesh>
+            </>
+          )}
+          {c.shapeType === 1 && (
+            /* Round/brain coral */
+            <mesh position={[0, c.radius * 1.5, 0]}>
+              <sphereGeometry args={[c.radius * 2, 8, 6]} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.6 : isShallow ? 0.25 : 0.12} roughness={0.6} />
+            </mesh>
+          )}
+          {c.shapeType === 2 && (
+            /* Flat disc coral */
+            <mesh position={[0, 0.15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[c.radius * 2.5, 10]} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.5 : isShallow ? 0.25 : 0.1} side={THREE.DoubleSide} />
+            </mesh>
+          )}
+          {/* Extra side branch for shallow corals (branch type) */}
+          {c.hasBranch && c.shapeType === 0 && (
             <group position={[0, c.height * 0.6, 0]} rotation={[0.4, 0, 0.5]}>
               <mesh position={[0, 0.3, 0]}>
                 <cylinderGeometry args={[c.radius * 0.3, c.radius * 0.5, 0.6, 5]} />
-                <meshStandardMaterial
-                  color={c.color}
-                  emissive={c.color}
-                  emissiveIntensity={0.15}
-                />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.2} />
               </mesh>
             </group>
           )}
@@ -310,7 +482,6 @@ function CityMarker({
 
   return (
     <group position={[position[0], position[1] + 4, position[2]]}>
-      {/* Glowing ring for unlocked cities */}
       {unlocked && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}>
           <ringGeometry args={[2.5, 3, 32]} />
@@ -344,7 +515,6 @@ function CityMarker({
               {city.name[lang]}
             </p>
           </div>
-          {/* Depth label */}
           <span
             className="text-[8px] font-medium tracking-wider uppercase"
             style={{ color: zone === "abyss" ? "#06B6D4" : zone === "mid" ? "#5EADB0" : "#7EDCD0" }}
@@ -403,7 +573,7 @@ function Bubbles({ count }: { count: number }) {
   );
 }
 
-// ─── Fish School (instanced) — improved organic movement ────────
+// ─── Fish School (instanced) — improved with shimmer ─────────────
 function FishSchool({
   anchor,
   color,
@@ -415,6 +585,7 @@ function FishSchool({
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const groupRef = useRef<THREE.Group>(null!);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const fishData = useMemo(
     () =>
@@ -426,7 +597,6 @@ function FishSchool({
         scale: 0.15 + Math.random() * 0.15,
         wobbleFreq: 0.3 + Math.random() * 0.7,
         wobbleAmp: 0.5 + Math.random() * 1.0,
-        // Slight radius oscillation for more organic paths
         radiusOsc: 0.5 + Math.random() * 1.5,
         radiusOscFreq: 0.1 + Math.random() * 0.2,
       })),
@@ -437,6 +607,11 @@ function FishSchool({
     const t = clock.getElapsedTime();
     groupRef.current.rotation.y = t * 0.08;
 
+    // Shimmer effect on material
+    if (matRef.current) {
+      matRef.current.emissiveIntensity = 0.1 + Math.sin(t * 3) * 0.08;
+    }
+
     fishData.forEach((f, i) => {
       const angle = t * f.speed + f.offset;
       const r = f.radius + Math.sin(t * f.radiusOscFreq + f.offset) * f.radiusOsc;
@@ -446,7 +621,6 @@ function FishSchool({
         Math.sin(angle) * r,
       );
       dummy.rotation.y = -angle + Math.PI / 2;
-      // Slight banking turn
       dummy.rotation.z = Math.cos(angle) * 0.15;
       dummy.scale.set(f.scale * 2, f.scale, f.scale);
       dummy.updateMatrix();
@@ -459,15 +633,72 @@ function FishSchool({
     <group ref={groupRef} position={anchor}>
       <instancedMesh ref={meshRef} args={[undefined, undefined, fishCount]}>
         <sphereGeometry args={[1, 6, 4]} />
-        <meshStandardMaterial color={color} metalness={0.4} roughness={0.5} />
+        <meshStandardMaterial ref={matRef} color={color} emissive={color} emissiveIntensity={0.1} metalness={0.4} roughness={0.5} />
       </instancedMesh>
     </group>
   );
 }
 
-// ─── Jellyfish ───────────────────────────────────────────────────
+// ─── Background Fish (ambient tiny fish — instanced) ─────────────
+function BackgroundFish({ count }: { count: number }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const FISH_COLORS_LIST = [0x3b82f6, 0xf97316, 0xc0c0c0, 0xff6b9d, 0x2dd4bf, 0xfacc15, 0xa78bfa];
+
+  const fishData = useMemo(() => {
+    const rng = seededRandom(999);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 100,
+      y: -15 + rng() * 18,
+      z: (rng() - 0.5) * 100,
+      vx: (rng() - 0.5) * 0.03,
+      vy: (rng() - 0.5) * 0.01,
+      vz: (rng() - 0.5) * 0.03,
+      colorIndex: Math.floor(rng() * FISH_COLORS_LIST.length),
+    }));
+  }, [count]);
+
+  // Set colors once
+  useMemo(() => {
+    // Will be set on first frame
+  }, []);
+
+  useFrame(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    for (let i = 0; i < count; i++) {
+      const f = fishData[i];
+      f.x += f.vx;
+      f.y += f.vy;
+      f.z += f.vz;
+      if (f.x > 50) f.x = -50;
+      if (f.x < -50) f.x = 50;
+      if (f.y > 3) f.vy = -Math.abs(f.vy);
+      if (f.y < -16) f.vy = Math.abs(f.vy);
+      if (f.z > 50) f.z = -50;
+      if (f.z < -50) f.z = 50;
+      dummy.position.set(f.x, f.y, f.z);
+      dummy.scale.set(0.16, 0.08, 0.08);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, new THREE.Color(FISH_COLORS_LIST[f.colorIndex]));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <sphereGeometry args={[1, 4, 3]} />
+      <meshStandardMaterial metalness={0.3} roughness={0.5} />
+    </instancedMesh>
+  );
+}
+
+// ─── Jellyfish (improved transparency + colors) ─────────────────
 function Jellyfish({ startPos, color }: { startPos: [number, number, number]; color: string }) {
   const groupRef = useRef<THREE.Group>(null!);
+  const bellRef = useRef<THREE.Group>(null!);
   const matRef = useRef<THREE.MeshStandardMaterial>(null!);
   const offset = useMemo(() => Math.random() * 100, []);
 
@@ -482,37 +713,36 @@ function Jellyfish({ startPos, color }: { startPos: [number, number, number]; co
     if (matRef.current) {
       matRef.current.emissiveIntensity = 0.5 + Math.sin(t * 1.5 + offset) * 0.3;
     }
+    // Pulsing bell animation
+    if (bellRef.current) {
+      const pulse = 1 + Math.sin(t * 2 + offset) * 0.15;
+      bellRef.current.scale.set(pulse, 1 / pulse, pulse);
+    }
   });
 
   return (
     <group ref={groupRef}>
-      <mesh>
-        <sphereGeometry args={[1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial
-          ref={matRef}
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.65}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {[0, 1, 2, 3].map((i) => {
-        const angle = (i / 4) * Math.PI * 2;
+      <group ref={bellRef}>
+        <mesh>
+          <sphereGeometry args={[1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial
+            ref={matRef}
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.5}
+            transparent
+            opacity={0.4}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </group>
+      {/* Thinner, longer tentacles — 6 total */}
+      {[0, 1, 2, 3, 4, 5].map((i) => {
+        const angle = (i / 6) * Math.PI * 2;
         return (
-          <mesh
-            key={i}
-            position={[Math.cos(angle) * 0.4, -1, Math.sin(angle) * 0.4]}
-          >
-            <cylinderGeometry args={[0.03, 0.02, 2, 4]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={0.4}
-              transparent
-              opacity={0.5}
-            />
+          <mesh key={i} position={[Math.cos(angle) * 0.35, -1.5, Math.sin(angle) * 0.35]}>
+            <cylinderGeometry args={[0.015, 0.01, 3, 3]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} transparent opacity={0.35} />
           </mesh>
         );
       })}
@@ -520,34 +750,41 @@ function Jellyfish({ startPos, color }: { startPos: [number, number, number]; co
   );
 }
 
-// ─── Light Rays (shallow zone) — enhanced with sway ─────────────
+// ─── Light Rays (stronger, more dramatic) ───────────────────────
 function LightRays() {
   const raysRef = useRef<THREE.Group>(null!);
+
+  const rays = useMemo(() => [
+    { pos: [-10, 8, -12] as [number, number, number], rotZ: 0.15, tint: "#FFE8B0" },
+    { pos: [8, 10, -8] as [number, number, number], rotZ: -0.1, tint: "#FFF5D6" },
+    { pos: [20, 7, -18] as [number, number, number], rotZ: 0.08, tint: "#FFE8B0" },
+    { pos: [-25, 9, -5] as [number, number, number], rotZ: 0.12, tint: "#FFF0C0" },
+    { pos: [0, 9, -15] as [number, number, number], rotZ: -0.05, tint: "#D4E8F0" },
+    { pos: [-18, 8, -20] as [number, number, number], rotZ: 0.18, tint: "#FFE0A0" },
+    { pos: [30, 9, -12] as [number, number, number], rotZ: -0.12, tint: "#C8DEF0" },
+  ], []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     const children = raysRef.current.children;
     for (let i = 0; i < children.length; i++) {
-      const swayAmount = 0.03 + i * 0.01;
-      const swaySpeed = 0.3 + i * 0.1;
-      children[i].rotation.z = (i === 1 ? -0.1 : i === 2 ? 0.08 : 0.15) + Math.sin(t * swaySpeed) * swayAmount;
+      const baseRot = rays[i].rotZ;
+      const swayAmount = 0.04 + i * 0.008;
+      const swaySpeed = 0.2 + i * 0.06;
+      children[i].rotation.z = baseRot + Math.sin(t * swaySpeed + i * 0.5) * swayAmount;
+      children[i].rotation.x = Math.sin(t * swaySpeed * 0.5 + i) * 0.015;
     }
   });
 
   return (
     <group ref={raysRef}>
-      {[
-        { pos: [-10, 8, -12] as [number, number, number], rotZ: 0.15 },
-        { pos: [8, 10, -8] as [number, number, number], rotZ: -0.1 },
-        { pos: [20, 7, -18] as [number, number, number], rotZ: 0.08 },
-        { pos: [-25, 9, -5] as [number, number, number], rotZ: 0.12 },
-      ].map((ray, i) => (
+      {rays.map((ray, i) => (
         <mesh key={i} position={ray.pos} rotation={[0, 0, ray.rotZ]}>
-          <coneGeometry args={[4, 22, 8, 1, true]} />
+          <coneGeometry args={[6, 28, 8, 1, true]} />
           <meshStandardMaterial
-            color="#A7D8F0"
+            color={ray.tint}
             transparent
-            opacity={0.09}
+            opacity={0.17}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -557,14 +794,39 @@ function LightRays() {
   );
 }
 
-// ─── Sea Floor ───────────────────────────────────────────────────
-function SeaFloor() {
+// ─── Sea Floor (with rocks, sand, shells) ────────────────────────
+function SeaFloor({ isMobile }: { isMobile: boolean }) {
+  const rockCount = isMobile ? 8 : 18;
+  const sandCount = isMobile ? 4 : 10;
+  const shellCount = isMobile ? 3 : 8;
+
+  const details = useMemo(() => {
+    const rng = seededRandom(1234);
+    const rocks = Array.from({ length: rockCount }, () => ({
+      x: (rng() - 0.5) * 100,
+      z: (rng() - 0.5) * 100,
+      r: 0.3 + rng() * 0.7,
+    }));
+    const sand = Array.from({ length: sandCount }, () => ({
+      x: (rng() - 0.5) * 90,
+      z: (rng() - 0.5) * 90,
+      r: 1.5 + rng() * 3,
+    }));
+    const shells = Array.from({ length: shellCount }, () => ({
+      x: (rng() - 0.5) * 80,
+      z: (rng() - 0.5) * 80,
+    }));
+    return { rocks, sand, shells };
+  }, [rockCount, sandCount, shellCount]);
+
   return (
     <group>
+      {/* Main floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -17, 0]}>
         <planeGeometry args={[250, 250]} />
         <meshStandardMaterial color="#091520" roughness={1} />
       </mesh>
+      {/* Existing bumps */}
       {[
         [-25, -16.5, 10],
         [20, -16, -5],
@@ -572,9 +834,30 @@ function SeaFloor() {
         [-10, -16.2, 30],
         [0, -16, -20],
       ].map((p, i) => (
-        <mesh key={i} position={p as [number, number, number]}>
+        <mesh key={`bump-${i}`} position={p as [number, number, number]}>
           <sphereGeometry args={[3 + i * 0.5, 6, 5]} />
           <meshStandardMaterial color="#0D1B2A" roughness={1} />
+        </mesh>
+      ))}
+      {/* Scattered rocks */}
+      {details.rocks.map((r, i) => (
+        <mesh key={`rock-${i}`} position={[r.x, -16.8, r.z]}>
+          <sphereGeometry args={[r.r, 5, 4]} />
+          <meshStandardMaterial color="#1a2030" roughness={0.95} />
+        </mesh>
+      ))}
+      {/* Sand patches */}
+      {details.sand.map((s, i) => (
+        <mesh key={`sand-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[s.x, -16.95, s.z]}>
+          <circleGeometry args={[s.r, 10]} />
+          <meshBasicMaterial color="#c2a87d" transparent opacity={0.3} depthWrite={false} />
+        </mesh>
+      ))}
+      {/* Shells */}
+      {details.shells.map((sh, i) => (
+        <mesh key={`shell-${i}`} position={[sh.x, -16.9, sh.z]}>
+          <sphereGeometry args={[0.12, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial color="#f0e8d8" roughness={0.7} />
         </mesh>
       ))}
     </group>
@@ -605,27 +888,30 @@ function UnderwaterCliffs() {
   );
 }
 
-// ─── Kelp Forest ────────────────────────────────────────────────
+// ─── Kelp Forest (much more impressive) ─────────────────────────
 function KelpForest({ position, isMobile }: { position: [number, number, number]; isMobile: boolean }) {
-  const stalkCount = isMobile ? 4 : 10;
+  const stalkCount = isMobile ? 6 : 18;
   const groupRef = useRef<THREE.Group>(null!);
 
-  const stalks = useMemo(() =>
-    Array.from({ length: stalkCount }, (_, i) => ({
-      x: (Math.random() - 0.5) * 8,
-      z: (Math.random() - 0.5) * 8,
-      height: 3 + Math.random() * 5,
-      phase: Math.random() * Math.PI * 2,
-      swaySpeed: 0.3 + Math.random() * 0.3,
-    })),
-  [stalkCount]);
+  const stalks = useMemo(() => {
+    const rng = seededRandom(42);
+    return Array.from({ length: stalkCount }, () => ({
+      x: (rng() - 0.5) * 12,
+      z: (rng() - 0.5) * 12,
+      height: 4 + rng() * 7,
+      phase: rng() * Math.PI * 2,
+      swaySpeed: 0.3 + rng() * 0.3,
+      leafCount: isMobile ? 3 : 4 + Math.floor(rng() * 3),
+    }));
+  }, [stalkCount, isMobile]);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     const children = groupRef.current.children;
     for (let i = 0; i < children.length; i++) {
       const s = stalks[i];
-      children[i].rotation.x = Math.sin(t * s.swaySpeed + s.phase) * 0.08;
+      children[i].rotation.x = Math.sin(t * s.swaySpeed + s.phase) * 0.1;
+      children[i].rotation.z = Math.sin(t * s.swaySpeed * 0.6 + s.phase + 1) * 0.04;
     }
   });
 
@@ -635,24 +921,193 @@ function KelpForest({ position, isMobile }: { position: [number, number, number]
         <group key={i} position={[s.x, s.height / 2 + 0.2, s.z]}>
           <mesh>
             <cylinderGeometry args={[0.06, 0.1, s.height, 5]} />
-            <meshStandardMaterial
-              color="#2D8B4E"
-              emissive="#1A6B35"
-              emissiveIntensity={0.15}
-            />
+            <meshStandardMaterial color="#2D8B4E" emissive="#1A6B35" emissiveIntensity={0.15} />
           </mesh>
-          {/* Leaf blobs along stalk */}
-          {Array.from({ length: 3 }, (_, j) => (
-            <mesh key={j} position={[(j % 2 === 0 ? 0.15 : -0.15), -s.height / 2 + (j + 1) * (s.height / 4), 0]}>
-              <sphereGeometry args={[0.12, 5, 4]} />
-              <meshStandardMaterial
-                color="#3CB371"
-                emissive="#2E8B57"
-                emissiveIntensity={0.1}
-              />
-            </mesh>
-          ))}
+          {/* Multiple leaf blobs along stalk */}
+          {Array.from({ length: s.leafCount }, (_, j) => {
+            const side = j % 2 === 0 ? 1 : -1;
+            const yPos = -s.height / 2 + (j + 1) * (s.height / (s.leafCount + 1));
+            return (
+              <group key={j} position={[side * 0.2, yPos, 0]}>
+                <mesh>
+                  <sphereGeometry args={[0.15, 5, 4]} />
+                  <meshStandardMaterial color="#3CB371" emissive="#2E8B57" emissiveIntensity={0.1} />
+                </mesh>
+                {/* Extra leaf blob for canopy feel */}
+                <mesh position={[side * 0.12, 0.1, 0.08]}>
+                  <sphereGeometry args={[0.1, 4, 3]} />
+                  <meshStandardMaterial color="#228B22" emissive="#1A6B35" emissiveIntensity={0.08} />
+                </mesh>
+              </group>
+            );
+          })}
         </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Sea Turtle (desktop only) ──────────────────────────────────
+function SeaTurtle({ pathSeed }: { pathSeed: number }) {
+  const groupRef = useRef<THREE.Group>(null!);
+  const flippersRef = useRef<THREE.Group>(null!);
+
+  const curve = useMemo(() => {
+    const rng = seededRandom(pathSeed);
+    const points = Array.from({ length: 6 }, () =>
+      new THREE.Vector3(
+        (rng() - 0.5) * 60,
+        -2 - rng() * 5,
+        (rng() - 0.5) * 60,
+      )
+    );
+    return new THREE.CatmullRomCurve3(points, true);
+  }, [pathSeed]);
+
+  useFrame(({ clock }) => {
+    const t = (clock.getElapsedTime() * 0.015 + pathSeed * 0.1) % 1;
+    const pos = curve.getPointAt(t);
+    const tangent = curve.getTangentAt(t);
+    groupRef.current.position.copy(pos);
+    groupRef.current.lookAt(pos.clone().add(tangent));
+
+    // Flipper animation
+    if (flippersRef.current) {
+      const flipAngle = Math.sin(clock.getElapsedTime() * 1.2) * 0.3;
+      const children = flippersRef.current.children;
+      if (children[0]) children[0].rotation.z = flipAngle;
+      if (children[1]) children[1].rotation.z = -flipAngle;
+      if (children[2]) children[2].rotation.z = flipAngle * 0.5;
+      if (children[3]) children[3].rotation.z = -flipAngle * 0.5;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Shell (half sphere) */}
+      <mesh rotation={[Math.PI, 0, 0]}>
+        <sphereGeometry args={[0.8, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#5C7A3A" roughness={0.8} />
+      </mesh>
+      {/* Belly */}
+      <mesh rotation={[0, 0, 0]} position={[0, -0.05, 0]}>
+        <sphereGeometry args={[0.75, 8, 4, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
+        <meshStandardMaterial color="#C8B878" roughness={0.7} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 0, 0.9]}>
+        <sphereGeometry args={[0.25, 6, 4]} />
+        <meshStandardMaterial color="#6B8A4A" roughness={0.7} />
+      </mesh>
+      {/* Flippers */}
+      <group ref={flippersRef}>
+        <mesh position={[0.7, 0, 0.2]} rotation={[0, 0.3, 0]}>
+          <planeGeometry args={[0.6, 0.2]} />
+          <meshStandardMaterial color="#5C7A3A" side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[-0.7, 0, 0.2]} rotation={[0, -0.3, 0]}>
+          <planeGeometry args={[0.6, 0.2]} />
+          <meshStandardMaterial color="#5C7A3A" side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0.5, 0, -0.5]} rotation={[0, 0.5, 0]}>
+          <planeGeometry args={[0.35, 0.15]} />
+          <meshStandardMaterial color="#5C7A3A" side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[-0.5, 0, -0.5]} rotation={[0, -0.5, 0]}>
+          <planeGeometry args={[0.35, 0.15]} />
+          <meshStandardMaterial color="#5C7A3A" side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// ─── Manta Ray (desktop only) ───────────────────────────────────
+function MantaRay() {
+  const groupRef = useRef<THREE.Group>(null!);
+  const meshRef = useRef<THREE.Mesh>(null!);
+
+  const curve = useMemo(() => {
+    const points = [
+      new THREE.Vector3(-30, -6, -10),
+      new THREE.Vector3(-10, -5, 15),
+      new THREE.Vector3(20, -7, 10),
+      new THREE.Vector3(30, -6, -15),
+      new THREE.Vector3(10, -5, -25),
+    ];
+    return new THREE.CatmullRomCurve3(points, true);
+  }, []);
+
+  useFrame(({ clock }) => {
+    const t = (clock.getElapsedTime() * 0.01) % 1;
+    const pos = curve.getPointAt(t);
+    const tangent = curve.getTangentAt(t);
+    groupRef.current.position.copy(pos);
+    groupRef.current.lookAt(pos.clone().add(tangent));
+
+    // Wing wave animation
+    if (meshRef.current) {
+      const geo = meshRef.current.geometry;
+      const posAttr = geo.attributes.position as THREE.BufferAttribute;
+      const arr = posAttr.array as Float32Array;
+      const time = clock.getElapsedTime();
+      for (let i = 0; i < posAttr.count; i++) {
+        const x = arr[i * 3];
+        const distFromCenter = Math.abs(x);
+        arr[i * 3 + 1] = Math.sin(time * 1.5 + distFromCenter * 0.8) * distFromCenter * 0.1;
+      }
+      posAttr.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[5, 2.5, 8, 4]} />
+        <meshStandardMaterial color="#2C3E50" side={THREE.DoubleSide} roughness={0.6} metalness={0.2} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Bioluminescent Dots (abyss) ────────────────────────────────
+function BioluminescentDots({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 6 : 14;
+  const groupRef = useRef<THREE.Group>(null!);
+  const GLOW_COLORS = ["#1a1aff", "#8a2be2", "#00ced1", "#4169e1", "#9370db", "#00bfff"];
+
+  const dots = useMemo(() => {
+    const rng = seededRandom(888);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 60,
+      y: -10 - rng() * 6,
+      z: (rng() - 0.5) * 60,
+      color: GLOW_COLORS[Math.floor(rng() * GLOW_COLORS.length)],
+      phase: rng() * Math.PI * 2,
+      speed: 0.5 + rng() * 1.5,
+    }));
+  }, [count]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const d = dots[i];
+      const intensity = 0.5 + Math.sin(t * d.speed + d.phase) * 0.5;
+      const mesh = children[i] as THREE.Mesh;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = intensity;
+      mesh.scale.setScalar(0.8 + intensity * 0.4);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {dots.map((d, i) => (
+        <mesh key={i} position={[d.x, d.y, d.z]}>
+          <sphereGeometry args={[0.06, 4, 4]} />
+          <meshStandardMaterial color={d.color} emissive={d.color} emissiveIntensity={0.8} transparent opacity={0.9} />
+        </mesh>
       ))}
     </group>
   );
@@ -662,12 +1117,10 @@ function KelpForest({ position, isMobile }: { position: [number, number, number]
 function AbyssZoneDarkness({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      {/* Dark circle below */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.8, 0]}>
         <circleGeometry args={[12, 32]} />
         <meshBasicMaterial color="#020408" transparent opacity={0.7} depthWrite={false} />
       </mesh>
-      {/* Glowing ground spots */}
       {[
         { x: -3, z: 2, color: "#1E0A4E" },
         { x: 4, z: -1, color: "#0A1E4E" },
@@ -675,11 +1128,7 @@ function AbyssZoneDarkness({ position }: { position: [number, number, number] })
       ].map((spot, i) => (
         <mesh key={i} position={[spot.x, -0.4, spot.z]}>
           <sphereGeometry args={[0.25, 8, 6]} />
-          <meshStandardMaterial
-            color={spot.color}
-            emissive={spot.color}
-            emissiveIntensity={1.2}
-          />
+          <meshStandardMaterial color={spot.color} emissive={spot.color} emissiveIntensity={1.2} />
         </mesh>
       ))}
     </group>
@@ -720,38 +1169,22 @@ function SubmarineLandmark({ position }: { position: [number, number, number] })
 function AbyssCrack({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      {/* Main crack — longer */}
       <mesh position={[3, -0.5, 0]} rotation={[0, 0.6, 0]}>
         <boxGeometry args={[18, 0.5, 1.5]} />
         <meshStandardMaterial color="#020408" roughness={1} />
       </mesh>
-      {/* Branch crack */}
       <mesh position={[5, -0.3, 1]} rotation={[0, 0.9, 0]}>
         <boxGeometry args={[10, 0.4, 1.0]} />
         <meshStandardMaterial color="#030610" roughness={1} />
       </mesh>
-      {/* Lava glow from below */}
       <mesh position={[3, -0.7, 0]} rotation={[0, 0.6, 0]}>
         <boxGeometry args={[16, 0.2, 0.8]} />
-        <meshStandardMaterial
-          color="#1A0500"
-          emissive="#FF4500"
-          emissiveIntensity={0.4}
-          transparent
-          opacity={0.6}
-        />
+        <meshStandardMaterial color="#1A0500" emissive="#FF4500" emissiveIntensity={0.4} transparent opacity={0.6} />
       </mesh>
       <mesh position={[5, -0.5, 1]} rotation={[0, 0.9, 0]}>
         <boxGeometry args={[8, 0.15, 0.5]} />
-        <meshStandardMaterial
-          color="#1A0500"
-          emissive="#FF6B00"
-          emissiveIntensity={0.3}
-          transparent
-          opacity={0.5}
-        />
+        <meshStandardMaterial color="#1A0500" emissive="#FF6B00" emissiveIntensity={0.3} transparent opacity={0.5} />
       </mesh>
-      {/* Lava point light */}
       <pointLight position={[4, -0.8, 0.5]} intensity={0.4} color="#FF4500" distance={8} decay={2} />
     </group>
   );
@@ -762,32 +1195,17 @@ function TreasureChest({ position }: { position: [number, number, number] }) {
     <group position={position}>
       <mesh position={[3, 0.5, 2]}>
         <boxGeometry args={[1.2, 0.8, 0.8]} />
-        <meshStandardMaterial
-          color="#B8860B"
-          emissive="#FFD700"
-          emissiveIntensity={1.0}
-          metalness={0.7}
-          roughness={0.3}
-        />
+        <meshStandardMaterial color="#B8860B" emissive="#FFD700" emissiveIntensity={1.0} metalness={0.7} roughness={0.3} />
       </mesh>
-      {/* Lid */}
       <mesh position={[3, 1.1, 2]}>
         <boxGeometry args={[1.3, 0.3, 0.9]} />
-        <meshStandardMaterial
-          color="#996515"
-          emissive="#FFD700"
-          emissiveIntensity={0.7}
-          metalness={0.6}
-          roughness={0.4}
-        />
+        <meshStandardMaterial color="#996515" emissive="#FFD700" emissiveIntensity={0.7} metalness={0.6} roughness={0.4} />
       </mesh>
-      {/* Gold glow light */}
       <pointLight position={[3, 1.5, 2]} intensity={0.6} color="#FFD700" distance={6} decay={2} />
     </group>
   );
 }
 
-// ─── Floating Gold Particles around Treasure ────────────────────
 function TreasureParticles({ position }: { position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null!);
   const particles = useMemo(() =>
@@ -818,11 +1236,7 @@ function TreasureParticles({ position }: { position: [number, number, number] })
       {particles.map((_, i) => (
         <mesh key={i}>
           <sphereGeometry args={[0.04, 4, 4]} />
-          <meshStandardMaterial
-            color="#FFD700"
-            emissive="#FFD700"
-            emissiveIntensity={1.5}
-          />
+          <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={1.5} />
         </mesh>
       ))}
     </group>
@@ -843,35 +1257,56 @@ function UnderwaterScene({
 }) {
   const bubbleCount = isMobile ? 30 : 60;
   const dustCount = isMobile ? 20 : 50;
-  const showJellyfish = !isMobile;
+  const showJellyfish = true; // now shown on both
   const showSeaFans = !isMobile;
+  const backgroundFishCount = isMobile ? 10 : 30;
 
   return (
     <>
+      {/* Background gradient */}
+      <OceanBackground />
+
       {/* Depth fog */}
       <fog attach="fog" args={["#061a2e", 15, 80]} />
 
-      {/* Lighting — brighter shallow, dimmer deep */}
+      {/* Lighting */}
       <ambientLight intensity={0.25} color="#4A90B8" />
       <directionalLight position={[5, 35, -10]} intensity={0.7} color="#7EC8E3" />
       <directionalLight position={[-15, 20, 10]} intensity={0.25} color="#2A6090" />
-      {/* Faint bottom light for abyss glow */}
       <pointLight position={[0, -14, 15]} intensity={0.3} color="#06B6D4" distance={30} decay={2} />
 
       {/* Depth layer planes */}
       <DepthLayers />
 
-      {/* Underwater dust particles */}
+      {/* Underwater dust */}
       <UnderwaterDust count={dustCount} />
 
-      {/* Sea floor */}
-      <SeaFloor />
+      {/* Sea floor with details */}
+      <SeaFloor isMobile={isMobile} />
 
       {/* Underwater cliffs */}
       <UnderwaterCliffs />
 
-      {/* Light rays from above (shallow zone only) */}
+      {/* Light rays */}
       <LightRays />
+
+      {/* Seagrass meadows */}
+      <SeagrassMeadow position={[-18, -16.5, -10]} seed={101} />
+      <SeagrassMeadow position={[12, -16.5, -18]} seed={202} />
+      <SeagrassMeadow position={[-28, -16.5, 8]} seed={303} />
+      {!isMobile && <SeagrassMeadow position={[25, -16.5, -8]} seed={404} />}
+
+      {/* Fan corals scattered */}
+      <FanCorals isMobile={isMobile} />
+
+      {/* Tube sponges */}
+      <TubeSponges isMobile={isMobile} />
+
+      {/* Sea anemones scattered */}
+      <SeaAnemonesScattered isMobile={isMobile} />
+
+      {/* Bioluminescent dots in abyss */}
+      <BioluminescentDots isMobile={isMobile} />
 
       {/* Coral platforms + markers + landmarks */}
       {UNDERWATER_CITIES.map((city, i) => {
@@ -881,13 +1316,7 @@ function UnderwaterScene({
         return (
           <React.Fragment key={city.id}>
             <CoralPlatform position={pos} index={i} isMobile={isMobile} />
-            <CityMarker
-              city={city}
-              lang={lang}
-              unlocked={unlocked}
-              onSelect={onSelectCity}
-              position={pos}
-            />
+            <CityMarker city={city} lang={lang} unlocked={unlocked} onSelect={onSelectCity} position={pos} />
 
             {/* Anemone clusters on all platforms */}
             <AnemoneCluster position={pos} index={i} />
@@ -922,23 +1351,38 @@ function UnderwaterScene({
       {/* Bubbles */}
       <Bubbles count={bubbleCount} />
 
-      {/* Fish schools — varied sizes */}
-      <FishSchool anchor={[-12, -3, -8]} color="#C0C0C0" fishCount={isMobile ? 6 : 12} />
+      {/* Background ambient fish */}
+      <BackgroundFish count={backgroundFishCount} />
+
+      {/* Fish schools — larger groups with shimmer */}
+      <FishSchool anchor={[-12, -3, -8]} color="#C0C0C0" fishCount={isMobile ? 8 : 16} />
       {!isMobile && (
         <>
-          <FishSchool anchor={[18, -7, 8]} color="#3B82F6" fishCount={8} />
-          <FishSchool anchor={[-5, -10, 22]} color="#F97316" fishCount={6} />
+          <FishSchool anchor={[18, -7, 8]} color="#3B82F6" fishCount={12} />
+          <FishSchool anchor={[-5, -10, 22]} color="#F97316" fishCount={10} />
+          <FishSchool anchor={[0, -4, -20]} color="#2DD4BF" fishCount={8} />
         </>
       )}
 
-      {/* Jellyfish (desktop only) */}
+      {/* Jellyfish — improved with color variants */}
       {showJellyfish && (
         <>
-          <Jellyfish startPos={[-18, -10, 5]} color="#E879F9" />
-          <Jellyfish startPos={[12, -6, -12]} color="#67E8F9" />
-          <Jellyfish startPos={[5, -12, 25]} color="#A78BFA" />
+          <Jellyfish startPos={[-18, -10, 5]} color="#FF69B4" />
+          <Jellyfish startPos={[12, -6, -12]} color="#4169E1" />
+          <Jellyfish startPos={[5, -12, 25]} color="#9B30FF" />
         </>
       )}
+
+      {/* Sea turtles (desktop only) */}
+      {!isMobile && (
+        <>
+          <SeaTurtle pathSeed={1} />
+          <SeaTurtle pathSeed={2} />
+        </>
+      )}
+
+      {/* Manta ray (desktop only) */}
+      {!isMobile && <MantaRay />}
 
       {/* Camera controls */}
       <OrbitControls
@@ -966,7 +1410,7 @@ export function UnderwaterMap({ onSelectCity }: { onSelectCity: (city: City) => 
         dpr={dpr}
         camera={{ position: [0, 20, 55], fov: 50 }}
         style={{
-          background: "linear-gradient(180deg, #1A5276 0%, #0E3D5C 30%, #0A2A4A 60%, #061220 100%)",
+          background: "linear-gradient(180deg, #1a6b8a 0%, #0d4a6b 40%, #030d18 100%)",
         }}
       >
         <PerformanceMonitor
