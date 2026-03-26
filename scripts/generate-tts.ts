@@ -68,7 +68,7 @@ async function main() {
 
   // Find which word audio files are MISSING
   const newTopicIds = topics
-    .filter((t) => t.id.startsWith("ocean-") || t.id.startsWith("air-") || t.id.startsWith("underwater-"))
+    .filter((t) => t.id.startsWith("ocean-") || t.id.startsWith("air-") || t.id.startsWith("underwater-") || ["botanical-garden", "central-park", "university", "art-museum", "history-museum", "legendary-places"].includes(t.id))
     .map((t) => t.id);
 
   const newTopics = topics.filter((t) => newTopicIds.includes(t.id));
