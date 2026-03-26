@@ -1709,8 +1709,8 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
   const landCities = useMemo(() => CITIES.filter((c) => landTopicIds.includes(c.topicId)), []);
 
   const unlockedIds = useMemo(
-    () => new Set(landCities.filter((c) => totalPoints >= c.requiredXP).map((c) => c.id)),
-    [totalPoints, landCities]
+    () => new Set(landCities.map((c) => c.id)), // TODO: restore unlock: .filter((c) => totalPoints >= c.requiredXP)
+    [landCities]
   );
 
   const nextCityId = useMemo(() => {
