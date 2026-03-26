@@ -79,15 +79,253 @@ function DeepWater() {
   );
 }
 
-// ─── Dock / Pier at Harbor Bay ──────────────────────────────────
+// ─── Palm Tree (improved) ───────────────────────────────────────
+function PalmTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
+  return (
+    <group position={position} scale={scale}>
+      {/* Trunk — slightly curved look with two segments */}
+      <mesh position={[0, 0.6, 0]} rotation={[0, 0, 0.05]}>
+        <cylinderGeometry args={[0.1, 0.16, 1.2, 6]} />
+        <meshStandardMaterial color="#7a5a2a" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.04, 1.6, 0]} rotation={[0, 0, -0.08]}>
+        <cylinderGeometry args={[0.06, 0.1, 1.2, 6]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.9} />
+      </mesh>
+      {/* Leaf crown */}
+      <mesh position={[0, 2.4, 0]}>
+        <sphereGeometry args={[0.6, 6, 4]} />
+        <meshStandardMaterial color="#228B22" roughness={0.8} />
+      </mesh>
+      {/* Drooping fronds */}
+      <mesh position={[0.5, 2.1, 0.3]} rotation={[0.4, 0, 0.6]}>
+        <coneGeometry args={[0.22, 1.0, 4]} />
+        <meshStandardMaterial color="#2d9e2d" roughness={0.8} />
+      </mesh>
+      <mesh position={[-0.45, 2.05, -0.25]} rotation={[-0.3, 0, -0.5]}>
+        <coneGeometry args={[0.2, 0.9, 4]} />
+        <meshStandardMaterial color="#1e8c1e" roughness={0.8} />
+      </mesh>
+      <mesh position={[-0.1, 2.15, 0.5]} rotation={[0.6, 0.3, 0.1]}>
+        <coneGeometry args={[0.18, 0.85, 4]} />
+        <meshStandardMaterial color="#26a826" roughness={0.8} />
+      </mesh>
+      <mesh position={[0.3, 2.1, -0.4]} rotation={[-0.5, 0, 0.4]}>
+        <coneGeometry args={[0.2, 0.95, 4]} />
+        <meshStandardMaterial color="#1f8f1f" roughness={0.8} />
+      </mesh>
+      {/* Coconuts */}
+      <mesh position={[0.1, 2.0, 0.12]}>
+        <sphereGeometry args={[0.08, 5, 4]} />
+        <meshStandardMaterial color="#6a4a20" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.08, 2.0, -0.1]}>
+        <sphereGeometry args={[0.07, 5, 4]} />
+        <meshStandardMaterial color="#5a3a18" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Rock (improved — irregular) ────────────────────────────────
+function Rock({ position, scale = 1, color = "#4a4a50" }: { position: [number, number, number]; scale?: number; color?: string }) {
+  const seed = position[0] * 13 + position[2] * 7;
+  return (
+    <group position={position} scale={scale} rotation={[(seed % 3) * 0.2, (seed % 5) * 0.7, (seed % 4) * 0.15]}>
+      <mesh>
+        <dodecahedronGeometry args={[0.3, 0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+      <mesh position={[0.15, -0.05, 0.1]} scale={[0.6, 0.5, 0.7]}>
+        <dodecahedronGeometry args={[0.25, 0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Fishing Hut ────────────────────────────────────────────────
+function FishingHut({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Walls */}
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.8, 0.8, 0.7]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.9} />
+      </mesh>
+      {/* Roof */}
+      <mesh position={[0, 0.95, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <coneGeometry args={[0.7, 0.5, 4]} />
+        <meshStandardMaterial color="#5a3a10" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Lighthouse ─────────────────────────────────────────────────
+function Lighthouse({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Tower base — white */}
+      <mesh position={[0, 1.2, 0]}>
+        <cylinderGeometry args={[0.3, 0.5, 2.4, 8]} />
+        <meshStandardMaterial color="#f0ece0" roughness={0.7} />
+      </mesh>
+      {/* Red stripe */}
+      <mesh position={[0, 1.6, 0]}>
+        <cylinderGeometry args={[0.35, 0.35, 0.5, 8]} />
+        <meshStandardMaterial color="#cc3333" roughness={0.7} />
+      </mesh>
+      {/* Lamp housing */}
+      <mesh position={[0, 2.55, 0]}>
+        <cylinderGeometry args={[0.35, 0.3, 0.3, 8]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.6} />
+      </mesh>
+      {/* Lamp light */}
+      <mesh position={[0, 2.7, 0]}>
+        <sphereGeometry args={[0.22, 8, 6]} />
+        <meshStandardMaterial color="#ffee88" emissive="#ffdd44" emissiveIntensity={0.8} roughness={0.3} />
+      </mesh>
+      {/* Railing */}
+      <mesh position={[0, 2.4, 0]}>
+        <torusGeometry args={[0.4, 0.03, 4, 12]} />
+        <meshStandardMaterial color="#333333" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Pirate Flag ────────────────────────────────────────────────
+function PirateFlag({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Flagpole */}
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 3, 4]} />
+        <meshStandardMaterial color="#3a3a3a" roughness={0.9} />
+      </mesh>
+      {/* Flag */}
+      <mesh position={[0.4, 2.7, 0]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[0.8, 0.5]} />
+        <meshStandardMaterial color="#111111" roughness={0.8} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Skull on flag */}
+      <mesh position={[0.4, 2.72, 0.01]}>
+        <sphereGeometry args={[0.1, 6, 4]} />
+        <meshStandardMaterial color="#cccccc" roughness={0.7} />
+      </mesh>
+      {/* Crossbones */}
+      <mesh position={[0.4, 2.55, 0.01]} rotation={[0, 0, 0.5]}>
+        <boxGeometry args={[0.3, 0.03, 0.03]} />
+        <meshStandardMaterial color="#cccccc" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.4, 2.55, 0.01]} rotation={[0, 0, -0.5]}>
+        <boxGeometry args={[0.3, 0.03, 0.03]} />
+        <meshStandardMaterial color="#cccccc" roughness={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Lightning Rod ──────────────────────────────────────────────
+function LightningRod({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.2, 0]}>
+        <cylinderGeometry args={[0.03, 0.06, 2.4, 4]} />
+        <meshStandardMaterial color="#555555" metalness={0.8} roughness={0.3} />
+      </mesh>
+      {/* Tip */}
+      <mesh position={[0, 2.5, 0]}>
+        <coneGeometry args={[0.05, 0.2, 4]} />
+        <meshStandardMaterial color="#aaaaaa" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Grounding wires */}
+      <mesh position={[0.08, 0.5, 0]} rotation={[0, 0, 0.1]}>
+        <cylinderGeometry args={[0.01, 0.01, 1.0, 3]} />
+        <meshStandardMaterial color="#666666" roughness={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Cargo Crates ───────────────────────────────────────────────
+function CargoCrates({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[0.5, 0.5, 0.5]} />
+        <meshStandardMaterial color="#c44420" roughness={0.8} />
+      </mesh>
+      <mesh position={[0.55, 0.25, 0.1]}>
+        <boxGeometry args={[0.45, 0.45, 0.45]} />
+        <meshStandardMaterial color="#2266aa" roughness={0.8} />
+      </mesh>
+      <mesh position={[0.2, 0.25, 0.55]}>
+        <boxGeometry args={[0.4, 0.4, 0.4]} />
+        <meshStandardMaterial color="#22aa44" roughness={0.8} />
+      </mesh>
+      {/* Stacked on top */}
+      <mesh position={[0.25, 0.7, 0.1]}>
+        <boxGeometry args={[0.42, 0.4, 0.42]} />
+        <meshStandardMaterial color="#ddaa22" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Cruise Dock / Pier ─────────────────────────────────────────
+function CruiseDock({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Long pier */}
+      <mesh position={[3, 0.3, 0]}>
+        <boxGeometry args={[6, 0.15, 1.8]} />
+        <meshStandardMaterial color="#9a7a3a" roughness={0.9} />
+      </mesh>
+      {/* Support posts */}
+      {[1, 2.5, 4, 5.5].map((x, i) => (
+        <mesh key={`cruisepost-${i}`} position={[x, -0.1, 0]}>
+          <cylinderGeometry args={[0.12, 0.12, 1, 6]} />
+          <meshStandardMaterial color="#6a4a10" roughness={0.95} />
+        </mesh>
+      ))}
+      {/* Bollards */}
+      {[1.5, 4.5].map((x, i) => (
+        <mesh key={`bollard-${i}`} position={[x, 0.5, 0.7]}>
+          <cylinderGeometry args={[0.08, 0.1, 0.25, 6]} />
+          <meshStandardMaterial color="#444444" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Railing */}
+      <mesh position={[3, 0.55, 0.85]}>
+        <boxGeometry args={[5.5, 0.06, 0.06]} />
+        <meshStandardMaterial color="#5a4a30" roughness={0.9} />
+      </mesh>
+      <mesh position={[3, 0.55, -0.85]}>
+        <boxGeometry args={[5.5, 0.06, 0.06]} />
+        <meshStandardMaterial color="#5a4a30" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Dock / Pier at Harbor Bay (improved) ────────────────────────
 function HarborDock({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
       {/* Main pier plank */}
-      <mesh position={[4.5, 0.35, 0]} rotation={[0, 0, 0]}>
+      <mesh position={[4.5, 0.35, 0]}>
         <boxGeometry args={[5, 0.15, 1.2]} />
         <meshStandardMaterial color="#8B6914" roughness={0.9} />
       </mesh>
+      {/* Cross planks */}
+      {[2.5, 3.5, 4.5, 5.5, 6.5].map((x, i) => (
+        <mesh key={`plank-${i}`} position={[x, 0.36, 0]}>
+          <boxGeometry args={[0.12, 0.02, 1.15]} />
+          <meshStandardMaterial color="#7a5910" roughness={0.95} />
+        </mesh>
+      ))}
       {/* Support posts */}
       {[2.5, 4.5, 6.5].map((x, i) => (
         <mesh key={`post-${i}`} position={[x, -0.1, 0]}>
@@ -95,111 +333,177 @@ function HarborDock({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#6a4a10" roughness={0.95} />
         </mesh>
       ))}
-    </group>
-  );
-}
-
-// ─── Palm Tree ──────────────────────────────────────────────────
-function PalmTree({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
-  return (
-    <group position={position} scale={scale}>
-      {/* Trunk */}
-      <mesh position={[0, 1.2, 0]}>
-        <cylinderGeometry args={[0.08, 0.14, 2.4, 6]} />
-        <meshStandardMaterial color="#8B6914" roughness={0.9} />
+      {/* Bollards */}
+      <mesh position={[3.0, 0.55, 0.5]}>
+        <cylinderGeometry args={[0.07, 0.09, 0.25, 6]} />
+        <meshStandardMaterial color="#555555" roughness={0.7} />
       </mesh>
-      {/* Leaves */}
-      <mesh position={[0, 2.6, 0]}>
-        <sphereGeometry args={[0.7, 6, 4]} />
-        <meshStandardMaterial color="#228B22" roughness={0.8} />
+      <mesh position={[6.0, 0.55, -0.5]}>
+        <cylinderGeometry args={[0.07, 0.09, 0.25, 6]} />
+        <meshStandardMaterial color="#555555" roughness={0.7} />
       </mesh>
-      <mesh position={[0.4, 2.4, 0.3]} rotation={[0.3, 0, 0.5]}>
-        <coneGeometry args={[0.3, 1.0, 4]} />
-        <meshStandardMaterial color="#2d9e2d" roughness={0.8} />
+      {/* Lamp post */}
+      <mesh position={[5, 0.8, 0.5]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.9, 4]} />
+        <meshStandardMaterial color="#444444" roughness={0.7} />
       </mesh>
-      <mesh position={[-0.35, 2.3, -0.25]} rotation={[-0.2, 0, -0.4]}>
-        <coneGeometry args={[0.28, 0.9, 4]} />
-        <meshStandardMaterial color="#1e8c1e" roughness={0.8} />
+      <mesh position={[5, 1.3, 0.5]}>
+        <sphereGeometry args={[0.08, 6, 4]} />
+        <meshStandardMaterial color="#ffee88" emissive="#ffcc44" emissiveIntensity={0.4} roughness={0.3} />
       </mesh>
     </group>
   );
 }
 
-// ─── Rock ───────────────────────────────────────────────────────
-function Rock({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
-  return (
-    <mesh position={position} scale={scale} rotation={[Math.random() * 0.3, Math.random() * Math.PI, 0]}>
-      <dodecahedronGeometry args={[0.3, 0]} />
-      <meshStandardMaterial color="#4a4a50" roughness={0.95} />
-    </mesh>
-  );
-}
-
-// ─── Island cluster for each city ───────────────────────────────
+// ─── Island cluster for each city (3D landmass) ─────────────────
 function IslandCluster({ position, cityId }: { position: [number, number, number]; cityId: string }) {
   const s = ISLAND_SIZES[cityId] ?? 1;
-  const segments = IS_MOBILE ? 8 : 16;
+  const segments = IS_MOBILE ? 10 : 16;
   const isStorm = cityId === "storm-zone";
   const isSkull = cityId === "skull-cove";
+  const isHarbor = cityId === "harbor-bay";
+  const isFishing = cityId === "fish-dock";
+  const isLighthouse = cityId === "lighthouse-point";
+  const isSailing = cityId === "sailing-school";
+  const isCruise = cityId === "cruise-port";
+  const isShipping = cityId === "shipping-yard";
 
-  const sandColor = isStorm ? "#7a7068" : isSkull ? "#9a8a6a" : "#d4b87a";
-  const cliffColor = isStorm ? "#3a3530" : "#6e5535";
-
-  // Seed-based deterministic offsets for props
-  const seed = cityId.length + cityId.charCodeAt(0);
+  const cliffColor = isStorm ? "#3a3530" : isSkull ? "#4a3a2a" : "#5a4a3a";
+  const topColor = isStorm ? "#5a5550" : isSkull ? "#7a7050" : "#4a8a3a";
+  const sandColor = isStorm ? "#7a7068" : isSkull ? "#9a8a6a" : "#e8d5a3";
+  const cliffHeight = isStorm ? 2.0 : isHarbor ? 2.2 : isCruise ? 2.0 : 1.8;
 
   return (
     <group position={position}>
-      {/* Main island body — irregular cylinder */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[3.2 * s, 3.8 * s, 1.2, segments, 1]} />
+      {/* === Base cliff — tall, organic cylinder === */}
+      <mesh position={[0, -0.3, 0]}>
+        <cylinderGeometry args={[2.8 * s, 3.5 * s, cliffHeight, segments, 2]} />
         <meshStandardMaterial color={cliffColor} roughness={0.95} />
       </mesh>
-      {/* Sand top */}
-      <mesh position={[0, 0.55, 0]}>
-        <cylinderGeometry args={[3.3 * s, 3.0 * s, 0.3, segments, 1]} />
-        <meshStandardMaterial color={sandColor} roughness={0.9} />
-      </mesh>
-      {/* Beach ring glow */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.15, 0]}>
-        <ringGeometry args={[3.0 * s, 4.0 * s, segments]} />
-        <meshStandardMaterial color="#e8d5a8" transparent opacity={0.35} roughness={1} />
-      </mesh>
-      {/* Secondary smaller bump */}
-      <mesh position={[1.5 * s, 0.1, 1.2 * s]}>
-        <cylinderGeometry args={[1.2 * s, 1.5 * s, 0.8, segments > 8 ? 8 : 6]} />
+      {/* Cliff detail layer — slight offset for irregularity */}
+      <mesh position={[0.3 * s, -0.4, 0.2 * s]} rotation={[0, 0.5, 0]}>
+        <cylinderGeometry args={[2.5 * s, 3.0 * s, cliffHeight * 0.9, segments > 10 ? 10 : 8, 1]} />
         <meshStandardMaterial color={cliffColor} roughness={0.95} />
-      </mesh>
-      <mesh position={[1.5 * s, 0.5, 1.2 * s]}>
-        <cylinderGeometry args={[1.3 * s, 1.1 * s, 0.2, segments > 8 ? 8 : 6]} />
-        <meshStandardMaterial color={sandColor} roughness={0.9} />
       </mesh>
 
-      {/* Palm trees (skip on storm island) */}
-      {!isStorm && (
+      {/* === Top surface — green/sandy ground === */}
+      <mesh position={[0, cliffHeight * 0.35, 0]}>
+        <cylinderGeometry args={[3.0 * s, 2.8 * s, 0.4, segments, 1]} />
+        <meshStandardMaterial color={topColor} roughness={0.85} />
+      </mesh>
+      {/* Terrain bumps on top */}
+      <mesh position={[0.8 * s, cliffHeight * 0.4, -0.5 * s]}>
+        <sphereGeometry args={[0.8 * s, 6, 4]} />
+        <meshStandardMaterial color={topColor} roughness={0.85} />
+      </mesh>
+      <mesh position={[-0.6 * s, cliffHeight * 0.38, 0.7 * s]}>
+        <sphereGeometry args={[0.6 * s, 6, 4]} />
+        <meshStandardMaterial color={topColor} roughness={0.85} />
+      </mesh>
+
+      {/* === Beach ring at water level === */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+        <ringGeometry args={[3.0 * s, 3.8 * s, segments]} />
+        <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
+      </mesh>
+
+      {/* === Secondary smaller bump / attached landmass === */}
+      <mesh position={[1.8 * s, -0.2, 1.5 * s]}>
+        <cylinderGeometry args={[1.0 * s, 1.4 * s, cliffHeight * 0.6, segments > 10 ? 8 : 6]} />
+        <meshStandardMaterial color={cliffColor} roughness={0.95} />
+      </mesh>
+      <mesh position={[1.8 * s, cliffHeight * 0.2, 1.5 * s]}>
+        <cylinderGeometry args={[1.1 * s, 0.9 * s, 0.25, segments > 10 ? 8 : 6]} />
+        <meshStandardMaterial color={topColor} roughness={0.85} />
+      </mesh>
+
+      {/* === Vegetation per island type === */}
+
+      {/* Harbor / Sailing: 3-5 palm trees */}
+      {(isHarbor || isSailing) && (
         <>
-          <PalmTree position={[-1.5 * s, 0.6, -0.8 * s]} scale={s * 0.8} />
-          <PalmTree position={[0.8 * s, 0.6, -1.6 * s]} scale={s * 0.65} />
-          {s > 0.9 && <PalmTree position={[2.2 * s, 0.5, 0.5 * s]} scale={s * 0.55} />}
+          <PalmTree position={[-1.5 * s, cliffHeight * 0.35, -0.8 * s]} scale={s * 0.85} />
+          <PalmTree position={[0.8 * s, cliffHeight * 0.35, -1.6 * s]} scale={s * 0.7} />
+          <PalmTree position={[-0.3 * s, cliffHeight * 0.35, 1.0 * s]} scale={s * 0.6} />
+          {s > 0.85 && <PalmTree position={[2.0 * s, cliffHeight * 0.25, 0.3 * s]} scale={s * 0.55} />}
+          {isHarbor && <PalmTree position={[-2.0 * s, cliffHeight * 0.3, 0.5 * s]} scale={s * 0.75} />}
         </>
       )}
 
-      {/* Rocks around edges */}
-      <Rock position={[-3.0 * s, 0.1, 0.5 * s]} scale={s * 1.2} />
-      <Rock position={[2.5 * s, 0.0, -2.0 * s]} scale={s * 0.9} />
-      <Rock position={[-1.0 * s, 0.0, 2.8 * s]} scale={s * 1.0} />
-      {!IS_MOBILE && (
+      {/* Fishing: fewer palms + fishing hut */}
+      {isFishing && (
         <>
-          <Rock position={[3.2 * s, -0.1, 1.5 * s]} scale={s * 0.7} />
-          <Rock position={[-2.5 * s, -0.1, -2.2 * s]} scale={s * 0.8} />
+          <PalmTree position={[-1.2 * s, cliffHeight * 0.35, -0.5 * s]} scale={s * 0.7} />
+          <PalmTree position={[0.5 * s, cliffHeight * 0.35, -1.0 * s]} scale={s * 0.55} />
+          <FishingHut position={[0.8 * s, cliffHeight * 0.35, 0.6 * s]} />
         </>
       )}
 
-      {/* Storm island: extra dark rocks */}
+      {/* Lighthouse: lighthouse tower */}
+      {isLighthouse && (
+        <>
+          <Lighthouse position={[0, cliffHeight * 0.35, 0]} />
+          <PalmTree position={[-1.5 * s, cliffHeight * 0.35, 0.5 * s]} scale={s * 0.6} />
+        </>
+      )}
+
+      {/* Cruise: palms + cruise dock */}
+      {isCruise && (
+        <>
+          <PalmTree position={[-1.5 * s, cliffHeight * 0.35, -0.8 * s]} scale={s * 0.75} />
+          <PalmTree position={[0.5 * s, cliffHeight * 0.35, -1.5 * s]} scale={s * 0.6} />
+          <PalmTree position={[-0.8 * s, cliffHeight * 0.35, 1.0 * s]} scale={s * 0.65} />
+          <CruiseDock position={[2.0 * s, 0, 0]} />
+        </>
+      )}
+
+      {/* Pirate: flag pole */}
+      {isSkull && (
+        <>
+          <PirateFlag position={[0, cliffHeight * 0.35, 0]} />
+          <PalmTree position={[-1.5 * s, cliffHeight * 0.35, -0.5 * s]} scale={s * 0.65} />
+          <PalmTree position={[1.0 * s, cliffHeight * 0.35, -1.2 * s]} scale={s * 0.55} />
+        </>
+      )}
+
+      {/* Storm: dark rocks, lightning rod, no vegetation */}
       {isStorm && (
         <>
-          <Rock position={[0, 0.7, 0]} scale={s * 1.8} />
-          <Rock position={[-1.5 * s, 0.5, 1.0 * s]} scale={s * 1.4} />
+          <LightningRod position={[0.5 * s, cliffHeight * 0.35, -0.3 * s]} />
+          <Rock position={[0, cliffHeight * 0.5, 0]} scale={s * 1.8} color="#3a3a40" />
+          <Rock position={[-1.5 * s, cliffHeight * 0.35, 1.0 * s]} scale={s * 1.4} color="#3a3a40" />
+          <Rock position={[1.2 * s, cliffHeight * 0.35, 0.8 * s]} scale={s * 1.1} color="#333338" />
+        </>
+      )}
+
+      {/* Shipping: cargo crates */}
+      {isShipping && (
+        <>
+          <CargoCrates position={[-0.8 * s, cliffHeight * 0.35, 0.3 * s]} />
+          <CargoCrates position={[1.0 * s, cliffHeight * 0.35, -0.5 * s]} />
+          <PalmTree position={[-1.8 * s, cliffHeight * 0.35, -0.8 * s]} scale={s * 0.6} />
+        </>
+      )}
+
+      {/* General islands without special type — default palms */}
+      {!isHarbor && !isSailing && !isFishing && !isLighthouse && !isCruise && !isSkull && !isStorm && !isShipping && (
+        <>
+          <PalmTree position={[-1.5 * s, cliffHeight * 0.35, -0.8 * s]} scale={s * 0.8} />
+          <PalmTree position={[0.8 * s, cliffHeight * 0.35, -1.6 * s]} scale={s * 0.65} />
+        </>
+      )}
+
+      {/* === Rocks around island base (partially in water) === */}
+      <Rock position={[-3.2 * s, -0.1, 0.5 * s]} scale={s * 1.3} />
+      <Rock position={[2.8 * s, -0.15, -2.2 * s]} scale={s * 1.0} />
+      <Rock position={[-1.2 * s, -0.1, 3.0 * s]} scale={s * 1.1} />
+      <Rock position={[3.0 * s, -0.2, 1.8 * s]} scale={s * 0.9} />
+      {!IS_MOBILE && (
+        <>
+          <Rock position={[3.5 * s, -0.2, 1.0 * s]} scale={s * 0.7} />
+          <Rock position={[-2.8 * s, -0.15, -2.5 * s]} scale={s * 0.85} />
+          <Rock position={[-0.5 * s, -0.2, -3.2 * s]} scale={s * 0.75} />
+          <Rock position={[1.5 * s, -0.2, 2.8 * s]} scale={s * 0.65} />
         </>
       )}
 
@@ -207,7 +511,7 @@ function IslandCluster({ position, cityId }: { position: [number, number, number
       <IslandFoamRing position={[0, 0.04, 0]} radius={3.5 * s * 1.2} />
 
       {/* Dock at Harbor Bay */}
-      {cityId === "harbor-bay" && <HarborDock position={[2.5 * s, 0, 0]} />}
+      {isHarbor && <HarborDock position={[2.5 * s, 0, 0]} />}
     </group>
   );
 }
@@ -265,8 +569,8 @@ function SeaRoutes({ unlockedIds }: { unlockedIds: Set<string> }) {
   );
 }
 
-// ─── Boat ───────────────────────────────────────────────────────
-function Boat({ curve, speed, offset }: { curve: THREE.CatmullRomCurve3; speed: number; offset: number }) {
+// ─── Sailing Boat (improved — hull + mast + triangular sail) ────
+function SailingBoat({ curve, speed, offset }: { curve: THREE.CatmullRomCurve3; speed: number; offset: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
@@ -276,34 +580,239 @@ function Boat({ curve, speed, offset }: { curve: THREE.CatmullRomCurve3; speed: 
     const tangent = curve.getTangentAt(t);
     groupRef.current.position.copy(point);
     groupRef.current.lookAt(point.x + tangent.x, point.y, point.z + tangent.z);
-    // Gentle bob
     groupRef.current.position.y += Math.sin(clock.getElapsedTime() * 2 + offset * 10) * 0.1;
   });
 
   return (
     <group ref={groupRef}>
-      {/* Hull */}
-      <mesh position={[0, 0.15, 0]}>
-        <boxGeometry args={[0.5, 0.3, 1.4]} />
+      {/* Hull — elongated tapered */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.45, 0.25, 1.6]} />
         <meshStandardMaterial color="#8B4513" roughness={0.8} />
       </mesh>
-      {/* Sail */}
-      <mesh position={[0, 0.8, -0.1]} rotation={[0, 0, 0]}>
-        <coneGeometry args={[0.4, 1.0, 3]} />
-        <meshStandardMaterial color="#f5f0e0" roughness={0.6} side={THREE.DoubleSide} />
+      {/* Hull bow taper */}
+      <mesh position={[0, 0.1, 0.9]} rotation={[0.3, 0, 0]}>
+        <boxGeometry args={[0.3, 0.15, 0.4]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
       </mesh>
       {/* Mast */}
-      <mesh position={[0, 0.6, -0.1]}>
-        <cylinderGeometry args={[0.03, 0.03, 1.2, 4]} />
+      <mesh position={[0, 0.7, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 1.2, 4]} />
         <meshStandardMaterial color="#5a4020" roughness={0.9} />
+      </mesh>
+      {/* Triangular sail */}
+      <mesh position={[0.01, 0.75, 0.15]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.7, 0.9]} />
+        <meshStandardMaterial color="#f5f0e0" roughness={0.6} side={THREE.DoubleSide} transparent opacity={0.9} />
       </mesh>
     </group>
   );
 }
 
-// ─── Moving boats ───────────────────────────────────────────────
+// ─── Large Cruise Ship (near Cruise Terminal) ───────────────────
+function LargeCruiseShip({ position }: { position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 0.5) * 0.08;
+    groupRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.3) * 0.02;
+  });
+
+  return (
+    <group ref={groupRef} position={position} rotation={[0, -0.4, 0]}>
+      {/* Hull */}
+      <mesh position={[0, 0.2, 0]}>
+        <boxGeometry args={[2, 0.8, 4]} />
+        <meshStandardMaterial color="#f0f0f0" roughness={0.6} />
+      </mesh>
+      {/* Hull bottom */}
+      <mesh position={[0, -0.15, 0]}>
+        <boxGeometry args={[1.8, 0.3, 3.8]} />
+        <meshStandardMaterial color="#2a3a5a" roughness={0.7} />
+      </mesh>
+      {/* Superstructure deck 1 */}
+      <mesh position={[0, 0.8, -0.3]}>
+        <boxGeometry args={[1.5, 0.5, 2.5]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} />
+      </mesh>
+      {/* Superstructure deck 2 */}
+      <mesh position={[0, 1.2, -0.5]}>
+        <boxGeometry args={[1.2, 0.35, 1.8]} />
+        <meshStandardMaterial color="#f8f8f8" roughness={0.5} />
+      </mesh>
+      {/* Bridge */}
+      <mesh position={[0, 1.5, -0.6]}>
+        <boxGeometry args={[0.9, 0.25, 1.0]} />
+        <meshStandardMaterial color="#ddeeff" roughness={0.4} />
+      </mesh>
+      {/* Smokestack */}
+      <mesh position={[0, 1.6, 0.2]}>
+        <cylinderGeometry args={[0.2, 0.25, 0.8, 8]} />
+        <meshStandardMaterial color="#cc3333" roughness={0.6} />
+      </mesh>
+      {/* Smokestack top band */}
+      <mesh position={[0, 1.95, 0.2]}>
+        <cylinderGeometry args={[0.22, 0.2, 0.12, 8]} />
+        <meshStandardMaterial color="#222222" roughness={0.7} />
+      </mesh>
+      {/* Windows (stripes) */}
+      <mesh position={[1.01, 0.65, -0.3]}>
+        <planeGeometry args={[0.02, 2.4]} />
+        <meshStandardMaterial color="#aaddff" roughness={0.3} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[-1.01, 0.65, -0.3]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[0.02, 2.4]} />
+        <meshStandardMaterial color="#aaddff" roughness={0.3} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Pirate Ship (near Skull Cove) ──────────────────────────────
+function PirateShip({ position }: { position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 0.6 + 1) * 0.1;
+    groupRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.4 + 1) * 0.03;
+  });
+
+  return (
+    <group ref={groupRef} position={position} rotation={[0, 0.8, 0]}>
+      {/* Dark hull */}
+      <mesh position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.8, 0.4, 2.2]} />
+        <meshStandardMaterial color="#2a1a0a" roughness={0.9} />
+      </mesh>
+      {/* Hull bow */}
+      <mesh position={[0, 0.15, 1.2]} rotation={[0.25, 0, 0]}>
+        <boxGeometry args={[0.5, 0.25, 0.5]} />
+        <meshStandardMaterial color="#2a1a0a" roughness={0.9} />
+      </mesh>
+      {/* Stern */}
+      <mesh position={[0, 0.35, -1.1]}>
+        <boxGeometry args={[0.75, 0.6, 0.3]} />
+        <meshStandardMaterial color="#3a2a1a" roughness={0.9} />
+      </mesh>
+      {/* Front mast */}
+      <mesh position={[0, 0.9, 0.4]}>
+        <cylinderGeometry args={[0.03, 0.03, 1.5, 4]} />
+        <meshStandardMaterial color="#3a2a10" roughness={0.9} />
+      </mesh>
+      {/* Rear mast */}
+      <mesh position={[0, 1.1, -0.5]}>
+        <cylinderGeometry args={[0.035, 0.035, 1.9, 4]} />
+        <meshStandardMaterial color="#3a2a10" roughness={0.9} />
+      </mesh>
+      {/* Front black sail */}
+      <mesh position={[0.01, 1.1, 0.4]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.6, 0.8]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.8} side={THREE.DoubleSide} transparent opacity={0.9} />
+      </mesh>
+      {/* Rear black sail */}
+      <mesh position={[0.01, 1.3, -0.5]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.7, 1.0]} />
+        <meshStandardMaterial color="#111111" roughness={0.8} side={THREE.DoubleSide} transparent opacity={0.9} />
+      </mesh>
+      {/* Skull flag at top of rear mast */}
+      <mesh position={[0.2, 2.0, -0.5]}>
+        <planeGeometry args={[0.35, 0.25]} />
+        <meshStandardMaterial color="#111111" roughness={0.8} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.2, 2.02, -0.49]}>
+        <sphereGeometry args={[0.04, 4, 3]} />
+        <meshStandardMaterial color="#cccccc" roughness={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Fishing Boat (near Fish Dock) ──────────────────────────────
+function FishingBoatStatic({ position }: { position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 0.7 + 2) * 0.08;
+  });
+
+  return (
+    <group ref={groupRef} position={position} rotation={[0, 1.2, 0]}>
+      {/* Small hull */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.4, 0.2, 1.0]} />
+        <meshStandardMaterial color="#5a8aaa" roughness={0.8} />
+      </mesh>
+      {/* Cabin */}
+      <mesh position={[0, 0.3, -0.2]}>
+        <boxGeometry args={[0.3, 0.2, 0.3]} />
+        <meshStandardMaterial color="#f0e8d0" roughness={0.7} />
+      </mesh>
+      {/* Fishing rod */}
+      <mesh position={[0.1, 0.4, 0.4]} rotation={[0.6, 0, 0.2]}>
+        <cylinderGeometry args={[0.015, 0.01, 1.2, 3]} />
+        <meshStandardMaterial color="#5a4020" roughness={0.9} />
+      </mesh>
+      {/* Fishing line */}
+      <mesh position={[0.15, 0.15, 1.0]} rotation={[0.1, 0, 0]}>
+        <cylinderGeometry args={[0.005, 0.005, 0.8, 3]} />
+        <meshStandardMaterial color="#aaaaaa" roughness={0.5} transparent opacity={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Floating barrel/crate ──────────────────────────────────────
+function FloatingBarrel({ position }: { position: [number, number, number] }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    meshRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 1.2 + position[0] * 2) * 0.12;
+    meshRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.8 + position[2]) * 0.15;
+  });
+
+  return (
+    <mesh ref={meshRef} position={position} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.15, 0.15, 0.35, 8]} />
+      <meshStandardMaterial color="#7a5020" roughness={0.9} />
+    </mesh>
+  );
+}
+
+function FloatingCrate({ position }: { position: [number, number, number] }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    meshRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 1.0 + position[0] * 3) * 0.1;
+    meshRef.current.rotation.y = clock.getElapsedTime() * 0.15 + position[2];
+  });
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[0.25, 0.2, 0.25]} />
+      <meshStandardMaterial color="#8a6a30" roughness={0.9} />
+    </mesh>
+  );
+}
+
+// ─── Small rock outcrop with palm ───────────────────────────────
+function RockOutcrop({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <Rock position={[0, 0, 0]} scale={1.5} />
+      <Rock position={[0.4, 0.1, 0.3]} scale={1.0} />
+      <PalmTree position={[0.1, 0.3, 0]} scale={0.45} />
+    </group>
+  );
+}
+
+// ─── Moving boats (upgraded + more variety) ─────────────────────
 function MovingBoats() {
-  const boatCount = IS_MOBILE ? 1 : 3;
+  const boatCount = IS_MOBILE ? 2 : 5;
 
   const curves = useMemo(() => {
     const c1 = new THREE.CatmullRomCurve3([
@@ -329,14 +838,88 @@ function MovingBoats() {
       new THREE.Vector3(-20, 0.3, 8),
       new THREE.Vector3(-35, 0.3, 15),
     ], true);
-    return [c1, c2, c3];
+    const c4 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-30, 0.3, -20),
+      new THREE.Vector3(-5, 0.3, -25),
+      new THREE.Vector3(20, 0.3, -18),
+      new THREE.Vector3(35, 0.3, -8),
+      new THREE.Vector3(20, 0.3, 5),
+      new THREE.Vector3(-5, 0.3, -10),
+      new THREE.Vector3(-30, 0.3, -20),
+    ], true);
+    const c5 = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(5, 0.3, -5),
+      new THREE.Vector3(20, 0.3, 10),
+      new THREE.Vector3(35, 0.3, 25),
+      new THREE.Vector3(15, 0.3, 30),
+      new THREE.Vector3(0, 0.3, 15),
+      new THREE.Vector3(5, 0.3, -5),
+    ], true);
+    return [c1, c2, c3, c4, c5];
   }, []);
 
   return (
     <group>
       {curves.slice(0, boatCount).map((curve, i) => (
-        <Boat key={`boat-${i}`} curve={curve} speed={0.015 + i * 0.005} offset={i * 0.33} />
+        <SailingBoat key={`boat-${i}`} curve={curve} speed={0.012 + i * 0.004} offset={i * 0.2} />
       ))}
+    </group>
+  );
+}
+
+// ─── Static ships near islands ──────────────────────────────────
+function StaticShips() {
+  return (
+    <group>
+      {/* Large cruise ship near Cruise Terminal */}
+      <LargeCruiseShip position={[22, 0.3, 5]} />
+      {/* Pirate ship near Skull Cove */}
+      <PirateShip position={[-4, 0.3, 22]} />
+      {/* Fishing boat near Fish Dock */}
+      <FishingBoatStatic position={[8, 0.3, -12]} />
+      {/* Extra fishing boat near Harbor */}
+      {!IS_MOBILE && <FishingBoatStatic position={[-20, 0.3, 8]} />}
+    </group>
+  );
+}
+
+// ─── Floating debris (barrels, crates) ──────────────────────────
+function FloatingDebris() {
+  const barrelPositions: [number, number, number][] = [
+    [-18, 0.15, -5],
+    [12, 0.15, -20],
+    [28, 0.15, 18],
+    [-8, 0.15, 20],
+  ];
+  const cratePositions: [number, number, number][] = [
+    [-12, 0.1, 15],
+    [22, 0.1, -8],
+    [32, 0.1, 10],
+  ];
+  const count = IS_MOBILE ? 2 : barrelPositions.length;
+  const crateCount = IS_MOBILE ? 1 : cratePositions.length;
+
+  return (
+    <group>
+      {barrelPositions.slice(0, count).map((p, i) => (
+        <FloatingBarrel key={`barrel-${i}`} position={p} />
+      ))}
+      {cratePositions.slice(0, crateCount).map((p, i) => (
+        <FloatingCrate key={`crate-${i}`} position={p} />
+      ))}
+    </group>
+  );
+}
+
+// ─── Rock outcrops with palms ───────────────────────────────────
+function RockOutcrops() {
+  if (IS_MOBILE) return null;
+  return (
+    <group>
+      <RockOutcrop position={[-32, 0.1, -8]} />
+      <RockOutcrop position={[38, 0.1, -12]} />
+      <RockOutcrop position={[-10, 0.1, -22]} />
+      <RockOutcrop position={[8, 0.1, 32]} />
     </group>
   );
 }
@@ -780,6 +1363,9 @@ export function OceanMap({ onSelectCity }: { onSelectCity: (city: City) => void 
 
           {/* Ambient life */}
           <MovingBoats />
+          <StaticShips />
+          <FloatingDebris />
+          <RockOutcrops />
           <Whales />
           <Seagulls />
           <Buoys />
