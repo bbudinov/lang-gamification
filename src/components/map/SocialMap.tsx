@@ -253,6 +253,16 @@ function OfficeZone() {
           <meshStandardMaterial color="#2a4a6a" roughness={0.3} />
         </mesh>
       ))}
+      {/* Lit window glows on office tower */}
+      {[
+        [-1.2, 2.4], [0.8, 4.8], [-0.5, 7.2], [1.0, 3.6], [-1.0, 6.0], [0.3, 8.4],
+      ].map(([wx, wy], wi) => (
+        <mesh key={`owg${wi}`} position={[wx, wy, 2.02]}>
+          <planeGeometry args={[0.5, 0.6]} />
+          <meshStandardMaterial color="#ffdd88" emissive="#ffdd88" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+
       {/* Antenna on top */}
       <mesh position={[0, 11, 0]}>
         <cylinderGeometry args={[0.04, 0.04, 2, 4]} />
@@ -384,6 +394,17 @@ function HotelZone() {
         <cylinderGeometry args={[0.4, 0.4, 1, 8]} />
         <meshStandardMaterial color="#87CEEB" roughness={0.2} metalness={0.5} transparent opacity={0.6} />
       </mesh>
+      {/* Lit window glows on hotel */}
+      {[
+        [-1.2, 5.9], [0, 5.9], [1.2, 5.9],
+        [-1.2, 3.5], [1.2, 3.5], [0, 2.3],
+      ].map(([wx, wy], wi) => (
+        <mesh key={`hwg${wi}`} position={[wx, wy, 3.02]}>
+          <planeGeometry args={[0.5, 0.6]} />
+          <meshStandardMaterial color="#ffdd88" emissive="#ffdd88" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+
       {/* Hotel sign on top */}
       <mesh position={[0, 8.2, 0]}>
         <boxGeometry args={[3, 0.5, 0.3]} />
@@ -641,8 +662,20 @@ function StreetLamps() {
               roughness={0.3}
             />
           </mesh>
+          {/* Warm glow sphere */}
+          <mesh position={[0, 3.1, 0]}>
+            <sphereGeometry args={[0.35, 8, 6]} />
+            <meshStandardMaterial
+              color="#ffaa66"
+              emissive="#ffaa66"
+              emissiveIntensity={0.8}
+              transparent
+              opacity={0.2}
+              roughness={0.3}
+            />
+          </mesh>
           {/* Point light */}
-          <pointLight position={[x, 3.2, z]} color="#ffcc66" intensity={0.3} distance={6} />
+          <pointLight position={[x, 3.2, z]} color="#ffcc66" intensity={1.2} distance={8} />
         </group>
       ))}
     </group>
@@ -922,6 +955,162 @@ function ChatBubbles() {
   );
 }
 
+// ─── Background Skyline (desktop only) ────────────────────────
+const SKYLINE_BUILDINGS: { pos: [number, number, number]; size: [number, number, number]; windows?: [number, number][] }[] = [
+  { pos: [-50, 0, -45], size: [3, 14, 3], windows: [[0.3, 4], [0.3, 7], [0.3, 10]] },
+  { pos: [-45, 0, -50], size: [2.5, 10, 2.5], windows: [[0.2, 3], [0.2, 6]] },
+  { pos: [-40, 0, -48], size: [4, 18, 3], windows: [[0.5, 5], [0.5, 9], [0.5, 13], [-0.5, 7], [-0.5, 11]] },
+  { pos: [42, 0, -50], size: [3, 12, 3], windows: [[0.3, 4], [0.3, 8]] },
+  { pos: [48, 0, -44], size: [2, 16, 2], windows: [[0.2, 5], [0.2, 9], [0.2, 13]] },
+  { pos: [55, 0, -40], size: [3.5, 9, 3], windows: [[0.4, 3], [0.4, 6]] },
+  { pos: [-48, 0, 42], size: [3, 11, 3], windows: [[0.3, 4], [0.3, 7]] },
+  { pos: [50, 0, 45], size: [2.5, 15, 2.5], windows: [[0.3, 5], [0.3, 9], [0.3, 12]] },
+  { pos: [-55, 0, 0], size: [3, 20, 3], windows: [[0.4, 6], [0.4, 10], [0.4, 14], [-0.4, 8], [-0.4, 12]] },
+  { pos: [55, 0, 5], size: [2, 8, 2] },
+  { pos: [45, 0, 48], size: [3, 13, 3], windows: [[0.3, 4], [0.3, 8], [0.3, 11]] },
+  { pos: [-42, 0, 48], size: [4, 10, 3], windows: [[0.5, 3], [0.5, 7]] },
+];
+
+function BackgroundSkyline() {
+  if (IS_MOBILE) return null;
+  return (
+    <group>
+      {SKYLINE_BUILDINGS.map((b, i) => (
+        <group key={`sky${i}`} position={[b.pos[0], b.size[1] / 2, b.pos[2]]}>
+          <mesh>
+            <boxGeometry args={b.size} />
+            <meshBasicMaterial color="#1a1a2a" />
+          </mesh>
+          {/* Lit windows */}
+          {b.windows?.map(([wx, wy], wi) => (
+            <mesh key={`sw${i}-${wi}`} position={[wx, wy - b.size[1] / 2, b.size[2] / 2 + 0.01]}>
+              <planeGeometry args={[0.25, 0.2]} />
+              <meshBasicMaterial color="#ffdd66" />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Walking Pedestrians ──────────────────────────────────────
+const PEDESTRIAN_CONFIGS: { color: string; start: [number, number, number]; end: [number, number, number]; speed: number }[] = [
+  { color: "#3366aa", start: [-30, 0, -8.2], end: [30, 0, -8.2], speed: 2.5 },
+  { color: "#cc3333", start: [8.2, 0, 30], end: [8.2, 0, -30], speed: 2.0 },
+  { color: "#666666", start: [30, 0, 11.8], end: [-30, 0, 11.8], speed: 2.2 },
+  { color: "#338833", start: [-11.8, 0, -30], end: [-11.8, 0, 30], speed: 1.8 },
+];
+
+function Pedestrian({ color, start, end, speed }: typeof PEDESTRIAN_CONFIGS[number]) {
+  const ref = useRef<THREE.Group>(null);
+  const progress = useRef(Math.random());
+
+  useFrame((_, delta) => {
+    if (!ref.current) return;
+    const totalDist = Math.sqrt((end[0] - start[0]) ** 2 + (end[2] - start[2]) ** 2);
+    progress.current += (delta * speed) / totalDist;
+    if (progress.current > 1) progress.current = 0;
+    const t = progress.current;
+    ref.current.position.set(
+      start[0] + (end[0] - start[0]) * t,
+      0,
+      start[2] + (end[2] - start[2]) * t
+    );
+  });
+
+  // Face direction
+  const ry = Math.atan2(end[0] - start[0], end[2] - start[2]);
+
+  return (
+    <group ref={ref} rotation={[0, ry, 0]}>
+      {/* Body */}
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.4, 0.8, 0.3]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 1.0, 0]}>
+        <sphereGeometry args={[0.2, 8, 6]} />
+        <meshStandardMaterial color="#f0d0b0" roughness={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+function Pedestrians() {
+  const configs = IS_MOBILE ? PEDESTRIAN_CONFIGS.slice(0, 1) : PEDESTRIAN_CONFIGS;
+  return (
+    <group>
+      {configs.map((cfg, i) => (
+        <Pedestrian key={`ped${i}`} {...cfg} />
+      ))}
+    </group>
+  );
+}
+
+// ─── Street Props (newspaper stands, flower pots, fire hydrants) ──
+function StreetProps() {
+  return (
+    <group>
+      {/* Newspaper stands */}
+      {[
+        [-14, 0, -8.5],
+        [16, 0, 11.5],
+      ].map(([x, , z], i) => (
+        <group key={`news${i}`} position={[x, 0, z]}>
+          {/* Box */}
+          <mesh position={[0, 0.5, 0]}>
+            <boxGeometry args={[0.5, 0.6, 0.35]} />
+            <meshStandardMaterial color="#2255aa" roughness={0.7} />
+          </mesh>
+          {/* Legs */}
+          <mesh position={[-0.18, 0.15, 0]}>
+            <boxGeometry args={[0.04, 0.3, 0.04]} />
+            <meshStandardMaterial color="#333333" roughness={0.8} />
+          </mesh>
+          <mesh position={[0.18, 0.15, 0]}>
+            <boxGeometry args={[0.04, 0.3, 0.04]} />
+            <meshStandardMaterial color="#333333" roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Flower pots */}
+      {[
+        [-22, 0, -8.5],
+        [14, 0, -11.5],
+        [-8.5, 0, 14],
+      ].map(([x, , z], i) => (
+        <group key={`flower${i}`} position={[x, 0, z]}>
+          {/* Pot */}
+          <mesh position={[0, 0.2, 0]}>
+            <cylinderGeometry args={[0.2, 0.15, 0.4, 8]} />
+            <meshStandardMaterial color="#aa5533" roughness={0.8} />
+          </mesh>
+          {/* Plant */}
+          <mesh position={[0, 0.55, 0]}>
+            <sphereGeometry args={[0.25, 8, 6]} />
+            <meshStandardMaterial color="#44aa44" roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Fire hydrant */}
+      <group position={[12, 0, -8.5]}>
+        <mesh position={[0, 0.25, 0]}>
+          <cylinderGeometry args={[0.12, 0.14, 0.5, 8]} />
+          <meshStandardMaterial color="#cc2222" roughness={0.7} />
+        </mesh>
+        <mesh position={[0, 0.55, 0]}>
+          <sphereGeometry args={[0.14, 6, 4]} />
+          <meshStandardMaterial color="#cc2222" roughness={0.7} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 // ─── City Marker ───────────────────────────────────────────────
 function SocialCityMarker({
   city,
@@ -1184,6 +1373,15 @@ export function SocialMap({ onSelectCity }: { onSelectCity: (city: City) => void
 
           {/* Vehicles */}
           <Vehicles />
+
+          {/* Background skyline */}
+          <BackgroundSkyline />
+
+          {/* Walking pedestrians */}
+          <Pedestrians />
+
+          {/* Street props */}
+          <StreetProps />
 
           {/* Ambient social bubbles */}
           <ChatBubbles />
