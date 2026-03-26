@@ -9,6 +9,7 @@ import { CITIES, type City } from "@/data/cities";
 import { WORLDS } from "@/data/worlds";
 import { useProgressStore } from "@/stores/progressStore";
 import type { Language } from "@/types";
+import { OceanWater, IslandFoamRing } from "./OceanWater";
 
 // ─── Mobile detection (static) ──────────────────────────────────
 const IS_MOBILE =
@@ -68,49 +69,33 @@ const ROUTE_PAIRS: [string, string][] = [
   ["storm-zone", "shipping-yard"],
 ];
 
-// ─── Animated water plane ───────────────────────────────────────
-function WaterPlane() {
-  const geoRef = useRef<THREE.PlaneGeometry>(null);
-  const segs = IS_MOBILE ? 24 : 48;
-
-  useFrame(({ clock }) => {
-    if (!geoRef.current) return;
-    const t = clock.getElapsedTime();
-    const pos = geoRef.current.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      const wave =
-        Math.sin(x * 0.07 + t * 0.5) * 0.4 +
-        Math.sin(y * 0.09 + t * 0.35) * 0.25 +
-        Math.sin((x + y) * 0.05 + t * 0.7) * 0.15;
-      pos.setZ(i, wave);
-    }
-    pos.needsUpdate = true;
-  });
-
+// ─── Deep water background ──────────────────────────────────────
+function DeepWater() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
-      <planeGeometry ref={geoRef} args={[220, 220, segs, segs]} />
-      <meshStandardMaterial
-        color="#1a8abf"
-        transparent
-        opacity={0.82}
-        roughness={0.25}
-        metalness={0.15}
-        side={THREE.DoubleSide}
-      />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
+      <planeGeometry args={[500, 500]} />
+      <meshStandardMaterial color="#051a2e" roughness={1} />
     </mesh>
   );
 }
 
-// ─── Deep water background ──────────────────────────────────────
-function DeepWater() {
+// ─── Dock / Pier at Harbor Bay ──────────────────────────────────
+function HarborDock({ position }: { position: [number, number, number] }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]}>
-      <planeGeometry args={[500, 500]} />
-      <meshStandardMaterial color="#062a45" roughness={1} />
-    </mesh>
+    <group position={position}>
+      {/* Main pier plank */}
+      <mesh position={[4.5, 0.35, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[5, 0.15, 1.2]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.9} />
+      </mesh>
+      {/* Support posts */}
+      {[2.5, 4.5, 6.5].map((x, i) => (
+        <mesh key={`post-${i}`} position={[x, -0.1, 0]}>
+          <cylinderGeometry args={[0.1, 0.1, 1, 6]} />
+          <meshStandardMaterial color="#6a4a10" roughness={0.95} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -217,6 +202,12 @@ function IslandCluster({ position, cityId }: { position: [number, number, number
           <Rock position={[-1.5 * s, 0.5, 1.0 * s]} scale={s * 1.4} />
         </>
       )}
+
+      {/* Foam ring around island */}
+      <IslandFoamRing position={[0, 0.04, 0]} radius={3.5 * s * 1.2} />
+
+      {/* Dock at Harbor Bay */}
+      {cityId === "harbor-bay" && <HarborDock position={[2.5 * s, 0, 0]} />}
     </group>
   );
 }
@@ -755,29 +746,18 @@ export function OceanMap({ onSelectCity }: { onSelectCity: (city: City) => void 
           onIncline={() => setDpr(IS_MOBILE ? 1 : 1.5)}
         />
 
-        {/* Sky background — light blue gradient via canvas color */}
-        <color attach="background" args={["#5aade0"]} />
-        {!IS_MOBILE && <fog attach="fog" args={["#5aade0", 130, 250]} />}
+        {/* Sky background */}
+        <color attach="background" args={["#76b9d8"]} />
+        <fog attach="fog" args={["#76b9d8", 80, 250]} />
 
-        {/* Lighting — warm tropical sun from above-left */}
-        <ambientLight intensity={IS_MOBILE ? 0.55 : 0.45} color="#d0e8ff" />
-        <directionalLight
-          position={[-30, 60, 25]}
-          intensity={1.5}
-          color="#fff5d0"
-        />
-        {!IS_MOBILE && (
-          <directionalLight
-            position={[40, 25, -30]}
-            intensity={0.25}
-            color="#60a0d0"
-          />
-        )}
-        <hemisphereLight intensity={0.4} color="#87ceeb" groundColor="#d4b87a" />
+        {/* Lighting — warm atmospheric */}
+        <hemisphereLight intensity={0.9} color="#ffffff" groundColor="#2b6c8e" />
+        <directionalLight position={[20, 30, 10]} intensity={1.2} color="#fff3d6" />
+        <ambientLight intensity={0.3} />
 
         <Suspense fallback={null}>
           <DeepWater />
-          <WaterPlane />
+          <OceanWater size={500} position={[0, -0.15, 0]} segments={IS_MOBILE ? 64 : 128} />
           <SeaRoutes unlockedIds={unlockedIds} />
 
           {/* Island clusters */}
