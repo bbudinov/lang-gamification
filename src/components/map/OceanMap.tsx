@@ -355,6 +355,13 @@ function HarborDock({ position }: { position: [number, number, number] }) {
   );
 }
 
+// ─── Island type mapping ────────────────────────────────────────
+const ISLAND_TYPE: Record<string, "default" | "cliff" | "split"> = {
+  "skull-cove": "split",
+  "lighthouse-point": "cliff",
+  "storm-zone": "cliff",
+};
+
 // ─── Island cluster for each city (3D landmass) ─────────────────
 function IslandCluster({ position, cityId }: { position: [number, number, number]; cityId: string }) {
   const s = ISLAND_SIZES[cityId] ?? 1;
@@ -367,6 +374,7 @@ function IslandCluster({ position, cityId }: { position: [number, number, number
   const isSailing = cityId === "sailing-school";
   const isCruise = cityId === "cruise-port";
   const isShipping = cityId === "shipping-yard";
+  const islandType = ISLAND_TYPE[cityId] ?? "default";
 
   const cliffColor = isStorm ? "#3a3530" : isSkull ? "#4a3a2a" : "#5a4a3a";
   const topColor = isStorm ? "#5a5550" : isSkull ? "#7a7050" : "#4a8a3a";
@@ -375,47 +383,157 @@ function IslandCluster({ position, cityId }: { position: [number, number, number
 
   return (
     <group position={position}>
-      {/* === Base cliff — tall, organic cylinder === */}
-      <mesh position={[0, -0.3, 0]}>
-        <cylinderGeometry args={[2.8 * s, 3.5 * s, cliffHeight, segments, 2]} />
-        <meshStandardMaterial color={cliffColor} roughness={0.95} />
-      </mesh>
-      {/* Cliff detail layer — slight offset for irregularity */}
-      <mesh position={[0.3 * s, -0.4, 0.2 * s]} rotation={[0, 0.5, 0]}>
-        <cylinderGeometry args={[2.5 * s, 3.0 * s, cliffHeight * 0.9, segments > 10 ? 10 : 8, 1]} />
-        <meshStandardMaterial color={cliffColor} roughness={0.95} />
+      {/* === Shallow water circle around island === */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <circleGeometry args={[3.5 * s * 2.5, segments > 10 ? 32 : 20]} />
+        <meshBasicMaterial color="#4fc3e8" transparent opacity={0.25} />
       </mesh>
 
-      {/* === Top surface — green/sandy ground === */}
-      <mesh position={[0, cliffHeight * 0.35, 0]}>
-        <cylinderGeometry args={[3.0 * s, 2.8 * s, 0.4, segments, 1]} />
-        <meshStandardMaterial color={topColor} roughness={0.85} />
-      </mesh>
-      {/* Terrain bumps on top */}
-      <mesh position={[0.8 * s, cliffHeight * 0.4, -0.5 * s]}>
-        <sphereGeometry args={[0.8 * s, 6, 4]} />
-        <meshStandardMaterial color={topColor} roughness={0.85} />
-      </mesh>
-      <mesh position={[-0.6 * s, cliffHeight * 0.38, 0.7 * s]}>
-        <sphereGeometry args={[0.6 * s, 6, 4]} />
-        <meshStandardMaterial color={topColor} roughness={0.85} />
-      </mesh>
+      {/* === SPLIT ISLAND (skull-cove) — two landmasses + bridge === */}
+      {islandType === "split" && (
+        <>
+          {/* Left island */}
+          <mesh position={[-s * 0.7, -0.3, 0]}>
+            <cylinderGeometry args={[2.0 * s, 2.5 * s, cliffHeight, segments, 2]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[-s * 0.7, cliffHeight * 0.35, 0]}>
+            <cylinderGeometry args={[2.2 * s, 2.0 * s, 0.4, segments, 1]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Right island */}
+          <mesh position={[s * 0.7, -0.3, 0]}>
+            <cylinderGeometry args={[1.8 * s, 2.3 * s, cliffHeight, segments, 2]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[s * 0.7, cliffHeight * 0.35, 0]}>
+            <cylinderGeometry args={[2.0 * s, 1.8 * s, 0.4, segments, 1]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Sandbar bridge connecting them */}
+          <mesh position={[0, cliffHeight * 0.15, 0]}>
+            <boxGeometry args={[s * 1.8, 0.25, s * 0.8]} />
+            <meshStandardMaterial color={sandColor} roughness={0.9} />
+          </mesh>
+          {/* Beach ring */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-s * 0.7, 0.05, 0]}>
+            <ringGeometry args={[2.2 * s, 2.8 * s, segments]} />
+            <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
+          </mesh>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[s * 0.7, 0.05, 0]}>
+            <ringGeometry args={[2.0 * s, 2.6 * s, segments]} />
+            <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
+          </mesh>
+          {/* Terrain bumps */}
+          <mesh position={[-s * 1.2, cliffHeight * 0.4, -0.4 * s]}>
+            <sphereGeometry args={[0.6 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          <mesh position={[s * 1.0, cliffHeight * 0.38, 0.5 * s]}>
+            <sphereGeometry args={[0.5 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+        </>
+      )}
 
-      {/* === Beach ring at water level === */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
-        <ringGeometry args={[3.0 * s, 3.8 * s, segments]} />
-        <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
-      </mesh>
+      {/* === CLIFF ISLAND (lighthouse-point, storm-zone) — taller, narrower top, rock protrusions === */}
+      {islandType === "cliff" && (
+        <>
+          {/* Tall cliff body */}
+          <mesh position={[0, -0.3, 0]}>
+            <cylinderGeometry args={[2.2 * s, 3.5 * s, cliffHeight * 1.8, segments, 2]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[0.3 * s, -0.4, 0.2 * s]} rotation={[0, 0.5, 0]}>
+            <cylinderGeometry args={[2.0 * s, 3.0 * s, cliffHeight * 1.6, segments > 10 ? 10 : 8, 1]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          {/* Narrower top */}
+          <mesh position={[0, cliffHeight * 0.6, 0]}>
+            <cylinderGeometry args={[2.4 * s, 2.2 * s, 0.4, segments, 1]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Rock protrusions around base */}
+          <mesh position={[3.0 * s, -0.6, 0.8 * s]} rotation={[0.2, 0.4, 0.3]}>
+            <cylinderGeometry args={[0.3 * s, 0.5 * s, cliffHeight * 0.7, 6]} />
+            <meshStandardMaterial color="#2a2a30" roughness={0.95} />
+          </mesh>
+          <mesh position={[-2.5 * s, -0.5, -1.5 * s]} rotation={[-0.15, 0.8, -0.2]}>
+            <cylinderGeometry args={[0.25 * s, 0.45 * s, cliffHeight * 0.6, 6]} />
+            <meshStandardMaterial color="#2e2e35" roughness={0.95} />
+          </mesh>
+          <mesh position={[1.0 * s, -0.7, -2.8 * s]} rotation={[0.3, -0.3, 0.15]}>
+            <cylinderGeometry args={[0.2 * s, 0.4 * s, cliffHeight * 0.5, 6]} />
+            <meshStandardMaterial color="#2c2c32" roughness={0.95} />
+          </mesh>
+          {/* Terrain bumps on top */}
+          <mesh position={[0.6 * s, cliffHeight * 0.65, -0.4 * s]}>
+            <sphereGeometry args={[0.7 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          <mesh position={[-0.5 * s, cliffHeight * 0.62, 0.5 * s]}>
+            <sphereGeometry args={[0.5 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Beach ring */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+            <ringGeometry args={[3.0 * s, 3.8 * s, segments]} />
+            <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
+          </mesh>
+          {/* Secondary bump */}
+          <mesh position={[1.8 * s, -0.2, 1.5 * s]}>
+            <cylinderGeometry args={[1.0 * s, 1.4 * s, cliffHeight * 0.6, segments > 10 ? 8 : 6]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[1.8 * s, cliffHeight * 0.2, 1.5 * s]}>
+            <cylinderGeometry args={[1.1 * s, 0.9 * s, 0.25, segments > 10 ? 8 : 6]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+        </>
+      )}
 
-      {/* === Secondary smaller bump / attached landmass === */}
-      <mesh position={[1.8 * s, -0.2, 1.5 * s]}>
-        <cylinderGeometry args={[1.0 * s, 1.4 * s, cliffHeight * 0.6, segments > 10 ? 8 : 6]} />
-        <meshStandardMaterial color={cliffColor} roughness={0.95} />
-      </mesh>
-      <mesh position={[1.8 * s, cliffHeight * 0.2, 1.5 * s]}>
-        <cylinderGeometry args={[1.1 * s, 0.9 * s, 0.25, segments > 10 ? 8 : 6]} />
-        <meshStandardMaterial color={topColor} roughness={0.85} />
-      </mesh>
+      {/* === DEFAULT ISLAND — original shape === */}
+      {islandType === "default" && (
+        <>
+          {/* Base cliff */}
+          <mesh position={[0, -0.3, 0]}>
+            <cylinderGeometry args={[2.8 * s, 3.5 * s, cliffHeight, segments, 2]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[0.3 * s, -0.4, 0.2 * s]} rotation={[0, 0.5, 0]}>
+            <cylinderGeometry args={[2.5 * s, 3.0 * s, cliffHeight * 0.9, segments > 10 ? 10 : 8, 1]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          {/* Top surface */}
+          <mesh position={[0, cliffHeight * 0.35, 0]}>
+            <cylinderGeometry args={[3.0 * s, 2.8 * s, 0.4, segments, 1]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Terrain bumps */}
+          <mesh position={[0.8 * s, cliffHeight * 0.4, -0.5 * s]}>
+            <sphereGeometry args={[0.8 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          <mesh position={[-0.6 * s, cliffHeight * 0.38, 0.7 * s]}>
+            <sphereGeometry args={[0.6 * s, 6, 4]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+          {/* Beach ring */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+            <ringGeometry args={[3.0 * s, 3.8 * s, segments]} />
+            <meshStandardMaterial color={sandColor} transparent opacity={0.6} roughness={1} />
+          </mesh>
+          {/* Secondary bump */}
+          <mesh position={[1.8 * s, -0.2, 1.5 * s]}>
+            <cylinderGeometry args={[1.0 * s, 1.4 * s, cliffHeight * 0.6, segments > 10 ? 8 : 6]} />
+            <meshStandardMaterial color={cliffColor} roughness={0.95} />
+          </mesh>
+          <mesh position={[1.8 * s, cliffHeight * 0.2, 1.5 * s]}>
+            <cylinderGeometry args={[1.1 * s, 0.9 * s, 0.25, segments > 10 ? 8 : 6]} />
+            <meshStandardMaterial color={topColor} roughness={0.85} />
+          </mesh>
+        </>
+      )}
 
       {/* === Vegetation per island type === */}
 
@@ -1044,6 +1162,58 @@ function Buoys() {
   );
 }
 
+// ─── Storm zone biome effects ───────────────────────────────────
+function StormFlash({ position }: { position: [number, number, number] }) {
+  const lightRef = useRef<THREE.PointLight>(null);
+
+  useFrame(() => {
+    if (!lightRef.current) return;
+    lightRef.current.intensity = Math.random() > 0.995 ? 3 : 0;
+  });
+
+  return <pointLight ref={lightRef} position={position} color="#aaccff" distance={20} decay={2} intensity={0} />;
+}
+
+function StormCloud({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[1.8, 6, 5]} />
+        <meshStandardMaterial color="#2a2a30" transparent opacity={0.7} roughness={1} />
+      </mesh>
+      <mesh position={[1.5, -0.2, 0.4]}>
+        <sphereGeometry args={[1.4, 6, 5]} />
+        <meshStandardMaterial color="#252530" transparent opacity={0.65} roughness={1} />
+      </mesh>
+      <mesh position={[-1.2, -0.1, -0.3]}>
+        <sphereGeometry args={[1.3, 6, 5]} />
+        <meshStandardMaterial color="#2e2e35" transparent opacity={0.6} roughness={1} />
+      </mesh>
+    </group>
+  );
+}
+
+function StormBiome() {
+  const stormPos = ISLAND_POSITIONS["storm-zone"];
+  if (!stormPos) return null;
+  const [sx, sz] = stormPos;
+  return (
+    <group>
+      {/* Dark water circle around storm island */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[sx, 0.02, sz]}>
+        <circleGeometry args={[12, 32]} />
+        <meshBasicMaterial color="#0a2a3a" transparent opacity={0.4} />
+      </mesh>
+      {/* Lightning flash */}
+      <StormFlash position={[sx + 0.5, 4, sz - 0.3]} />
+      {/* Dark storm clouds above */}
+      <StormCloud position={[sx - 2, 9, sz + 1]} />
+      <StormCloud position={[sx + 3, 8.5, sz - 2]} />
+      <StormCloud position={[sx + 0.5, 10, sz + 3]} />
+    </group>
+  );
+}
+
 // ─── Cloud meshes ───────────────────────────────────────────────
 function Cloud({ position }: { position: [number, number, number] }) {
   return (
@@ -1360,6 +1530,9 @@ export function OceanMap({ onSelectCity }: { onSelectCity: (city: City) => void 
               onSelect={onSelectCity}
             />
           ))}
+
+          {/* Storm zone biome */}
+          <StormBiome />
 
           {/* Ambient life */}
           <MovingBoats />
