@@ -140,11 +140,11 @@ export default function MapPage() {
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
 
-      {/* Left sidebar buttons — only on land world */}
+      {/* Quick action buttons — top-left, only on land world */}
       {activeWorld === "land" && (
         <div
-          className="absolute left-3 flex flex-col-reverse gap-2"
-          style={{ zIndex: 9999, bottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+          className="absolute left-3 flex gap-2 safe-area"
+          style={{ zIndex: 9999, top: "max(52px, calc(env(safe-area-inset-top, 12px) + 48px))" }}
         >
           {/* Daily Challenge (bottom) */}
           <DailyChallengeButton />

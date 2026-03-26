@@ -208,8 +208,8 @@ export function HelpButton({ onOpen, onClose }: HelpButtonProps) {
     <>
       <button
         onClick={handleOpen}
-        className="absolute bottom-36 right-4 w-14 h-14 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-500/30"
-        style={{ zIndex: 9999, background: "linear-gradient(135deg, #0a1628, #0f2347, #162d50)" }}
+        className="absolute right-4 w-12 h-12 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-500/30"
+        style={{ zIndex: 9999, top: "max(52px, calc(env(safe-area-inset-top, 12px) + 48px))", background: "linear-gradient(135deg, #0a1628, #0f2347, #162d50)" }}
       >
         <ProfessorGlobe size={38} />
       </button>
