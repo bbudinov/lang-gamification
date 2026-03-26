@@ -68,7 +68,11 @@ async function main() {
 
   // Find which word audio files are MISSING
   const newTopicIds = topics
-    .filter((t) => t.id.startsWith("ocean-") || t.id.startsWith("air-") || t.id.startsWith("underwater-") || ["botanical-garden", "central-park", "university", "art-museum", "history-museum", "legendary-places"].includes(t.id))
+    .filter((t) => {
+      // All non-original topics (original: animals, colors, food, numbers, travel, work, family, body, weather, school, library, sports, music)
+      const originals = ["animals", "colors", "food", "numbers", "travel", "work", "family", "body", "weather", "school", "library", "sports", "music"];
+      return !originals.includes(t.id);
+    })
     .map((t) => t.id);
 
   const newTopics = topics.filter((t) => newTopicIds.includes(t.id));
