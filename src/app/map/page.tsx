@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/ui/TopBar";
 import { GameSelector } from "@/components/ui/GameSelector";
@@ -34,12 +34,14 @@ const UnderwaterMap = dynamic(
 );
 
 // Extract search params reader into its own component for Suspense boundary
-function TopicParamReader({ onTopic }: { onTopic: (id: string) => void }) {
+function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void; onWorld: (id: WorldId) => void }) {
   const searchParams = useSearchParams();
   useEffect(() => {
     const topic = searchParams.get("topic");
     if (topic) onTopic(topic);
-  }, [searchParams, onTopic]);
+    const world = searchParams.get("world") as WorldId | null;
+    if (world && ["land", "ocean", "underwater", "air"].includes(world)) onWorld(world);
+  }, [searchParams, onTopic, onWorld]);
   return null;
 }
 
@@ -50,6 +52,13 @@ export default function MapPage() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeWorld, setActiveWorld] = useState<WorldId>("land");
   const { targetLanguage, gameResults } = useProgressStore();
+
+  // Update URL when world changes (without navigation)
+  const handleWorldChange = useCallback((worldId: WorldId) => {
+    setActiveWorld(worldId);
+    const url = worldId === "land" ? "/map" : `/map?world=${worldId}`;
+    window.history.replaceState(null, "", url);
+  }, []);
   const activeWorldData = WORLDS.find((w) => w.id === activeWorld);
   const bgColor = activeWorldData?.bgColor ?? "#7a9ab0";
 
@@ -78,7 +87,7 @@ export default function MapPage() {
     >
       {/* Read ?topic= param to open game selector */}
       <Suspense fallback={null}>
-        <TopicParamReader onTopic={setSelectedTopicId} />
+        <SearchParamReader onTopic={setSelectedTopicId} onWorld={setActiveWorld} />
       </Suspense>
 
       <TopBar />
@@ -132,7 +141,7 @@ export default function MapPage() {
         <MissionBoard onClose={() => setShowMissions(false)} />
       )}
 
-      <WorldSelector activeWorld={activeWorld} onSelectWorld={setActiveWorld} />
+      <WorldSelector activeWorld={activeWorld} onSelectWorld={handleWorldChange} />
 
       {selectedTopic && (
         <GameSelector
