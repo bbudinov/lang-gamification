@@ -1,77 +1,1073 @@
 "use client";
 
-import { useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
+import React, { useRef, useMemo, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
+import { useProgressStore } from "@/stores/progressStore";
 import { CITIES, type City } from "@/data/cities";
 import { WORLDS } from "@/data/worlds";
+import type { Language } from "@/types";
+import * as THREE from "three";
 
-const WORLD_ID = "emotions";
-const BG_COLOR = "#0a2e2e";
+// ─── Constants ───────────────────────────────────────────────────
+const IS_MOBILE = typeof window !== "undefined" && window.innerWidth < 768;
 
-function getCities() {
-  const world = WORLDS.find((w) => w.id === WORLD_ID);
-  if (!world) return [];
-  return CITIES.filter((c) => world.topicIds.includes(c.topicId));
+const emotionsWorld = WORLDS.find((w) => w.id === "emotions")!;
+const EMOTION_CITIES = CITIES.filter((c) =>
+  emotionsWorld.topicIds.includes(c.topicId)
+);
+
+// ─── City positions (fixed, not circular) ───────────────────────
+const CITY_POSITIONS: Record<string, [number, number, number]> = {
+  "joy-island": [-25, 5, -20],
+  "fear-cave": [20, -3, -15],
+  "anger-volcano": [-15, 0, 10],
+  "calm-forest": [25, 2, 5],
+  "surprise-box": [0, 8, -25],
+  "love-garden": [15, 3, 15],
+  "dream-cloud": [-20, 10, 20],
+  "courage-peak": [5, 0, 25],
+};
+
+function getCityPos(city: City): [number, number, number] {
+  return (
+    CITY_POSITIONS[city.id] ?? [
+      (city.pos.x - 50) * 1.2,
+      0,
+      (city.pos.y - 50) * 1.2,
+    ]
+  );
 }
 
-function CityNode({ city, index, total, onSelect }: { city: City; index: number; total: number; onSelect: (c: City) => void }) {
-  const angle = (index / total) * Math.PI * 2 - Math.PI / 2;
-  const radius = 20;
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
+// ─── Zone config ─────────────────────────────────────────────────
+interface ZoneConfig {
+  color: string;
+  emissive: string;
+  lightColor: string;
+  lightIntensity: number;
+  particleColor: string;
+  particleCount: number;
+  particleBehavior: "sparkle" | "drift-down" | "rise" | "float" | "burst";
+}
+
+const ZONE_CONFIG: Record<string, ZoneConfig> = {
+  "joy-island": {
+    color: "#FFD700",
+    emissive: "#FFD700",
+    lightColor: "#FFD700",
+    lightIntensity: 1.2,
+    particleColor: "#FFD700",
+    particleCount: 30,
+    particleBehavior: "sparkle",
+  },
+  "fear-cave": {
+    color: "#1a1a3a",
+    emissive: "#1a1a5a",
+    lightColor: "#3344aa",
+    lightIntensity: 0.5,
+    particleColor: "#2a2a4a",
+    particleCount: 20,
+    particleBehavior: "drift-down",
+  },
+  "anger-volcano": {
+    color: "#8B0000",
+    emissive: "#FF4500",
+    lightColor: "#FF2200",
+    lightIntensity: 1.5,
+    particleColor: "#FF4500",
+    particleCount: 15,
+    particleBehavior: "rise",
+  },
+  "calm-forest": {
+    color: "#2E8B57",
+    emissive: "#3CB371",
+    lightColor: "#3CB371",
+    lightIntensity: 0.8,
+    particleColor: "#4CAF50",
+    particleCount: 20,
+    particleBehavior: "drift-down",
+  },
+  "surprise-box": {
+    color: "#FFD700",
+    emissive: "#FF69B4",
+    lightColor: "#FFFFFF",
+    lightIntensity: 1.4,
+    particleColor: "#FF69B4",
+    particleCount: 20,
+    particleBehavior: "burst",
+  },
+  "love-garden": {
+    color: "#FF69B4",
+    emissive: "#FF1493",
+    lightColor: "#FF69B4",
+    lightIntensity: 1.0,
+    particleColor: "#FFB6C1",
+    particleCount: 25,
+    particleBehavior: "float",
+  },
+  "dream-cloud": {
+    color: "#E6E6FA",
+    emissive: "#9370DB",
+    lightColor: "#9370DB",
+    lightIntensity: 0.9,
+    particleColor: "#DDA0DD",
+    particleCount: 30,
+    particleBehavior: "float",
+  },
+  "courage-peak": {
+    color: "#4A4A4A",
+    emissive: "#FF8C00",
+    lightColor: "#FF8C00",
+    lightIntensity: 1.1,
+    particleColor: "#FF6600",
+    particleCount: 10,
+    particleBehavior: "rise",
+  },
+};
+
+// ─── Seeded random ──────────────────────────────────────────────
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+// ─── Zone Particles (Points-based, performant) ─────────────────
+function ZoneParticles({
+  position,
+  color,
+  count,
+  behavior,
+  spread = 5,
+}: {
+  position: [number, number, number];
+  color: string;
+  count: number;
+  behavior: string;
+  spread?: number;
+}) {
+  const pointsRef = useRef<THREE.Points>(null!);
+  const actualCount = IS_MOBILE ? Math.floor(count * 0.5) : count;
+
+  const { positions, velocities } = useMemo(() => {
+    const rng = seededRandom(
+      Math.abs(position[0] * 100 + position[2] * 10 + count)
+    );
+    const pos = new Float32Array(actualCount * 3);
+    const vel = new Float32Array(actualCount * 3);
+    for (let i = 0; i < actualCount; i++) {
+      const i3 = i * 3;
+      pos[i3] = (rng() - 0.5) * spread;
+      pos[i3 + 1] = rng() * spread * 0.8;
+      pos[i3 + 2] = (rng() - 0.5) * spread;
+      vel[i3] = (rng() - 0.5) * 0.02;
+      vel[i3 + 1] =
+        behavior === "rise"
+          ? 0.01 + rng() * 0.02
+          : behavior === "drift-down"
+            ? -(0.005 + rng() * 0.01)
+            : behavior === "burst"
+              ? 0.015 + rng() * 0.02
+              : (rng() - 0.5) * 0.01;
+      vel[i3 + 2] = (rng() - 0.5) * 0.02;
+    }
+    return { positions: pos, velocities: vel };
+  }, [actualCount, position, spread, behavior, count]);
+
+  useFrame(() => {
+    if (!pointsRef.current) return;
+    const geo = pointsRef.current.geometry;
+    const posAttr = geo.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    for (let i = 0; i < actualCount; i++) {
+      const i3 = i * 3;
+      arr[i3] += velocities[i3];
+      arr[i3 + 1] += velocities[i3 + 1];
+      arr[i3 + 2] += velocities[i3 + 2];
+      // Reset if too far
+      const halfS = spread * 0.6;
+      if (
+        Math.abs(arr[i3]) > halfS ||
+        arr[i3 + 1] > spread ||
+        arr[i3 + 1] < -1
+      ) {
+        arr[i3] = (Math.random() - 0.5) * spread * 0.5;
+        arr[i3 + 1] = behavior === "rise" ? -0.5 : Math.random() * spread * 0.5;
+        arr[i3 + 2] = (Math.random() - 0.5) * spread * 0.5;
+      }
+    }
+    posAttr.needsUpdate = true;
+  });
 
   return (
-    <group position={[x, 0, z]}>
+    <points ref={pointsRef} position={position}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={actualCount}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color={color}
+        size={behavior === "sparkle" ? 0.15 : 0.12}
+        transparent
+        opacity={0.8}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ─── Joy Island — Icosahedron, flowers, sparkles ────────────────
+function JoyIsland({ position }: { position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const flowers = useMemo(() => {
+    const rng = seededRandom(111);
+    const count = IS_MOBILE ? 4 : 8;
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 4,
+      z: (rng() - 0.5) * 4,
+      color: rng() > 0.5 ? "#FF69B4" : "#FF1493",
+      scale: 0.15 + rng() * 0.1,
+    }));
+  }, []);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      {/* Main island */}
       <mesh>
-        <cylinderGeometry args={[2.5, 2.5, 0.5, 16]} />
-        <meshStandardMaterial color="#334155" />
+        <icosahedronGeometry args={[3.5, 1]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={0.3}
+          roughness={0.4}
+          flatShading
+        />
       </mesh>
-      <Html center distanceFactor={40} style={{ pointerEvents: "auto" }}>
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => onSelect(city)}
+      {/* Top surface flattener */}
+      <mesh position={[0, 1.5, 0]} scale={[1.2, 0.3, 1.2]}>
+        <cylinderGeometry args={[2.5, 3, 1, 8]} />
+        <meshStandardMaterial
+          color="#FFEC80"
+          emissive="#FFD700"
+          emissiveIntensity={0.2}
+          roughness={0.5}
+        />
+      </mesh>
+      {/* Flowers */}
+      {flowers.map((f, i) => (
+        <mesh key={i} position={[f.x, 2.2, f.z]}>
+          <sphereGeometry args={[f.scale, 6, 6]} />
+          <meshStandardMaterial
+            color={f.color}
+            emissive={f.color}
+            emissiveIntensity={0.6}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Fear Cave — Dark arch with glowing eyes ────────────────────
+function FearCave({ position }: { position: [number, number, number] }) {
+  const eyeRef1 = useRef<THREE.Mesh>(null!);
+  const eyeRef2 = useRef<THREE.Mesh>(null!);
+
+  useFrame((state) => {
+    const pulse = 0.4 + Math.sin(state.clock.elapsedTime * 2) * 0.3;
+    if (eyeRef1.current) {
+      (eyeRef1.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+    }
+    if (eyeRef2.current) {
+      (eyeRef2.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Base rock */}
+      <mesh position={[0, -0.5, 0]}>
+        <boxGeometry args={[6, 2, 4]} />
+        <meshStandardMaterial color="#1a1a3a" roughness={0.9} />
+      </mesh>
+      {/* Left pillar */}
+      <mesh position={[-2, 1.5, 0]}>
+        <cylinderGeometry args={[0.8, 1, 4, 6]} />
+        <meshStandardMaterial color="#12122a" roughness={0.9} flatShading />
+      </mesh>
+      {/* Right pillar */}
+      <mesh position={[2, 1.5, 0]}>
+        <cylinderGeometry args={[0.8, 1, 4, 6]} />
+        <meshStandardMaterial color="#12122a" roughness={0.9} flatShading />
+      </mesh>
+      {/* Bridge / arch top */}
+      <mesh position={[0, 3.2, 0]}>
+        <boxGeometry args={[5, 1, 2.5]} />
+        <meshStandardMaterial color="#0d0d20" roughness={0.9} />
+      </mesh>
+      {/* Glowing eyes */}
+      <mesh ref={eyeRef1} position={[-0.6, 2, 1.3]}>
+        <sphereGeometry args={[0.2, 6, 6]} />
+        <meshStandardMaterial
+          color="#FF0000"
+          emissive="#FF0000"
+          emissiveIntensity={0.5}
+        />
+      </mesh>
+      <mesh ref={eyeRef2} position={[0.6, 2, 1.3]}>
+        <sphereGeometry args={[0.2, 6, 6]} />
+        <meshStandardMaterial
+          color="#FF0000"
+          emissive="#FF0000"
+          emissiveIntensity={0.5}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Anger Volcano — Cone with lava pool + cracks ───────────────
+function AngerVolcano({
+  position,
+}: {
+  position: [number, number, number];
+}) {
+  const lavaRef = useRef<THREE.Mesh>(null!);
+
+  useFrame((state) => {
+    if (lavaRef.current) {
+      const mat = lavaRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = 0.8 + Math.sin(state.clock.elapsedTime * 3) * 0.4;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Volcano cone */}
+      <mesh position={[0, 2.5, 0]}>
+        <coneGeometry args={[4, 6, 8]} />
+        <meshStandardMaterial
+          color="#4A1010"
+          roughness={0.8}
+          flatShading
+        />
+      </mesh>
+      {/* Crater rim */}
+      <mesh position={[0, 5.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.8, 1.8, 8]} />
+        <meshStandardMaterial
+          color="#2A0505"
+          roughness={0.9}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Lava pool */}
+      <mesh ref={lavaRef} position={[0, 5.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[1, 12]} />
+        <meshStandardMaterial
+          color="#FF4500"
+          emissive="#FF4500"
+          emissiveIntensity={0.8}
+        />
+      </mesh>
+      {/* Lava cracks on sides */}
+      {[0, 1.5, 3, 4.5].map((angle, i) => (
+        <mesh
+          key={i}
+          position={[
+            Math.cos(angle) * 2.8,
+            1.5 + i * 0.5,
+            Math.sin(angle) * 2.8,
+          ]}
+          rotation={[0, -angle, Math.PI / 4]}
         >
-          <div className="w-14 h-14 rounded-full bg-black/60 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center">
-            <span className="text-2xl">{city.emoji}</span>
+          <boxGeometry args={[0.08, 1.5, 0.05]} />
+          <meshStandardMaterial
+            color="#FF6600"
+            emissive="#FF4500"
+            emissiveIntensity={0.9}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Calm Forest — Green island with low-poly trees ─────────────
+function CalmForest({ position }: { position: [number, number, number] }) {
+  const treeCount = IS_MOBILE ? 4 : 7;
+
+  const trees = useMemo(() => {
+    const rng = seededRandom(444);
+    return Array.from({ length: treeCount }, () => ({
+      x: (rng() - 0.5) * 6,
+      z: (rng() - 0.5) * 6,
+      trunkH: 1 + rng() * 0.8,
+      crownScale: 0.7 + rng() * 0.5,
+      crownColor: rng() > 0.3 ? "#2E8B57" : "#3CB371",
+    }));
+  }, [treeCount]);
+
+  return (
+    <group position={position}>
+      {/* Island base */}
+      <mesh>
+        <cylinderGeometry args={[4, 4.5, 2, 8]} />
+        <meshStandardMaterial
+          color="#1B5E20"
+          roughness={0.7}
+          flatShading
+        />
+      </mesh>
+      {/* Grass top */}
+      <mesh position={[0, 1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[4, 8]} />
+        <meshStandardMaterial color="#4CAF50" />
+      </mesh>
+      {/* Trees */}
+      {trees.map((t, i) => (
+        <group key={i} position={[t.x, 1, t.z]}>
+          {/* Trunk */}
+          <mesh position={[0, t.trunkH * 0.5, 0]}>
+            <cylinderGeometry args={[0.12, 0.18, t.trunkH, 5]} />
+            <meshStandardMaterial color="#5D4037" roughness={0.9} />
+          </mesh>
+          {/* Crown */}
+          <mesh position={[0, t.trunkH + t.crownScale * 0.4, 0]}>
+            <coneGeometry args={[t.crownScale, t.crownScale * 1.8, 6]} />
+            <meshStandardMaterial
+              color={t.crownColor}
+              emissive={t.crownColor}
+              emissiveIntensity={0.15}
+              flatShading
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Surprise Box — Giant colorful box with lid + spring ────────
+function SurpriseBox({ position }: { position: [number, number, number] }) {
+  const springRef = useRef<THREE.Group>(null!);
+
+  useFrame((state) => {
+    if (springRef.current) {
+      springRef.current.position.y =
+        3.5 + Math.sin(state.clock.elapsedTime * 2) * 0.4;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Box body */}
+      <mesh position={[0, 1.5, 0]}>
+        <boxGeometry args={[4, 3, 4]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
+      {/* Stripes — horizontal bands */}
+      <mesh position={[0, 1, 2.01]}>
+        <boxGeometry args={[4, 0.5, 0.02]} />
+        <meshStandardMaterial color="#FF0000" emissive="#FF0000" emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, 2, 2.01]}>
+        <boxGeometry args={[4, 0.5, 0.02]} />
+        <meshStandardMaterial color="#0066FF" emissive="#0066FF" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Lid — slightly open */}
+      <mesh position={[0.5, 3.3, -0.3]} rotation={[0, 0, 0.15]}>
+        <boxGeometry args={[4.2, 0.4, 4.2]} />
+        <meshStandardMaterial
+          color="#FF69B4"
+          emissive="#FF69B4"
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      {/* Spring poking out */}
+      <group ref={springRef}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <mesh
+            key={i}
+            position={[
+              Math.cos(i * 1.2) * 0.3,
+              i * 0.25,
+              Math.sin(i * 1.2) * 0.3,
+            ]}
+          >
+            <torusGeometry args={[0.3, 0.06, 6, 12]} />
+            <meshStandardMaterial
+              color="#00CC00"
+              emissive="#00CC00"
+              emissiveIntensity={0.4}
+            />
+          </mesh>
+        ))}
+        {/* Star on top */}
+        <mesh position={[0, 1.5, 0]}>
+          <octahedronGeometry args={[0.4, 0]} />
+          <meshStandardMaterial
+            color="#FFD700"
+            emissive="#FFD700"
+            emissiveIntensity={0.8}
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// ─── Love Garden — Pink island, hearts, petals ──────────────────
+function LoveGarden({ position }: { position: [number, number, number] }) {
+  const heartCount = IS_MOBILE ? 3 : 5;
+
+  const hearts = useMemo(() => {
+    const rng = seededRandom(666);
+    return Array.from({ length: heartCount }, () => ({
+      x: (rng() - 0.5) * 5,
+      z: (rng() - 0.5) * 5,
+      scale: 0.3 + rng() * 0.2,
+      rotY: rng() * Math.PI * 2,
+    }));
+  }, [heartCount]);
+
+  const flowers = useMemo(() => {
+    const rng = seededRandom(667);
+    const count = IS_MOBILE ? 4 : 8;
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 6,
+      z: (rng() - 0.5) * 6,
+      color: rng() > 0.5 ? "#FF69B4" : "#FF1493",
+    }));
+  }, []);
+
+  return (
+    <group position={position}>
+      {/* Island */}
+      <mesh>
+        <cylinderGeometry args={[4, 4.2, 1.5, 8]} />
+        <meshStandardMaterial
+          color="#FFB6C1"
+          emissive="#FF69B4"
+          emissiveIntensity={0.15}
+          roughness={0.6}
+          flatShading
+        />
+      </mesh>
+      {/* Hearts — squeezed torus */}
+      {hearts.map((h, i) => (
+        <group key={i} position={[h.x, 1.5, h.z]} rotation={[0, h.rotY, 0]}>
+          <mesh scale={[h.scale, h.scale * 1.2, h.scale * 0.4]}>
+            <torusGeometry args={[0.8, 0.4, 8, 12]} />
+            <meshStandardMaterial
+              color="#FF1493"
+              emissive="#FF1493"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+        </group>
+      ))}
+      {/* Flower patches */}
+      {flowers.map((f, i) => (
+        <mesh key={`f${i}`} position={[f.x, 0.9, f.z]}>
+          <sphereGeometry args={[0.12, 5, 5]} />
+          <meshStandardMaterial
+            color={f.color}
+            emissive={f.color}
+            emissiveIntensity={0.4}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Dream Cloud — Semi-transparent cloud + floating shapes ─────
+function DreamCloud({ position }: { position: [number, number, number] }) {
+  const shapesRef = useRef<THREE.Group>(null!);
+
+  const cloudSpheres = useMemo(() => {
+    const rng = seededRandom(777);
+    const count = IS_MOBILE ? 6 : 10;
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 5,
+      y: (rng() - 0.5) * 1.5,
+      z: (rng() - 0.5) * 4,
+      scale: 1 + rng() * 1.5,
+    }));
+  }, []);
+
+  const floatingShapes = useMemo(() => {
+    const rng = seededRandom(778);
+    const count = IS_MOBILE ? 3 : 6;
+    return Array.from({ length: count }, (_, i) => ({
+      x: (rng() - 0.5) * 8,
+      y: 2 + rng() * 4,
+      z: (rng() - 0.5) * 8,
+      type: i % 3, // 0=torus, 1=icosa, 2=box
+      scale: 0.3 + rng() * 0.3,
+      color: ["#E6E6FA", "#DDA0DD", "#B0C4DE", "#C8A2C8"][i % 4],
+      speed: 0.3 + rng() * 0.5,
+    }));
+  }, []);
+
+  useFrame((state) => {
+    if (shapesRef.current) {
+      shapesRef.current.children.forEach((child, i) => {
+        const shape = floatingShapes[i];
+        if (shape) {
+          child.rotation.x = state.clock.elapsedTime * shape.speed * 0.3;
+          child.rotation.y = state.clock.elapsedTime * shape.speed * 0.2;
+          child.position.y =
+            shape.y + Math.sin(state.clock.elapsedTime * shape.speed + i) * 0.5;
+        }
+      });
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Cloud platform */}
+      {cloudSpheres.map((s, i) => (
+        <mesh key={i} position={[s.x, s.y, s.z]}>
+          <sphereGeometry args={[s.scale, 8, 8]} />
+          <meshStandardMaterial
+            color="#FFFFFF"
+            emissive="#E6E6FA"
+            emissiveIntensity={0.2}
+            transparent
+            opacity={0.5}
+            roughness={0.3}
+          />
+        </mesh>
+      ))}
+      {/* Floating abstract shapes */}
+      <group ref={shapesRef}>
+        {floatingShapes.map((s, i) => (
+          <mesh key={i} position={[s.x, s.y, s.z]}>
+            {s.type === 0 && <torusGeometry args={[s.scale, s.scale * 0.3, 6, 12]} />}
+            {s.type === 1 && <icosahedronGeometry args={[s.scale, 0]} />}
+            {s.type === 2 && <boxGeometry args={[s.scale, s.scale, s.scale]} />}
+            <meshStandardMaterial
+              color={s.color}
+              emissive={s.color}
+              emissiveIntensity={0.3}
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
+// ─── Courage Peak — Rocky mountain with sword + flag ────────────
+function CouragePeak({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Mountain base */}
+      <mesh position={[0, 2.5, 0]}>
+        <coneGeometry args={[4, 7, 7]} />
+        <meshStandardMaterial
+          color="#4A4A4A"
+          roughness={0.8}
+          flatShading
+        />
+      </mesh>
+      {/* Golden peak cap */}
+      <mesh position={[0, 5.5, 0]}>
+        <coneGeometry args={[1.2, 2, 6]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FF8C00"
+          emissiveIntensity={0.4}
+          roughness={0.3}
+        />
+      </mesh>
+      {/* Sword blade */}
+      <mesh position={[0, 7.2, 0]}>
+        <boxGeometry args={[0.12, 2.5, 0.05]} />
+        <meshStandardMaterial
+          color="#C0C0C0"
+          emissive="#FFFFFF"
+          emissiveIntensity={0.2}
+          metalness={0.8}
+        />
+      </mesh>
+      {/* Sword cross guard */}
+      <mesh position={[0, 6.2, 0]}>
+        <boxGeometry args={[0.8, 0.12, 0.12]} />
+        <meshStandardMaterial
+          color="#8B6914"
+          roughness={0.5}
+        />
+      </mesh>
+      {/* Sword handle */}
+      <mesh position={[0, 5.9, 0]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.6, 5]} />
+        <meshStandardMaterial color="#5C3317" roughness={0.7} />
+      </mesh>
+      {/* Flag pole */}
+      <mesh position={[1.5, 5, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 3, 4]} />
+        <meshStandardMaterial color="#8B6914" />
+      </mesh>
+      {/* Flag */}
+      <mesh position={[2.2, 5.8, 0]}>
+        <boxGeometry args={[1.2, 0.7, 0.02]} />
+        <meshStandardMaterial
+          color="#CC0000"
+          emissive="#FF0000"
+          emissiveIntensity={0.3}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Routes between zones (glowing ethereal lines) ──────────────
+function ZoneRoutes() {
+  const connections: [string, string][] = [
+    ["joy-island", "fear-cave"],
+    ["fear-cave", "anger-volcano"],
+    ["anger-volcano", "calm-forest"],
+    ["calm-forest", "surprise-box"],
+    ["surprise-box", "love-garden"],
+    ["love-garden", "dream-cloud"],
+    ["dream-cloud", "courage-peak"],
+  ];
+
+  const tubes = useMemo(() => {
+    return connections.map(([from, to]) => {
+      const fromPos = CITY_POSITIONS[from];
+      const toPos = CITY_POSITIONS[to];
+      if (!fromPos || !toPos) return null;
+
+      const midY = Math.max(fromPos[1], toPos[1]) + 3;
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(fromPos[0], fromPos[1], fromPos[2]),
+        new THREE.Vector3(
+          (fromPos[0] + toPos[0]) / 2,
+          midY,
+          (fromPos[2] + toPos[2]) / 2
+        ),
+        new THREE.Vector3(toPos[0], toPos[1], toPos[2])
+      );
+      return curve;
+    });
+  }, []);
+
+  return (
+    <>
+      {tubes.map((curve, i) => {
+        if (!curve) return null;
+        return (
+          <mesh key={i}>
+            <tubeGeometry args={[curve, 20, 0.08, 6, false]} />
+            <meshStandardMaterial
+              color="#FFFFFF"
+              emissive="#C0C0FF"
+              emissiveIntensity={0.5}
+              transparent
+              opacity={0.35}
+              depthWrite={false}
+            />
+          </mesh>
+        );
+      })}
+    </>
+  );
+}
+
+// ─── Pulsing light for anger zone ───────────────────────────────
+function PulsingLight({
+  position,
+  color,
+}: {
+  position: [number, number, number];
+  color: string;
+}) {
+  const lightRef = useRef<THREE.PointLight>(null!);
+
+  useFrame((state) => {
+    if (lightRef.current) {
+      lightRef.current.intensity =
+        1.0 + Math.sin(state.clock.elapsedTime * 3) * 0.5;
+    }
+  });
+
+  return (
+    <pointLight
+      ref={lightRef}
+      position={position}
+      color={color}
+      intensity={1.5}
+      distance={15}
+      decay={2}
+    />
+  );
+}
+
+// ─── City Marker (emoji + name + glow ring) ─────────────────────
+function CityMarker({
+  city,
+  lang,
+  unlocked,
+  onSelect,
+  position,
+  glowColor,
+}: {
+  city: City;
+  lang: Language;
+  unlocked: boolean;
+  onSelect: (city: City) => void;
+  position: [number, number, number];
+  glowColor: string;
+}) {
+  return (
+    <group position={[position[0], position[1] + 6, position[2]]}>
+      {/* Glow ring */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3.5, 0]}>
+        <ringGeometry args={[3, 3.5, 32]} />
+        <meshStandardMaterial
+          color={glowColor}
+          emissive={glowColor}
+          emissiveIntensity={0.8}
+          transparent
+          opacity={0.55}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+
+      <Html center distanceFactor={30} style={{ pointerEvents: "auto" }}>
+        <button
+          onClick={() => unlocked && onSelect(city)}
+          className="flex flex-col items-center gap-0.5"
+          style={{ cursor: unlocked ? "pointer" : "default" }}
+        >
+          <span style={{ fontSize: 32 }}>
+            {unlocked ? city.emoji : "🔒"}
+          </span>
+          <div
+            className="px-2 py-0.5 rounded-md whitespace-nowrap"
+            style={{
+              background: "rgba(0,0,0,0.7)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <span
+              className="text-[11px] font-bold"
+              style={{ color: glowColor }}
+            >
+              {city.name[lang] ?? city.name.en}
+            </span>
           </div>
-          <div className="mt-1 px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-sm">
-            <p className="text-white text-[11px] font-semibold whitespace-nowrap">{city.name.en}</p>
-          </div>
-        </div>
+        </button>
       </Html>
     </group>
   );
 }
 
-interface MapProps {
-  onSelectCity: (city: City) => void;
+// ─── Island component selector ──────────────────────────────────
+function ZoneIsland({
+  cityId,
+  position,
+}: {
+  cityId: string;
+  position: [number, number, number];
+}) {
+  switch (cityId) {
+    case "joy-island":
+      return <JoyIsland position={position} />;
+    case "fear-cave":
+      return <FearCave position={position} />;
+    case "anger-volcano":
+      return <AngerVolcano position={position} />;
+    case "calm-forest":
+      return <CalmForest position={position} />;
+    case "surprise-box":
+      return <SurpriseBox position={position} />;
+    case "love-garden":
+      return <LoveGarden position={position} />;
+    case "dream-cloud":
+      return <DreamCloud position={position} />;
+    case "courage-peak":
+      return <CouragePeak position={position} />;
+    default:
+      return null;
+  }
 }
 
-export function EmotionsMap({ onSelectCity }: MapProps) {
-  const cities = useMemo(getCities, []);
+// ─── Main Scene ─────────────────────────────────────────────────
+function EmotionsScene({
+  onSelectCity,
+  lang,
+  totalPoints,
+  isMobile,
+}: {
+  onSelectCity: (city: City) => void;
+  lang: Language;
+  totalPoints: number;
+  isMobile: boolean;
+}) {
+  return (
+    <>
+      {/* Fog */}
+      <fog attach="fog" args={["#1a0a2a", 30, 120]} />
+
+      {/* Lighting */}
+      <ambientLight intensity={0.3} color="#2a1a3a" />
+      <directionalLight
+        position={[10, 25, -5]}
+        intensity={0.6}
+        color="#FFF5E0"
+      />
+
+      {/* Per-zone point lights */}
+      <pointLight
+        position={[-25, 8, -20]}
+        color="#FFD700"
+        intensity={1.2}
+        distance={20}
+        decay={2}
+      />
+      <pointLight
+        position={[20, 0, -15]}
+        color="#3344aa"
+        intensity={0.5}
+        distance={15}
+        decay={2}
+      />
+      {/* Anger gets pulsing light */}
+      <PulsingLight position={[-15, 4, 10]} color="#FF2200" />
+      <pointLight
+        position={[25, 5, 5]}
+        color="#3CB371"
+        intensity={0.8}
+        distance={18}
+        decay={2}
+      />
+      <pointLight
+        position={[0, 11, -25]}
+        color="#FFFFFF"
+        intensity={1.4}
+        distance={20}
+        decay={2}
+      />
+      <pointLight
+        position={[15, 6, 15]}
+        color="#FF69B4"
+        intensity={1.0}
+        distance={18}
+        decay={2}
+      />
+      <pointLight
+        position={[-20, 13, 20]}
+        color="#9370DB"
+        intensity={0.9}
+        distance={20}
+        decay={2}
+      />
+      <pointLight
+        position={[5, 4, 25]}
+        color="#FF8C00"
+        intensity={1.1}
+        distance={18}
+        decay={2}
+      />
+
+      {/* Routes between zones */}
+      <ZoneRoutes />
+
+      {/* Islands + particles + markers */}
+      {EMOTION_CITIES.map((city) => {
+        const pos = getCityPos(city);
+        const config = ZONE_CONFIG[city.id];
+        const unlocked = totalPoints >= city.requiredXP;
+
+        return (
+          <React.Fragment key={city.id}>
+            <ZoneIsland cityId={city.id} position={pos} />
+
+            {config && (
+              <ZoneParticles
+                position={[pos[0], pos[1] + 2, pos[2]]}
+                color={config.particleColor}
+                count={config.particleCount}
+                behavior={config.particleBehavior}
+                spread={6}
+              />
+            )}
+
+            <CityMarker
+              city={city}
+              lang={lang}
+              unlocked={unlocked}
+              onSelect={onSelectCity}
+              position={pos}
+              glowColor={config?.lightColor ?? "#FFFFFF"}
+            />
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
+}
+
+// ─── Export ──────────────────────────────────────────────────────
+export function EmotionsMap({
+  onSelectCity,
+}: {
+  onSelectCity: (city: City) => void;
+}) {
+  const totalPoints = useProgressStore((s) => s.totalPoints);
+  const lang = useProgressStore((s) => s.targetLanguage) as Language;
+  const [dpr, setDpr] = useState(IS_MOBILE ? 1 : 1.5);
 
   return (
-    <div className="absolute inset-0" style={{ background: BG_COLOR }}>
-      <Canvas camera={{ position: [0, 30, 35], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 20, 10]} intensity={1} />
-
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-          <planeGeometry args={[100, 100]} />
-          <meshStandardMaterial color={BG_COLOR} />
-        </mesh>
-
-        {cities.map((city, i) => (
-          <CityNode key={city.id} city={city} index={i} total={cities.length} onSelect={onSelectCity} />
-        ))}
-
+    <div
+      className="w-full h-full"
+      style={{
+        background:
+          "linear-gradient(180deg, #0a2a2a 0%, #0a1628 50%, #0d0015 100%)",
+      }}
+    >
+      <Canvas dpr={dpr} camera={{ position: [0, 30, 50], fov: 50 }}>
+        <PerformanceMonitor
+          onDecline={() => setDpr(IS_MOBILE ? 0.75 : 1)}
+          onIncline={() => setDpr(IS_MOBILE ? 1 : 1.5)}
+        />
+        <EmotionsScene
+          onSelectCity={onSelectCity}
+          lang={lang}
+          totalPoints={totalPoints}
+          isMobile={IS_MOBILE}
+        />
         <OrbitControls
           enablePan
           enableZoom
           minDistance={15}
-          maxDistance={60}
-          maxPolarAngle={Math.PI / 2.5}
+          maxDistance={70}
+          maxPolarAngle={Math.PI / 2.2}
         />
       </Canvas>
     </div>
