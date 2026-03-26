@@ -2067,6 +2067,364 @@ function NearCameraFish({ isMobile }: { isMobile: boolean }) {
   );
 }
 
+// ─── Massive Particle Field (underwater haze) ────────────────────
+function ParticleField({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 100 : 300;
+  const pointsRef = useRef<THREE.Points>(null!);
+
+  const { positions, colors, velocities } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const vel = Array.from({ length: count }, () => ({
+      vx: (Math.random() - 0.5) * 0.008,
+      vy: (Math.random() - 0.5) * 0.005,
+      vz: (Math.random() - 0.5) * 0.008,
+    }));
+    for (let i = 0; i < count; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * 120;
+      pos[i * 3 + 1] = -15 + Math.random() * 23;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 120;
+      const r = Math.random();
+      let c: THREE.Color;
+      if (r < 0.6) c = new THREE.Color("#ffffff");
+      else if (r < 0.8) c = new THREE.Color("#87CEEB");
+      else if (r < 0.9) c = new THREE.Color("#90EE90");
+      else c = new THREE.Color("#FFB6C1");
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    return { positions: pos, colors: col, velocities: vel };
+  }, [count]);
+
+  useFrame(() => {
+    const geo = pointsRef.current.geometry;
+    const posAttr = geo.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    for (let i = 0; i < count; i++) {
+      arr[i * 3]     += velocities[i].vx;
+      arr[i * 3 + 1] += velocities[i].vy;
+      arr[i * 3 + 2] += velocities[i].vz;
+      if (arr[i * 3] > 60) arr[i * 3] = -60;
+      if (arr[i * 3] < -60) arr[i * 3] = 60;
+      if (arr[i * 3 + 1] > 8) arr[i * 3 + 1] = -15;
+      if (arr[i * 3 + 1] < -15) arr[i * 3 + 1] = 8;
+      if (arr[i * 3 + 2] > 60) arr[i * 3 + 2] = -60;
+      if (arr[i * 3 + 2] < -60) arr[i * 3 + 2] = 60;
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} count={count} />
+      </bufferGeometry>
+      <pointsMaterial size={0.08} transparent opacity={0.45} depthWrite={false} sizeAttenuation vertexColors />
+    </points>
+  );
+}
+
+// ─── Mid-Water Jellyfish (large, transparent, camera level) ──────
+function MidWaterJellyfish({ isMobile }: { isMobile: boolean }) {
+  const JELLY_DATA: { pos: [number, number, number]; color: string; scale: number }[] = isMobile
+    ? [
+        { pos: [-12, 2, -6], color: "#FF69B4", scale: 1.8 },
+        { pos: [15, 4, 10], color: "#00CED1", scale: 1.5 },
+      ]
+    : [
+        { pos: [-12, 2, -6], color: "#FF69B4", scale: 1.8 },
+        { pos: [15, 4, 10], color: "#00CED1", scale: 1.6 },
+        { pos: [5, 1, -15], color: "#9B30FF", scale: 2.0 },
+        { pos: [-20, 3, 15], color: "#FFD700", scale: 1.5 },
+      ];
+
+  const refs = useRef<(THREE.Group | null)[]>([]);
+  const offsets = useMemo(() => JELLY_DATA.map(() => Math.random() * 100), [JELLY_DATA.length]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    JELLY_DATA.forEach((j, i) => {
+      const g = refs.current[i];
+      if (!g) return;
+      // Slow upward drift with reset
+      const yBase = j.pos[1];
+      const yDrift = ((t * 0.08 + offsets[i]) % 10);
+      const y = yBase + yDrift;
+      g.position.set(
+        j.pos[0] + Math.sin(t * 0.12 + offsets[i]) * 2,
+        y > yBase + 8 ? yBase : y,
+        j.pos[2] + Math.cos(t * 0.1 + offsets[i]) * 2,
+      );
+      // Pulsing
+      const pulse = 1 + Math.sin(t * 1.5 + offsets[i]) * 0.12;
+      g.scale.set(j.scale * pulse, j.scale / pulse, j.scale * pulse);
+    });
+  });
+
+  return (
+    <>
+      {JELLY_DATA.map((j, i) => (
+        <group key={`mwj-${i}`} ref={(el) => { refs.current[i] = el; }}>
+          <mesh>
+            <sphereGeometry args={[1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial
+              color={j.color}
+              emissive={j.color}
+              emissiveIntensity={0.4}
+              transparent
+              opacity={0.3}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+          {[0, 1, 2, 3, 4, 5].map((ti) => {
+            const angle = (ti / 6) * Math.PI * 2;
+            return (
+              <mesh key={ti} position={[Math.cos(angle) * 0.35, -1.8, Math.sin(angle) * 0.35]}>
+                <cylinderGeometry args={[0.012, 0.008, 3.5, 3]} />
+                <meshStandardMaterial color={j.color} emissive={j.color} emissiveIntensity={0.3} transparent opacity={0.25} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Tall Kelp Stalks (floor to mid-water) ───────────────────────
+function TallKelpStalks({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 8 : 18;
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const stalks = useMemo(() => {
+    const rng = seededRandom(54321);
+    return Array.from({ length: count }, () => {
+      const height = 15 + rng() * 7; // 15-22 units tall
+      const leafCount = 4 + Math.floor(rng() * 4);
+      return {
+        x: (rng() - 0.5) * 100,
+        z: (rng() - 0.5) * 100,
+        height,
+        phase: rng() * Math.PI * 2,
+        swaySpeed: 0.2 + rng() * 0.2,
+        leafCount,
+        green: rng() > 0.5 ? "#2D8B4E" : "#1E7A3A",
+      };
+    });
+  }, [count]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const s = stalks[i];
+      children[i].rotation.x = Math.sin(t * s.swaySpeed + s.phase) * 0.06;
+      children[i].rotation.z = Math.sin(t * s.swaySpeed * 0.7 + s.phase + 1) * 0.03;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {stalks.map((s, i) => (
+        <group key={`tk-${i}`} position={[s.x, -17 + s.height / 2, s.z]}>
+          {/* Main stalk */}
+          <mesh>
+            <cylinderGeometry args={[0.04, 0.1, s.height, 4]} />
+            <meshStandardMaterial color={s.green} emissive={s.green} emissiveIntensity={0.1} />
+          </mesh>
+          {/* Leaf blobs along stalk */}
+          {Array.from({ length: s.leafCount }, (_, j) => {
+            const side = j % 2 === 0 ? 1 : -1;
+            const yPos = -s.height / 2 + (j + 1) * (s.height / (s.leafCount + 1));
+            return (
+              <mesh key={j} position={[side * 0.18, yPos, 0]}>
+                <sphereGeometry args={[0.12, 4, 3]} />
+                <meshStandardMaterial color="#3CB371" emissive="#2E8B57" emissiveIntensity={0.08} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Crossing Fish Schools (swim across viewport) ────────────────
+function CrossingFishSchools({ isMobile }: { isMobile: boolean }) {
+  const schoolCount = isMobile ? 2 : 3;
+  const fishPerSchool = 20;
+
+  const schools = useMemo(() => {
+    const rng = seededRandom(67890);
+    const yLevels = [0, 2, -2];
+    const colors = ["#C0C0C0", "#87CEEB", "#A8B4C0"];
+    return Array.from({ length: schoolCount }, (_, idx) => {
+      const y = yLevels[idx % 3];
+      const z = -10 + idx * 10;
+      const speed = 0.15 + rng() * 0.1;
+      const fish = Array.from({ length: fishPerSchool }, () => ({
+        offX: (rng() - 0.5) * 4,
+        offY: (rng() - 0.5) * 2,
+        offZ: (rng() - 0.5) * 3,
+        wobblePhase: rng() * Math.PI * 2,
+        wobbleSpeed: 1 + rng() * 2,
+      }));
+      return { y, z, speed, color: colors[idx % 3], fish, startOffset: rng() * 120 };
+    });
+  }, [schoolCount]);
+
+  const meshRefs = useRef<(THREE.InstancedMesh | null)[]>([]);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    schools.forEach((school, si) => {
+      const mesh = meshRefs.current[si];
+      if (!mesh) return;
+      const baseX = ((t * school.speed * 10 + school.startOffset) % 140) - 70; // -70 to 70
+      school.fish.forEach((f, fi) => {
+        const wobble = Math.sin(t * f.wobbleSpeed + f.wobblePhase) * 0.3;
+        dummy.position.set(
+          baseX + f.offX,
+          school.y + f.offY + wobble,
+          school.z + f.offZ,
+        );
+        dummy.rotation.y = Math.PI / 2; // face direction of travel
+        dummy.scale.set(0.25, 0.1, 0.08);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(fi, dummy.matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  });
+
+  return (
+    <>
+      {schools.map((school, si) => (
+        <instancedMesh
+          key={`cs-${si}`}
+          ref={(el) => { meshRefs.current[si] = el; }}
+          args={[undefined, undefined, fishPerSchool]}
+        >
+          <sphereGeometry args={[1, 5, 4]} />
+          <meshStandardMaterial color={school.color} emissive={school.color} emissiveIntensity={0.1} metalness={0.5} roughness={0.4} />
+        </instancedMesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Floating Debris (organic matter) ────────────────────────────
+function FloatingDebris({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 5 : 12;
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const debris = useMemo(() => {
+    const rng = seededRandom(11223);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 80,
+      y: -4 + rng() * 10, // y=-4 to y=6
+      z: (rng() - 0.5) * 80,
+      rotSpeed: 0.2 + rng() * 0.4,
+      driftX: (rng() - 0.5) * 0.01,
+      driftY: -0.003 - rng() * 0.003, // slight sink
+      phase: rng() * Math.PI * 2,
+      color: rng() > 0.5 ? "#3d5a30" : "#6b4e2a",
+    }));
+  }, [count]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const d = debris[i];
+      // Drift
+      d.x += d.driftX;
+      d.y += d.driftY;
+      // Reset bounds
+      if (d.x > 40) d.x = -40;
+      if (d.x < -40) d.x = 40;
+      if (d.y < -5) d.y = 7;
+      const child = children[i];
+      child.position.set(d.x, d.y, d.z);
+      child.rotation.x = t * d.rotSpeed + d.phase;
+      child.rotation.z = t * d.rotSpeed * 0.7 + d.phase;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {debris.map((d, i) => (
+        <mesh key={`deb-${i}`} position={[d.x, d.y, d.z]}>
+          <planeGeometry args={[0.3, 0.5]} />
+          <meshStandardMaterial
+            color={d.color}
+            emissive={d.color}
+            emissiveIntensity={0.05}
+            side={THREE.DoubleSide}
+            transparent
+            opacity={0.6}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Bubble Columns (rising from specific floor points) ──────────
+function BubbleColumns() {
+  const COLUMNS = useMemo(() => {
+    const rng = seededRandom(44556);
+    return Array.from({ length: 4 }, () => {
+      const x = (rng() - 0.5) * 60;
+      const z = (rng() - 0.5) * 60;
+      const bubbleCount = 8 + Math.floor(rng() * 5);
+      const bubbles = Array.from({ length: bubbleCount }, () => ({
+        size: 0.1 + rng() * 0.2,
+        speed: 0.8 + rng() * 1.2,
+        wobbleAmp: 0.2 + rng() * 0.3,
+        wobbleFreq: 1 + rng() * 2,
+        offset: rng() * 25, // stagger start times
+      }));
+      return { x, z, bubbles };
+    });
+  }, []);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    let childIdx = 0;
+    const children = groupRef.current.children;
+    for (const col of COLUMNS) {
+      for (const b of col.bubbles) {
+        const child = children[childIdx];
+        if (!child) { childIdx++; continue; }
+        const y = ((t * b.speed + b.offset) % 25) - 17; // y=-17 to y=8
+        const wobbleX = Math.sin(t * b.wobbleFreq + b.offset) * b.wobbleAmp;
+        child.position.set(col.x + wobbleX, y, col.z);
+        child.scale.setScalar(b.size);
+        childIdx++;
+      }
+    }
+  });
+
+  const allBubbles = COLUMNS.flatMap((col) => col.bubbles);
+
+  return (
+    <group ref={groupRef}>
+      {allBubbles.map((_, i) => (
+        <mesh key={`bc-${i}`}>
+          <sphereGeometry args={[1, 6, 4]} />
+          <meshStandardMaterial color="#ffffff" transparent opacity={0.35} emissive="#87CEEB" emissiveIntensity={0.1} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // ─── Scene ───────────────────────────────────────────────────────
 function UnderwaterScene({
   onSelectCity,
@@ -2104,6 +2462,24 @@ function UnderwaterScene({
 
       {/* Underwater dust */}
       <UnderwaterDust count={dustCount} />
+
+      {/* Massive particle field — underwater haze */}
+      <ParticleField isMobile={isMobile} />
+
+      {/* Mid-water jellyfish — large, transparent, camera level */}
+      <MidWaterJellyfish isMobile={isMobile} />
+
+      {/* Tall kelp stalks — floor to mid-water */}
+      <TallKelpStalks isMobile={isMobile} />
+
+      {/* Crossing fish schools — swim across viewport */}
+      <CrossingFishSchools isMobile={isMobile} />
+
+      {/* Floating debris — organic matter */}
+      <FloatingDebris isMobile={isMobile} />
+
+      {/* Bubble columns — rising from floor */}
+      <BubbleColumns />
 
       {/* Sea floor with details */}
       <SeaFloor isMobile={isMobile} />
