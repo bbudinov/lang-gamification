@@ -10,6 +10,7 @@ export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "wo
   | "fantasy-forest" | "fantasy-dragon" | "fantasy-wizard" | "fantasy-castle" | "fantasy-village" | "fantasy-quest" | "fantasy-potion" | "fantasy-dungeon"
   | "time-ancient" | "time-medieval" | "time-present" | "time-future" | "time-dinosaur" | "time-industrial" | "time-station" | "time-museum"
   | "culture-italian" | "culture-japanese" | "culture-french" | "culture-mexican" | "culture-indian" | "culture-african" | "culture-british" | "culture-brazilian"
+  | "culture-bulgarian" | "culture-american" | "culture-german" | "culture-chinese" | "culture-egyptian" | "culture-spanish" | "culture-australian"
   | "emotions-joy" | "emotions-fear" | "emotions-anger" | "emotions-calm" | "emotions-surprise" | "emotions-love" | "emotions-dream" | "emotions-courage"
   | "science-lab" | "science-robot" | "science-space-station" | "science-energy" | "science-nature" | "science-medicine" | "science-computer" | "science-invention"
   | "meta-ui" | "meta-game" | "meta-code" | "meta-internet" | "meta-social-media" | "meta-ai" | "meta-music-studio" | "meta-movie";

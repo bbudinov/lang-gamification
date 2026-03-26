@@ -2314,6 +2314,203 @@ export const topics: Topic[] = [
     ],
   },
 
+  {
+    id: "culture-bulgarian",
+    name: { en: "Bulgarian Culture", bg: "Българска култура", es: "Cultura búlgara", it: "Cultura bulgara", de: "Bulgarische Kultur", fr: "Culture bulgare" },
+    emoji: "🇧🇬",
+    unlockCost: 8000,
+    position: [0, 0.5, 0],
+    color: "#15803d",
+    words: [
+      // Difficulty 1
+      { id: "cbg1", en: "rose", bg: "роза", es: "rosa", it: "rosa", de: "Rose", fr: "rose", emoji: "🌹", difficulty: 1 },
+      { id: "cbg2", en: "mountain", bg: "планина", es: "montaña", it: "montagna", de: "Berg", fr: "montagne", emoji: "⛰️", difficulty: 1 },
+      { id: "cbg3", en: "yogurt", bg: "кисело мляко", es: "yogur", it: "yogurt", de: "Joghurt", fr: "yaourt", emoji: "🥛", difficulty: 1 },
+      { id: "cbg4", en: "church", bg: "църква", es: "iglesia", it: "chiesa", de: "Kirche", fr: "église", emoji: "⛪", difficulty: 1 },
+      { id: "cbg5", en: "dance", bg: "танц", es: "baile", it: "danza", de: "Tanz", fr: "danse", emoji: "💃", difficulty: 1 },
+      { id: "cbg6", en: "village", bg: "село", es: "pueblo", it: "villaggio", de: "Dorf", fr: "village", emoji: "🏘️", difficulty: 1 },
+      // Difficulty 2
+      { id: "cbg7", en: "monastery", bg: "манастир", es: "monasterio", it: "monastero", de: "Kloster", fr: "monastère", emoji: "🏛️", difficulty: 2 },
+      { id: "cbg8", en: "folklore", bg: "фолклор", es: "folclore", it: "folclore", de: "Folklore", fr: "folklore", emoji: "🎭", difficulty: 2 },
+      { id: "cbg9", en: "cyrillic", bg: "кирилица", es: "cirílico", it: "cirillico", de: "Kyrillisch", fr: "cyrillique", emoji: "🔤", difficulty: 2 },
+      { id: "cbg10", en: "lavender", bg: "лавандула", es: "lavanda", it: "lavanda", de: "Lavendel", fr: "lavande", emoji: "💜", difficulty: 2 },
+      { id: "cbg11", en: "pottery", bg: "грънчарство", es: "cerámica", it: "ceramica", de: "Töpferei", fr: "poterie", emoji: "🏺", difficulty: 2 },
+      // Difficulty 3
+      { id: "cbg12", en: "heritage", bg: "наследство", es: "patrimonio", it: "patrimonio", de: "Erbe", fr: "patrimoine", emoji: "🏰", difficulty: 3 },
+      { id: "cbg13", en: "orthodox", bg: "православен", es: "ortodoxo", it: "ortodosso", de: "orthodox", fr: "orthodoxe", emoji: "☦️", difficulty: 3 },
+      { id: "cbg14", en: "thracian", bg: "тракийски", es: "tracio", it: "tracio", de: "thrakisch", fr: "thrace", emoji: "🗡️", difficulty: 3 },
+      { id: "cbg15", en: "tradition", bg: "традиция", es: "tradición", it: "tradizione", de: "Tradition", fr: "tradition", emoji: "🎎", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-american",
+    name: { en: "American Culture", bg: "Американска култура", es: "Cultura americana", it: "Cultura americana", de: "Amerikanische Kultur", fr: "Culture américaine" },
+    emoji: "🇺🇸",
+    unlockCost: 8200,
+    position: [0, 0.5, 0],
+    color: "#1d4ed8",
+    words: [
+      // Difficulty 1
+      { id: "cus1", en: "city", bg: "град", es: "ciudad", it: "città", de: "Stadt", fr: "ville", emoji: "🏙️", difficulty: 1 },
+      { id: "cus2", en: "taxi", bg: "такси", es: "taxi", it: "taxi", de: "Taxi", fr: "taxi", emoji: "🚕", difficulty: 1 },
+      { id: "cus3", en: "burger", bg: "бургер", es: "hamburguesa", it: "hamburger", de: "Burger", fr: "burger", emoji: "🍔", difficulty: 1 },
+      { id: "cus4", en: "freedom", bg: "свобода", es: "libertad", it: "libertà", de: "Freiheit", fr: "liberté", emoji: "🗽", difficulty: 1 },
+      { id: "cus5", en: "dream", bg: "мечта", es: "sueño", it: "sogno", de: "Traum", fr: "rêve", emoji: "💭", difficulty: 1 },
+      { id: "cus6", en: "skyscraper", bg: "небостъргач", es: "rascacielos", it: "grattacielo", de: "Wolkenkratzer", fr: "gratte-ciel", emoji: "🏢", difficulty: 1 },
+      // Difficulty 2
+      { id: "cus7", en: "Broadway", bg: "Бродуей", es: "Broadway", it: "Broadway", de: "Broadway", fr: "Broadway", emoji: "🎭", difficulty: 2 },
+      { id: "cus8", en: "basketball", bg: "баскетбол", es: "baloncesto", it: "pallacanestro", de: "Basketball", fr: "basketball", emoji: "🏀", difficulty: 2 },
+      { id: "cus9", en: "dollar", bg: "долар", es: "dólar", it: "dollaro", de: "Dollar", fr: "dollar", emoji: "💵", difficulty: 2 },
+      { id: "cus10", en: "cowboy", bg: "каубой", es: "vaquero", it: "cowboy", de: "Cowboy", fr: "cow-boy", emoji: "🤠", difficulty: 2 },
+      { id: "cus11", en: "baseball", bg: "бейзбол", es: "béisbol", it: "baseball", de: "Baseball", fr: "baseball", emoji: "⚾", difficulty: 2 },
+      // Difficulty 3
+      { id: "cus12", en: "constitution", bg: "конституция", es: "constitución", it: "costituzione", de: "Verfassung", fr: "constitution", emoji: "📜", difficulty: 3 },
+      { id: "cus13", en: "independence", bg: "независимост", es: "independencia", it: "indipendenza", de: "Unabhängigkeit", fr: "indépendance", emoji: "🎆", difficulty: 3 },
+      { id: "cus14", en: "Hollywood", bg: "Холивуд", es: "Hollywood", it: "Hollywood", de: "Hollywood", fr: "Hollywood", emoji: "🎬", difficulty: 3 },
+      { id: "cus15", en: "Silicon Valley", bg: "Силициева долина", es: "Silicon Valley", it: "Silicon Valley", de: "Silicon Valley", fr: "Silicon Valley", emoji: "💻", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-german",
+    name: { en: "German Culture", bg: "Немска култура", es: "Cultura alemana", it: "Cultura tedesca", de: "Deutsche Kultur", fr: "Culture allemande" },
+    emoji: "🇩🇪",
+    unlockCost: 8400,
+    position: [0, 0.5, 0],
+    color: "#dc2626",
+    words: [
+      // Difficulty 1
+      { id: "cde1", en: "castle", bg: "замък", es: "castillo", it: "castello", de: "Burg", fr: "château", emoji: "🏰", difficulty: 1 },
+      { id: "cde2", en: "beer", bg: "бира", es: "cerveza", it: "birra", de: "Bier", fr: "bière", emoji: "🍺", difficulty: 1 },
+      { id: "cde3", en: "pretzel", bg: "кифличка", es: "pretzel", it: "pretzel", de: "Brezel", fr: "bretzel", emoji: "🥨", difficulty: 1 },
+      { id: "cde4", en: "forest", bg: "гора", es: "bosque", it: "foresta", de: "Wald", fr: "forêt", emoji: "🌲", difficulty: 1 },
+      { id: "cde5", en: "clock", bg: "часовник", es: "reloj", it: "orologio", de: "Uhr", fr: "horloge", emoji: "🕰️", difficulty: 1 },
+      { id: "cde6", en: "bread", bg: "хляб", es: "pan", it: "pane", de: "Brot", fr: "pain", emoji: "🍞", difficulty: 1 },
+      // Difficulty 2
+      { id: "cde7", en: "autobahn", bg: "аутобан", es: "autobahn", it: "autobahn", de: "Autobahn", fr: "autoroute", emoji: "🛣️", difficulty: 2 },
+      { id: "cde8", en: "sausage", bg: "наденица", es: "salchicha", it: "salsiccia", de: "Wurst", fr: "saucisse", emoji: "🌭", difficulty: 2 },
+      { id: "cde9", en: "lederhosen", bg: "ледерхозен", es: "lederhosen", it: "lederhosen", de: "Lederhosen", fr: "lederhosen", emoji: "👖", difficulty: 2 },
+      { id: "cde10", en: "cathedral", bg: "катедрала", es: "catedral", it: "cattedrale", de: "Kathedrale", fr: "cathédrale", emoji: "⛪", difficulty: 2 },
+      { id: "cde11", en: "precision", bg: "прецизност", es: "precisión", it: "precisione", de: "Präzision", fr: "précision", emoji: "🎯", difficulty: 2 },
+      // Difficulty 3
+      { id: "cde12", en: "Oktoberfest", bg: "Октоберфест", es: "Oktoberfest", it: "Oktoberfest", de: "Oktoberfest", fr: "Oktoberfest", emoji: "🎪", difficulty: 3 },
+      { id: "cde13", en: "engineering", bg: "инженерство", es: "ingeniería", it: "ingegneria", de: "Ingenieurwesen", fr: "ingénierie", emoji: "⚙️", difficulty: 3 },
+      { id: "cde14", en: "philosophy", bg: "философия", es: "filosofía", it: "filosofia", de: "Philosophie", fr: "philosophie", emoji: "📚", difficulty: 3 },
+      { id: "cde15", en: "kindergarten", bg: "детска градина", es: "jardín de infancia", it: "asilo", de: "Kindergarten", fr: "jardin d'enfants", emoji: "💒", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-chinese",
+    name: { en: "Chinese Culture", bg: "Китайска култура", es: "Cultura china", it: "Cultura cinese", de: "Chinesische Kultur", fr: "Culture chinoise" },
+    emoji: "🇨🇳",
+    unlockCost: 8600,
+    position: [0, 0.5, 0],
+    color: "#b91c1c",
+    words: [
+      // Difficulty 1
+      { id: "ccn1", en: "dragon", bg: "дракон", es: "dragón", it: "drago", de: "Drache", fr: "dragon", emoji: "🐉", difficulty: 1 },
+      { id: "ccn2", en: "tea", bg: "чай", es: "té", it: "tè", de: "Tee", fr: "thé", emoji: "🍵", difficulty: 1 },
+      { id: "ccn3", en: "wall", bg: "стена", es: "muro", it: "muro", de: "Mauer", fr: "mur", emoji: "🧱", difficulty: 1 },
+      { id: "ccn4", en: "silk", bg: "коприна", es: "seda", it: "seta", de: "Seide", fr: "soie", emoji: "🧵", difficulty: 1 },
+      { id: "ccn5", en: "lantern", bg: "фенер", es: "linterna", it: "lanterna", de: "Laterne", fr: "lanterne", emoji: "🏮", difficulty: 1 },
+      { id: "ccn6", en: "rice", bg: "ориз", es: "arroz", it: "riso", de: "Reis", fr: "riz", emoji: "🍚", difficulty: 1 },
+      // Difficulty 2
+      { id: "ccn7", en: "pagoda", bg: "пагода", es: "pagoda", it: "pagoda", de: "Pagode", fr: "pagode", emoji: "🏯", difficulty: 2 },
+      { id: "ccn8", en: "calligraphy", bg: "калиграфия", es: "caligrafía", it: "calligrafia", de: "Kalligraphie", fr: "calligraphie", emoji: "✍️", difficulty: 2 },
+      { id: "ccn9", en: "bamboo", bg: "бамбук", es: "bambú", it: "bambù", de: "Bambus", fr: "bambou", emoji: "🎋", difficulty: 2 },
+      { id: "ccn10", en: "jade", bg: "нефрит", es: "jade", it: "giada", de: "Jade", fr: "jade", emoji: "💎", difficulty: 2 },
+      { id: "ccn11", en: "dynasty", bg: "династия", es: "dinastía", it: "dinastia", de: "Dynastie", fr: "dynastie", emoji: "👑", difficulty: 2 },
+      // Difficulty 3
+      { id: "ccn12", en: "emperor", bg: "император", es: "emperador", it: "imperatore", de: "Kaiser", fr: "empereur", emoji: "🤴", difficulty: 3 },
+      { id: "ccn13", en: "philosophy", bg: "философия", es: "filosofía", it: "filosofia", de: "Philosophie", fr: "philosophie", emoji: "📖", difficulty: 3 },
+      { id: "ccn14", en: "porcelain", bg: "порцелан", es: "porcelana", it: "porcellana", de: "Porzellan", fr: "porcelaine", emoji: "🍶", difficulty: 3 },
+      { id: "ccn15", en: "feng shui", bg: "фън шуй", es: "feng shui", it: "feng shui", de: "Feng-Shui", fr: "feng shui", emoji: "☯️", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-egyptian",
+    name: { en: "Egyptian Culture", bg: "Египетска култура", es: "Cultura egipcia", it: "Cultura egizia", de: "Ägyptische Kultur", fr: "Culture égyptienne" },
+    emoji: "🇪🇬",
+    unlockCost: 8800,
+    position: [0, 0.5, 0],
+    color: "#d97706",
+    words: [
+      // Difficulty 1
+      { id: "ceg1", en: "pyramid", bg: "пирамида", es: "pirámide", it: "piramide", de: "Pyramide", fr: "pyramide", emoji: "🔺", difficulty: 1 },
+      { id: "ceg2", en: "pharaoh", bg: "фараон", es: "faraón", it: "faraone", de: "Pharao", fr: "pharaon", emoji: "👑", difficulty: 1 },
+      { id: "ceg3", en: "sand", bg: "пясък", es: "arena", it: "sabbia", de: "Sand", fr: "sable", emoji: "🏜️", difficulty: 1 },
+      { id: "ceg4", en: "sun", bg: "слънце", es: "sol", it: "sole", de: "Sonne", fr: "soleil", emoji: "☀️", difficulty: 1 },
+      { id: "ceg5", en: "gold", bg: "злато", es: "oro", it: "oro", de: "Gold", fr: "or", emoji: "🥇", difficulty: 1 },
+      { id: "ceg6", en: "river", bg: "река", es: "río", it: "fiume", de: "Fluss", fr: "rivière", emoji: "🏞️", difficulty: 1 },
+      // Difficulty 2
+      { id: "ceg7", en: "sphinx", bg: "сфинкс", es: "esfinge", it: "sfinge", de: "Sphinx", fr: "sphinx", emoji: "🗿", difficulty: 2 },
+      { id: "ceg8", en: "mummy", bg: "мумия", es: "momia", it: "mummia", de: "Mumie", fr: "momie", emoji: "🧟", difficulty: 2 },
+      { id: "ceg9", en: "temple", bg: "храм", es: "templo", it: "tempio", de: "Tempel", fr: "temple", emoji: "🏛️", difficulty: 2 },
+      { id: "ceg10", en: "obelisk", bg: "обелиск", es: "obelisco", it: "obelisco", de: "Obelisk", fr: "obélisque", emoji: "🗼", difficulty: 2 },
+      { id: "ceg11", en: "hieroglyph", bg: "йероглиф", es: "jeroglífico", it: "geroglifico", de: "Hieroglyphe", fr: "hiéroglyphe", emoji: "𓂀", difficulty: 2 },
+      // Difficulty 3
+      { id: "ceg12", en: "sarcophagus", bg: "саркофаг", es: "sarcófago", it: "sarcofago", de: "Sarkophag", fr: "sarcophage", emoji: "⚰️", difficulty: 3 },
+      { id: "ceg13", en: "papyrus", bg: "папирус", es: "papiro", it: "papiro", de: "Papyrus", fr: "papyrus", emoji: "📜", difficulty: 3 },
+      { id: "ceg14", en: "archaeology", bg: "археология", es: "arqueología", it: "archeologia", de: "Archäologie", fr: "archéologie", emoji: "🔍", difficulty: 3 },
+      { id: "ceg15", en: "civilization", bg: "цивилизация", es: "civilización", it: "civiltà", de: "Zivilisation", fr: "civilisation", emoji: "🌍", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-spanish",
+    name: { en: "Spanish Culture", bg: "Испанска култура", es: "Cultura española", it: "Cultura spagnola", de: "Spanische Kultur", fr: "Culture espagnole" },
+    emoji: "🇪🇸",
+    unlockCost: 9000,
+    position: [0, 0.5, 0],
+    color: "#dc2626",
+    words: [
+      // Difficulty 1
+      { id: "ces1", en: "dance", bg: "танц", es: "baile", it: "danza", de: "Tanz", fr: "danse", emoji: "💃", difficulty: 1 },
+      { id: "ces2", en: "guitar", bg: "китара", es: "guitarra", it: "chitarra", de: "Gitarre", fr: "guitare", emoji: "🎸", difficulty: 1 },
+      { id: "ces3", en: "bull", bg: "бик", es: "toro", it: "toro", de: "Stier", fr: "taureau", emoji: "🐂", difficulty: 1 },
+      { id: "ces4", en: "sun", bg: "слънце", es: "sol", it: "sole", de: "Sonne", fr: "soleil", emoji: "☀️", difficulty: 1 },
+      { id: "ces5", en: "olive", bg: "маслина", es: "aceituna", it: "oliva", de: "Olive", fr: "olive", emoji: "🫒", difficulty: 1 },
+      { id: "ces6", en: "fiesta", bg: "фиеста", es: "fiesta", it: "festa", de: "Fiesta", fr: "fête", emoji: "🎉", difficulty: 1 },
+      // Difficulty 2
+      { id: "ces7", en: "flamenco", bg: "фламенко", es: "flamenco", it: "flamenco", de: "Flamenco", fr: "flamenco", emoji: "💃", difficulty: 2 },
+      { id: "ces8", en: "paella", bg: "паеля", es: "paella", it: "paella", de: "Paella", fr: "paella", emoji: "🥘", difficulty: 2 },
+      { id: "ces9", en: "tapas", bg: "тапас", es: "tapas", it: "tapas", de: "Tapas", fr: "tapas", emoji: "🍢", difficulty: 2 },
+      { id: "ces10", en: "plaza", bg: "площад", es: "plaza", it: "piazza", de: "Platz", fr: "place", emoji: "🏛️", difficulty: 2 },
+      { id: "ces11", en: "cathedral", bg: "катедрала", es: "catedral", it: "cattedrale", de: "Kathedrale", fr: "cathédrale", emoji: "⛪", difficulty: 2 },
+      // Difficulty 3
+      { id: "ces12", en: "matador", bg: "матадор", es: "matador", it: "matador", de: "Matador", fr: "matador", emoji: "🤺", difficulty: 3 },
+      { id: "ces13", en: "siesta", bg: "сиеста", es: "siesta", it: "siesta", de: "Siesta", fr: "sieste", emoji: "😴", difficulty: 3 },
+      { id: "ces14", en: "sangria", bg: "сангрия", es: "sangría", it: "sangria", de: "Sangria", fr: "sangria", emoji: "🍷", difficulty: 3 },
+      { id: "ces15", en: "architecture", bg: "архитектура", es: "arquitectura", it: "architettura", de: "Architektur", fr: "architecture", emoji: "🏗️", difficulty: 3 },
+    ],
+  },
+  {
+    id: "culture-australian",
+    name: { en: "Australian Culture", bg: "Австралийска култура", es: "Cultura australiana", it: "Cultura australiana", de: "Australische Kultur", fr: "Culture australienne" },
+    emoji: "🇦🇺",
+    unlockCost: 9200,
+    position: [0, 0.5, 0],
+    color: "#0369a1",
+    words: [
+      // Difficulty 1
+      { id: "cau1", en: "beach", bg: "плаж", es: "playa", it: "spiaggia", de: "Strand", fr: "plage", emoji: "🏖️", difficulty: 1 },
+      { id: "cau2", en: "surf", bg: "сърф", es: "surf", it: "surf", de: "Surfen", fr: "surf", emoji: "🏄", difficulty: 1 },
+      { id: "cau3", en: "kangaroo", bg: "кенгуру", es: "canguro", it: "canguro", de: "Känguru", fr: "kangourou", emoji: "🦘", difficulty: 1 },
+      { id: "cau4", en: "coral", bg: "корал", es: "coral", it: "corallo", de: "Koralle", fr: "corail", emoji: "🪸", difficulty: 1 },
+      { id: "cau5", en: "outback", bg: "аутбек", es: "outback", it: "outback", de: "Outback", fr: "outback", emoji: "🏜️", difficulty: 1 },
+      { id: "cau6", en: "sun", bg: "слънце", es: "sol", it: "sole", de: "Sonne", fr: "soleil", emoji: "☀️", difficulty: 1 },
+      // Difficulty 2
+      { id: "cau7", en: "koala", bg: "коала", es: "koala", it: "koala", de: "Koala", fr: "koala", emoji: "🐨", difficulty: 2 },
+      { id: "cau8", en: "reef", bg: "риф", es: "arrecife", it: "barriera corallina", de: "Riff", fr: "récif", emoji: "🌊", difficulty: 2 },
+      { id: "cau9", en: "boomerang", bg: "бумеранг", es: "bumerán", it: "boomerang", de: "Bumerang", fr: "boomerang", emoji: "🪃", difficulty: 2 },
+      { id: "cau10", en: "cricket", bg: "крикет", es: "críquet", it: "cricket", de: "Cricket", fr: "cricket", emoji: "🏏", difficulty: 2 },
+      { id: "cau11", en: "barbecue", bg: "барбекю", es: "barbacoa", it: "barbecue", de: "Grillen", fr: "barbecue", emoji: "🍖", difficulty: 2 },
+      // Difficulty 3
+      { id: "cau12", en: "platypus", bg: "птицечовка", es: "ornitorrinco", it: "ornitorinco", de: "Schnabeltier", fr: "ornithorynque", emoji: "🦆", difficulty: 3 },
+      { id: "cau13", en: "didgeridoo", bg: "диджериду", es: "didgeridoo", it: "didgeridoo", de: "Didgeridoo", fr: "didgeridoo", emoji: "🎵", difficulty: 3 },
+      { id: "cau14", en: "eucalyptus", bg: "евкалипт", es: "eucalipto", it: "eucalipto", de: "Eukalyptus", fr: "eucalyptus", emoji: "🌿", difficulty: 3 },
+      { id: "cau15", en: "aboriginal", bg: "аборигенски", es: "aborigen", it: "aborigeno", de: "Aborigine", fr: "aborigène", emoji: "🎨", difficulty: 3 },
+    ],
+  },
+
   // =============================================
   // === EMOTIONS WORLDS ===
   // =============================================

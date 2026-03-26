@@ -80,7 +80,7 @@ export const WORLDS: World[] = [
     requiredXP: 7500,
     themeColor: "#ec4899",
     bgColor: "#2e1a1a",
-    topicIds: ["culture-italian", "culture-japanese", "culture-french", "culture-mexican", "culture-indian", "culture-african", "culture-british", "culture-brazilian"],
+    topicIds: ["culture-italian", "culture-japanese", "culture-french", "culture-mexican", "culture-indian", "culture-african", "culture-british", "culture-brazilian", "culture-bulgarian", "culture-american", "culture-german", "culture-chinese", "culture-egyptian", "culture-spanish", "culture-australian"],
   },
   {
     id: "fantasy",
