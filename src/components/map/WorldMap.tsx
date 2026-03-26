@@ -21,6 +21,7 @@ const WORLD_W = 180;
 const WORLD_H = 140;
 
 const CITY_POSITIONS: Record<string, [number, number]> = {
+  // Original 8
   greenville:  [-50, 36],
   farmstead:   [30, 26],
   colortown:   [-36, 4],
@@ -29,20 +30,23 @@ const CITY_POSITIONS: Record<string, [number, number]> = {
   seaside:     [42, -30],
   healthville: [-34, -38],
   stormridge:  [10, -50],
+  // Previously unmapped
+  bookshire:   [-56, -10],
+  portside:    [50, 4],
+  townhall:    [8, 14],
+  sportsville: [56, -40],
+  melodia:     [-28, 40],
+  // New Land locations
+  "botanical-garden": [-52, -56],
+  "central-park":     [48, -56],
+  "university":       [-40, -68],
+  "art-museum":       [36, -68],
+  "history-museum":   [0, -72],
+  "legendary-places": [0, -84],
 };
-
-const FUTURE_LOCATIONS = [
-  { id: "cinema", emoji: "🎬", label: "Cinema", pos: [-10, 26] as [number, number] },
-  { id: "bakery", emoji: "🧁", label: "Bakery", pos: [50, 4] as [number, number] },
-  { id: "market", emoji: "🏪", label: "Market", pos: [8, 14] as [number, number] },
-  { id: "library", emoji: "📚", label: "Library", pos: [-56, -10] as [number, number] },
-  { id: "toystore", emoji: "🧸", label: "Toy Store", pos: [-28, 40] as [number, number] },
-  { id: "trainstation", emoji: "🚂", label: "Train Station", pos: [56, -40] as [number, number] },
-];
 
 const ALL_NODE_POSITIONS: [number, number][] = [
   ...Object.values(CITY_POSITIONS),
-  ...FUTURE_LOCATIONS.map((l) => l.pos),
 ];
 
 function cityToWorld(city: City): [number, number, number] {
@@ -1622,37 +1626,6 @@ function CityMarker({ city, lang, unlocked, completedLevels, isNext, onSelect }:
 
 // ─── Future locked location markers (BIGGER) ────────────────────
 
-function FutureLocationMarkers() {
-  return (
-    <group>
-      {FUTURE_LOCATIONS.map((loc) => (
-        <group key={loc.id} position={[loc.pos[0], 0.5, loc.pos[1]]}>
-          <Html center distanceFactor={50} style={{ pointerEvents: "none" }}>
-            <div className="flex flex-col items-center" style={{ opacity: 0.65 }}>
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  width: 72, height: 72, borderRadius: "50%",
-                  background: "radial-gradient(circle at 35% 35%, #5a5a54, #3a3a34)",
-                  border: "3px solid #555",
-                  boxShadow: "0 3px 8px rgba(0,0,0,0.35)",
-                }}
-              >
-                <span style={{ fontSize: 26, opacity: 0.5 }}>🔒</span>
-              </div>
-              <div className="mt-1 px-3 py-1 rounded-lg" style={{ background: "rgba(30,30,30,0.7)" }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#777", whiteSpace: "nowrap" }}>
-                  {loc.label}
-                </p>
-              </div>
-              <p style={{ fontSize: 10, color: "#999", fontStyle: "italic" }}>Coming soon</p>
-            </div>
-          </Html>
-        </group>
-      ))}
-    </group>
-  );
-}
 
 // ─── Camera controls ─────────────────────────────────────────────
 
@@ -1826,7 +1799,6 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
             />
           ))}
 
-          <FutureLocationMarkers />
 
           <SceneReady onReady={() => setSceneReady(true)} />
         </Suspense>
