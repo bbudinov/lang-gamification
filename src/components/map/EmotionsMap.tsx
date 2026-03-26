@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React, { useRef, useMemo, useState, useCallback } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
 import { useProgressStore } from "@/stores/progressStore";
 import { CITIES, type City } from "@/data/cities";
@@ -1001,17 +1001,20 @@ function ZoneRoutes() {
       {tubes.map((curve, i) => {
         if (!curve) return null;
         return (
-          <mesh key={i}>
-            <tubeGeometry args={[curve, 20, 0.08, 6, false]} />
-            <meshStandardMaterial
-              color="#FFFFFF"
-              emissive="#8888aa"
-              emissiveIntensity={0.3}
-              transparent
-              opacity={0.35}
-              depthWrite={false}
-            />
-          </mesh>
+          <React.Fragment key={i}>
+            <mesh>
+              <tubeGeometry args={[curve, 20, 0.08, 6, false]} />
+              <meshStandardMaterial
+                color="#FFFFFF"
+                emissive="#8888aa"
+                emissiveIntensity={0.3}
+                transparent
+                opacity={0.35}
+                depthWrite={false}
+              />
+            </mesh>
+            <TrailParticles curve={curve} />
+          </React.Fragment>
         );
       })}
     </>
@@ -1108,6 +1111,338 @@ function CityMarker({
   );
 }
 
+// ─── Pulsing Island Wrapper (heartbeat pulse) ────────────────────
+const PULSE_SPEEDS: Record<string, number> = {
+  "love-garden": 2,
+  "fear-cave": 3.5,
+  "anger-volcano": 4,
+};
+
+function PulsingIsland({
+  speed,
+  children,
+}: {
+  speed: number;
+  children: React.ReactNode;
+}) {
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      const s = 1 + Math.sin(state.clock.elapsedTime * speed) * 0.025;
+      groupRef.current.scale.setScalar(s);
+    }
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
+
+// ─── Trail Particles along routes ────────────────────────────────
+function TrailParticles({ curve }: { curve: THREE.QuadraticBezierCurve3 }) {
+  const count = IS_MOBILE ? 3 : 6;
+  const meshRefs = useRef<THREE.Mesh[]>([]);
+
+  const offsets = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => i / count);
+  }, [count]);
+
+  const setRef = useCallback(
+    (el: THREE.Mesh | null, i: number) => {
+      if (el) meshRefs.current[i] = el;
+    },
+    []
+  );
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    meshRefs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const progress = (offsets[i] + t * 0.025) % 1;
+      const point = curve.getPoint(progress);
+      mesh.position.copy(point);
+    });
+  });
+
+  return (
+    <>
+      {offsets.map((_, i) => (
+        <mesh key={i} ref={(el) => setRef(el, i)}>
+          <sphereGeometry args={[0.1, 4, 4]} />
+          <meshStandardMaterial
+            color="#FFFFFF"
+            emissive="#FFFFFF"
+            emissiveIntensity={0.5}
+            transparent
+            opacity={0.45}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Micro Events (random particle bursts) ───────────────────────
+function MicroEvents() {
+  if (IS_MOBILE) return null;
+
+  const MAX_BURSTS = 2;
+  const BURST_PARTICLE_COUNT = 5;
+
+  const zonePositions = useMemo(() => {
+    return Object.entries(CITY_POSITIONS).map(([id, pos]) => ({
+      id,
+      pos,
+      color: ZONE_CONFIG[id]?.particleColor ?? "#FFFFFF",
+    }));
+  }, []);
+
+  interface BurstData {
+    center: [number, number, number];
+    color: string;
+    startTime: number;
+    active: boolean;
+  }
+
+  const burstsRef = useRef<BurstData[]>(
+    Array.from({ length: MAX_BURSTS }, () => ({
+      center: [0, 0, 0] as [number, number, number],
+      color: "#FFFFFF",
+      startTime: -10,
+      active: false,
+    }))
+  );
+
+  const nextSpawnRef = useRef<number[]>([1, 3.5]);
+  const groupRefs = useRef<(THREE.Group | null)[]>([null, null]);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+
+    for (let b = 0; b < MAX_BURSTS; b++) {
+      const burst = burstsRef.current[b];
+      const group = groupRefs.current[b];
+
+      if (!burst.active && t >= nextSpawnRef.current[b]) {
+        // Spawn new burst
+        const zone = zonePositions[Math.floor(Math.random() * zonePositions.length)];
+        burst.center = [...zone.pos];
+        burst.color = zone.color;
+        burst.startTime = t;
+        burst.active = true;
+      }
+
+      if (burst.active && group) {
+        const elapsed = t - burst.startTime;
+        const progress = elapsed / 1.5; // 1.5 seconds duration
+
+        if (progress >= 1) {
+          burst.active = false;
+          nextSpawnRef.current[b] = t + 4 + Math.random() * 2;
+          // Hide
+          group.visible = false;
+        } else {
+          group.visible = true;
+          group.position.set(...burst.center);
+          group.children.forEach((child, i) => {
+            const angle = (i / BURST_PARTICLE_COUNT) * Math.PI * 2;
+            const dist = progress * 2;
+            child.position.set(
+              Math.cos(angle) * dist,
+              Math.sin(angle * 0.7) * dist * 0.5 + progress * 1,
+              Math.sin(angle) * dist
+            );
+            child.scale.setScalar(0.08 * (1 + progress));
+            const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+            if (mat) {
+              mat.opacity = 0.6 * (1 - progress);
+              mat.color.set(burst.color);
+              mat.emissive.set(burst.color);
+            }
+          });
+        }
+      }
+    }
+  });
+
+  return (
+    <>
+      {[0, 1].map((b) => (
+        <group
+          key={b}
+          ref={(el) => {
+            groupRefs.current[b] = el;
+          }}
+          visible={false}
+        >
+          {Array.from({ length: BURST_PARTICLE_COUNT }, (_, i) => (
+            <mesh key={i}>
+              <sphereGeometry args={[0.08, 4, 4]} />
+              <meshStandardMaterial
+                color="#FFFFFF"
+                emissive="#FFFFFF"
+                emissiveIntensity={0.6}
+                transparent
+                opacity={0.6}
+                depthWrite={false}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Camera Micro Drift ──────────────────────────────────────────
+function CameraMicroDrift() {
+  const { camera } = useThree();
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    camera.position.y += Math.sin(t * 0.3) * 0.003;
+    camera.position.x += Math.cos(t * 0.2) * 0.002;
+  });
+
+  return null;
+}
+
+// ─── Thought Fragments near Dream/Fear (desktop only) ────────────
+function ThoughtFragments() {
+  if (IS_MOBILE) return null;
+
+  const dreamPos = CITY_POSITIONS["dream-cloud"];
+  const fearPos = CITY_POSITIONS["fear-cave"];
+
+  interface Fragment {
+    x: number;
+    y: number;
+    z: number;
+    color: string;
+    scale: number;
+    speed: number;
+    rotSpeed: number;
+    jitter: number;
+    shape: number; // 0=triangle, 1=square, 2=circle
+  }
+
+  const fragments = useMemo(() => {
+    const rng = seededRandom(8888);
+    const result: { zone: "dream" | "fear"; frag: Fragment }[] = [];
+
+    // Dream fragments — pastel, slow
+    for (let i = 0; i < 4; i++) {
+      const pastelColors = ["#E6E6FA", "#DDA0DD", "#B0C4DE", "#FFB6C1"];
+      result.push({
+        zone: "dream",
+        frag: {
+          x: dreamPos[0] + (rng() - 0.5) * 12,
+          y: dreamPos[1] + 3 + rng() * 6,
+          z: dreamPos[2] + (rng() - 0.5) * 12,
+          color: pastelColors[i % pastelColors.length],
+          scale: 0.25 + rng() * 0.15,
+          speed: 0.15 + rng() * 0.2,
+          rotSpeed: 0.3 + rng() * 0.3,
+          jitter: 0,
+          shape: i % 3,
+        },
+      });
+    }
+
+    // Fear fragments — dark, jittery
+    for (let i = 0; i < 4; i++) {
+      const darkColors = ["#1a1a3a", "#2a2a4a", "#3a2a4a", "#1a2a3a"];
+      result.push({
+        zone: "fear",
+        frag: {
+          x: fearPos[0] + (rng() - 0.5) * 10,
+          y: fearPos[1] + 3 + rng() * 5,
+          z: fearPos[2] + (rng() - 0.5) * 10,
+          color: darkColors[i % darkColors.length],
+          scale: 0.2 + rng() * 0.15,
+          speed: 0.3 + rng() * 0.3,
+          rotSpeed: 0.8 + rng() * 0.6,
+          jitter: 0.03,
+          shape: i % 3,
+        },
+      });
+    }
+
+    return result;
+  }, []);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
+
+    groupRef.current.children.forEach((child, i) => {
+      const item = fragments[i];
+      if (!item) return;
+      const { frag } = item;
+      child.rotation.x = t * frag.rotSpeed * 0.5;
+      child.rotation.y = t * frag.rotSpeed;
+      child.position.y =
+        frag.y + Math.sin(t * frag.speed + i * 1.5) * 0.8;
+
+      // Jitter for fear
+      if (frag.jitter > 0) {
+        child.position.x =
+          frag.x + (Math.random() - 0.5) * frag.jitter;
+        child.position.z =
+          frag.z + (Math.random() - 0.5) * frag.jitter;
+      }
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {fragments.map(({ frag }, i) => (
+        <mesh key={i} position={[frag.x, frag.y, frag.z]}>
+          {frag.shape === 0 && (
+            <coneGeometry args={[frag.scale, frag.scale * 1.5, 3]} />
+          )}
+          {frag.shape === 1 && (
+            <boxGeometry
+              args={[frag.scale, frag.scale, frag.scale * 0.1]}
+            />
+          )}
+          {frag.shape === 2 && (
+            <circleGeometry args={[frag.scale, 12]} />
+          )}
+          <meshStandardMaterial
+            color={frag.color}
+            emissive={frag.color}
+            emissiveIntensity={0.3}
+            transparent
+            opacity={0.5}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Enhanced Fog Sphere ─────────────────────────────────────────
+function FogSphere() {
+  return (
+    <mesh position={[0, 5, 0]}>
+      <sphereGeometry args={[80, 16, 16]} />
+      <meshBasicMaterial
+        color="#0a0a1a"
+        transparent
+        opacity={0.04}
+        side={THREE.BackSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 // ─── Island component selector ──────────────────────────────────
 function ZoneIsland({
   cityId,
@@ -1116,26 +1451,36 @@ function ZoneIsland({
   cityId: string;
   position: [number, number, number];
 }) {
-  switch (cityId) {
-    case "joy-island":
-      return <JoyIsland position={position} />;
-    case "fear-cave":
-      return <FearCave position={position} />;
-    case "anger-volcano":
-      return <AngerVolcano position={position} />;
-    case "calm-forest":
-      return <CalmForest position={position} />;
-    case "surprise-box":
-      return <SurpriseBox position={position} />;
-    case "love-garden":
-      return <LoveGarden position={position} />;
-    case "dream-cloud":
-      return <DreamCloud position={position} />;
-    case "courage-peak":
-      return <CouragePeak position={position} />;
-    default:
-      return null;
+  const pulseSpeed = PULSE_SPEEDS[cityId];
+
+  const island = (() => {
+    switch (cityId) {
+      case "joy-island":
+        return <JoyIsland position={position} />;
+      case "fear-cave":
+        return <FearCave position={position} />;
+      case "anger-volcano":
+        return <AngerVolcano position={position} />;
+      case "calm-forest":
+        return <CalmForest position={position} />;
+      case "surprise-box":
+        return <SurpriseBox position={position} />;
+      case "love-garden":
+        return <LoveGarden position={position} />;
+      case "dream-cloud":
+        return <DreamCloud position={position} />;
+      case "courage-peak":
+        return <CouragePeak position={position} />;
+      default:
+        return null;
+    }
+  })();
+
+  if (pulseSpeed && island) {
+    return <PulsingIsland speed={pulseSpeed}>{island}</PulsingIsland>;
   }
+
+  return island;
 }
 
 // ─── Main Scene ─────────────────────────────────────────────────
@@ -1216,6 +1561,9 @@ function EmotionsScene({
         decay={2}
       />
 
+      {/* Enhanced fog sphere */}
+      <FogSphere />
+
       {/* Routes between zones */}
       <ZoneRoutes />
 
@@ -1224,6 +1572,15 @@ function EmotionsScene({
 
       {/* Global ambient particles */}
       <AmbientParticles />
+
+      {/* Micro events — random particle bursts */}
+      <MicroEvents />
+
+      {/* Thought fragments near Dream/Fear */}
+      <ThoughtFragments />
+
+      {/* Camera micro drift */}
+      <CameraMicroDrift />
 
       {/* Islands + particles + aura rings + markers */}
       {EMOTION_CITIES.map((city) => {
