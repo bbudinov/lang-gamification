@@ -1,4 +1,4 @@
-const CACHE_NAME = "langworld-v5";
+const CACHE_NAME = "langworld-v6";
 const STATIC_ASSETS = ["/", "/map", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
