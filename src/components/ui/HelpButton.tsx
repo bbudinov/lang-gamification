@@ -208,7 +208,7 @@ export function HelpButton({ onOpen, onClose }: HelpButtonProps) {
     <>
       <button
         onClick={handleOpen}
-        className="absolute bottom-20 right-4 w-14 h-14 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-500/30"
+        className="absolute bottom-36 right-4 w-14 h-14 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center active:scale-90 transition-transform border-2 border-blue-500/30"
         style={{ zIndex: 9999, background: "linear-gradient(135deg, #0a1628, #0f2347, #162d50)" }}
       >
         <ProfessorGlobe size={38} />
