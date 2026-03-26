@@ -17,16 +17,16 @@ const EMOTION_CITIES = CITIES.filter((c) =>
   emotionsWorld.topicIds.includes(c.topicId)
 );
 
-// ─── City positions (fixed, not circular) ───────────────────────
+// ─── City positions — evenly distributed oval layout ─────────────
 const CITY_POSITIONS: Record<string, [number, number, number]> = {
-  "joy-island": [-25, 5, -20],
-  "fear-cave": [20, -3, -15],
-  "anger-volcano": [-15, 0, 10],
-  "calm-forest": [25, 2, 5],
-  "surprise-box": [0, 8, -25],
-  "love-garden": [15, 3, 15],
-  "dream-cloud": [-20, 10, 20],
-  "courage-peak": [5, 0, 25],
+  "joy-island":      [0, 6, -22],      // top center (bright, high)
+  "surprise-box":    [18, 8, -14],      // top right
+  "calm-forest":     [24, 2, 2],        // right
+  "love-garden":     [16, 3, 16],       // bottom right
+  "courage-peak":    [0, 0, 22],        // bottom center
+  "dream-cloud":     [-16, 10, 14],     // bottom left (floaty)
+  "anger-volcano":   [-24, 0, -2],      // left
+  "fear-cave":       [-16, -3, -16],    // top left (low, dark)
 };
 
 function getCityPos(city: City): [number, number, number] {
