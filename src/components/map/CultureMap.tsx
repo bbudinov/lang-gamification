@@ -813,6 +813,28 @@ function AfricaZone() {
         </mesh>
       ))}
       <Campfire position={[base[0], 0, base[2] + 2]} />
+      {/* Ethiopian flag pole */}
+      <group position={[base[0] - 5, 0, base[2] + 1]}>
+        <mesh position={[0, 2.5, 0]}>
+          <cylinderGeometry args={[0.06, 0.06, 5, 6]} />
+          <meshStandardMaterial color="#5a4a3a" />
+        </mesh>
+        {/* Green stripe */}
+        <mesh position={[0.45, 4.2, 0]}>
+          <boxGeometry args={[0.9, 0.35, 0.02]} />
+          <meshStandardMaterial color="#009b3a" />
+        </mesh>
+        {/* Yellow stripe */}
+        <mesh position={[0.45, 3.85, 0]}>
+          <boxGeometry args={[0.9, 0.35, 0.02]} />
+          <meshStandardMaterial color="#fcdd09" />
+        </mesh>
+        {/* Red stripe */}
+        <mesh position={[0.45, 3.5, 0]}>
+          <boxGeometry args={[0.9, 0.35, 0.02]} />
+          <meshStandardMaterial color="#da121a" />
+        </mesh>
+      </group>
       <pointLight position={[base[0], 8, base[2]]} color="#dda860" intensity={0.7} distance={25} />
     </group>
   );
