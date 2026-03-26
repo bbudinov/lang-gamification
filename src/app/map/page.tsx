@@ -8,13 +8,11 @@ import { HelpButton } from "@/components/ui/HelpButton";
 import { MissionBoard } from "@/components/missions/MissionBoard";
 import { DailyChallengeButton } from "@/components/ui/DailyChallenge";
 import { PetWidget } from "@/components/ui/PetWidget";
-import { IntroScene } from "@/components/intro/IntroScene";
-import { getIntroScene } from "@/data/introScenes";
 import dynamic from "next/dynamic";
 import { useProgressStore } from "@/stores/progressStore";
 import { topics } from "@/data/words";
 import type { City } from "@/data/cities";
-import type { TopicId, WorldId } from "@/types";
+import type { WorldId } from "@/types";
 import { WorldSelector } from "@/components/map/WorldSelector";
 import { WORLDS } from "@/data/worlds";
 
@@ -48,11 +46,10 @@ function TopicParamReader({ onTopic }: { onTopic: (id: string) => void }) {
 export default function MapPage() {
   const router = useRouter();
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  const [introTopicId, setIntroTopicId] = useState<TopicId | null>(null);
   const [showMissions, setShowMissions] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeWorld, setActiveWorld] = useState<WorldId>("land");
-  const { targetLanguage, gameResults, hasSeenIntro } = useProgressStore();
+  const { targetLanguage, gameResults } = useProgressStore();
   const activeWorldData = WORLDS.find((w) => w.id === activeWorld);
   const bgColor = activeWorldData?.bgColor ?? "#7a9ab0";
 
@@ -67,12 +64,6 @@ export default function MapPage() {
   const mixUnlocked = memoryTopicsPlayed >= 2;
 
   const handleSelectCity = (city: City) => {
-    const tid = city.topicId as TopicId;
-    // Show intro cutscene if scene exists (always — skip button available)
-    if (getIntroScene(tid)) {
-      setIntroTopicId(tid);
-      return;
-    }
     setSelectedTopicId(city.topicId);
   };
 
@@ -139,19 +130,6 @@ export default function MapPage() {
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />
-      )}
-
-      {/* Intro cutscene (first visit) */}
-      {introTopicId && (
-        <IntroScene
-          topicId={introTopicId}
-          onComplete={() => {
-            const tid = introTopicId;
-            setIntroTopicId(null);
-            // After intro, open GameSelector
-            setSelectedTopicId(tid);
-          }}
-        />
       )}
 
       <WorldSelector activeWorld={activeWorld} onSelectWorld={setActiveWorld} />
