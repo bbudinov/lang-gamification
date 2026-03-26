@@ -19,14 +19,14 @@ const EMOTION_CITIES = CITIES.filter((c) =>
 
 // ─── City positions — compact centered oval ─────────────────────
 const CITY_POSITIONS: Record<string, [number, number, number]> = {
-  "joy-island":      [0, 5, -16],       // top center
+  "calm-forest":     [0, 2, 0],          // CENTER — green hub
+  "joy-island":      [0, 5, -16],       // top
   "surprise-box":    [14, 7, -10],      // top right
-  "calm-forest":     [17, 2, 4],        // right
-  "love-garden":     [10, 3, 14],       // bottom right
-  "courage-peak":    [-4, 0, 16],       // bottom center-left
-  "dream-cloud":     [-14, 8, 8],       // left (floaty)
-  "anger-volcano":   [-17, 0, -4],      // left
-  "fear-cave":       [-10, -2, -12],    // top left (low, dark)
+  "love-garden":     [16, 3, 6],        // right
+  "courage-peak":    [8, 0, 16],        // bottom right
+  "dream-cloud":     [-8, 8, 14],       // bottom left (floaty)
+  "anger-volcano":   [-16, 0, 4],       // left
+  "fear-cave":       [-14, -2, -10],    // top left (low, dark)
 };
 
 function getCityPos(city: City): [number, number, number] {
