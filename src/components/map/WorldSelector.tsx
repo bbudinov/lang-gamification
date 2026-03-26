@@ -34,15 +34,15 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
       {/* Expanded: grid of all worlds */}
       {expanded && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop — above everything */}
           <div
-            className="fixed inset-0 z-[99] bg-black/40"
+            className="fixed inset-0 z-[10000] bg-black/50"
             onClick={() => setExpanded(false)}
           />
 
           {/* World grid */}
           <div
-            className="fixed left-3 right-3 z-[100] bg-black/70 backdrop-blur-md rounded-2xl p-4 max-h-[70vh] overflow-y-auto"
+            className="fixed left-3 right-3 z-[10001] bg-black/80 backdrop-blur-md rounded-2xl p-4 max-h-[60vh] overflow-y-auto"
             style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
           >
             <div className="flex items-center justify-between mb-3">
