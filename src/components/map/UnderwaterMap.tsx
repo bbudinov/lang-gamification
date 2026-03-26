@@ -164,7 +164,66 @@ function UnderwaterDust({ count }: { count: number }) {
   );
 }
 
-// ─── Seagrass Meadow ────────────────────────────────────────────
+// ─── Scattered Seagrass (instanced) ─────────────────────────────
+function ScatteredSeagrass({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 30 : 100;
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const GREENS = ["#2d8a4e", "#1e7a3a", "#3d9a5e", "#25804a", "#48a860"];
+
+  const blades = useMemo(() => {
+    const rng = seededRandom(7777);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 120,
+      z: (rng() - 0.5) * 120,
+      y: -17 + rng() * 12, // spread across y=-17 to y=-5
+      height: 1 + rng() * 3,
+      phase: rng() * Math.PI * 2,
+      speed: 0.3 + rng() * 0.4,
+      colorIndex: Math.floor(rng() * GREENS.length),
+    }));
+  }, [count]);
+
+  // Set colors once
+  useMemo(() => {
+    // Colors set on first frame
+  }, []);
+
+  useFrame(({ clock }) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const t = clock.getElapsedTime();
+    for (let i = 0; i < count; i++) {
+      const b = blades[i];
+      const swayX = Math.sin(t * b.speed + b.phase) * 0.12;
+      const swayZ = Math.sin(t * b.speed * 0.7 + b.phase + 1) * 0.06;
+      dummy.position.set(b.x, b.y + b.height / 2, b.z);
+      dummy.rotation.set(swayX, 0, swayZ);
+      dummy.scale.set(0.15, b.height, 1);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, new THREE.Color(GREENS[b.colorIndex]));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <planeGeometry args={[1, 1]} />
+      <meshStandardMaterial
+        color="#2d8a4e"
+        emissive="#2d8a4e"
+        emissiveIntensity={0.1}
+        side={THREE.DoubleSide}
+        transparent
+        opacity={0.85}
+      />
+    </instancedMesh>
+  );
+}
+
+// ─── Seagrass Meadow (cluster — kept for existing placements) ───
 function SeagrassMeadow({ position, seed }: { position: [number, number, number]; seed: number }) {
   const count = IS_MOBILE ? 8 : 20;
   const groupRef = useRef<THREE.Group>(null!);
@@ -204,11 +263,11 @@ function SeagrassMeadow({ position, seed }: { position: [number, number, number]
   );
 }
 
-// ─── Fan Corals ─────────────────────────────────────────────────
+// ─── Fan Corals (doubled to 20) ─────────────────────────────────
 function FanCorals({ isMobile }: { isMobile: boolean }) {
   const FAN_COLORS = ["#9B30FF", "#FF69B4", "#FF6600", "#E040FB", "#FF1493"];
   const fans = useMemo(() => {
-    const count = isMobile ? 4 : 10;
+    const count = isMobile ? 8 : 20;
     const rng = seededRandom(777);
     return Array.from({ length: count }, () => ({
       x: (rng() - 0.5) * 80,
@@ -232,9 +291,9 @@ function FanCorals({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Tube Sponges ───────────────────────────────────────────────
+// ─── Tube Sponges (more scattered) ──────────────────────────────
 function TubeSponges({ isMobile }: { isMobile: boolean }) {
-  const clusterCount = isMobile ? 2 : 5;
+  const clusterCount = isMobile ? 4 : 10;
   const SPONGE_COLORS = ["#FFA500", "#FFD700", "#FF8C00", "#DAA520"];
   const clusters = useMemo(() => {
     const rng = seededRandom(333);
@@ -264,9 +323,9 @@ function TubeSponges({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Sea Anemones (pulsing) ─────────────────────────────────────
+// ─── Sea Anemones (more clusters) ───────────────────────────────
 function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
-  const clusterCount = isMobile ? 3 : 7;
+  const clusterCount = isMobile ? 5 : 12;
   const ANEMONE_COLORS = ["#FF69B4", "#9B30FF", "#FF6347", "#FF1493", "#DA70D6"];
   const groupRef = useRef<THREE.Group>(null!);
 
@@ -311,6 +370,186 @@ function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
         </group>
       ))}
     </group>
+  );
+}
+
+// ─── Floor Coral Groups (scattered on sea floor, not on platforms) ──
+function FloorCorals({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 6 : 18;
+  const CORAL_COLORS = ["#FF69B4", "#FF6600", "#9B30FF", "#FF1493", "#DAA520", "#00FF7F", "#FFD700", "#E040FB"];
+
+  const corals = useMemo(() => {
+    const rng = seededRandom(4444);
+    return Array.from({ length: count }, () => {
+      const shapeType = Math.floor(rng() * 3); // 0=brain, 1=branch, 2=mushroom
+      return {
+        x: (rng() - 0.5) * 100,
+        z: (rng() - 0.5) * 100,
+        shapeType,
+        scale: 0.3 + rng() * 0.5,
+        color: CORAL_COLORS[Math.floor(rng() * CORAL_COLORS.length)],
+        rotY: rng() * Math.PI * 2,
+      };
+    });
+  }, [count]);
+
+  return (
+    <>
+      {corals.map((c, i) => (
+        <group key={i} position={[c.x, -16.8, c.z]} rotation={[0, c.rotY, 0]}>
+          {c.shapeType === 0 && (
+            /* Brain coral — squashed sphere */
+            <mesh position={[0, c.scale * 0.5, 0]} scale={[1, 0.6, 1]}>
+              <sphereGeometry args={[c.scale, 8, 6]} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} roughness={0.6} />
+            </mesh>
+          )}
+          {c.shapeType === 1 && (
+            /* Branching coral — small cylinder tree */
+            <group>
+              <mesh position={[0, c.scale * 0.5, 0]}>
+                <cylinderGeometry args={[c.scale * 0.15, c.scale * 0.2, c.scale, 5]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+              </mesh>
+              <mesh position={[c.scale * 0.15, c.scale * 0.8, 0]} rotation={[0, 0, 0.4]}>
+                <cylinderGeometry args={[c.scale * 0.08, c.scale * 0.12, c.scale * 0.5, 4]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+              </mesh>
+              <mesh position={[-c.scale * 0.12, c.scale * 0.7, 0.1]} rotation={[0, 0, -0.3]}>
+                <cylinderGeometry args={[c.scale * 0.06, c.scale * 0.1, c.scale * 0.4, 4]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+              </mesh>
+            </group>
+          )}
+          {c.shapeType === 2 && (
+            /* Mushroom coral — disc on thin stalk */
+            <group>
+              <mesh position={[0, c.scale * 0.3, 0]}>
+                <cylinderGeometry args={[c.scale * 0.08, c.scale * 0.1, c.scale * 0.6, 4]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.1} />
+              </mesh>
+              <mesh position={[0, c.scale * 0.65, 0]} scale={[1, 0.3, 1]}>
+                <sphereGeometry args={[c.scale * 0.5, 8, 6]} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.2} />
+              </mesh>
+            </group>
+          )}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Sea Sponges (barrel-shaped) ────────────────────────────────
+function SeaSponges({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 5 : 14;
+  const SPONGE_COLORS = ["#FFA500", "#FFD700", "#FF8C00", "#E8A030", "#D4A040"];
+
+  const sponges = useMemo(() => {
+    const rng = seededRandom(5555);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 90,
+      z: (rng() - 0.5) * 90,
+      height: 0.4 + rng() * 0.6,
+      radius: 0.3 + rng() * 0.3,
+      color: SPONGE_COLORS[Math.floor(rng() * SPONGE_COLORS.length)],
+    }));
+  }, [count]);
+
+  return (
+    <>
+      {sponges.map((s, i) => (
+        <mesh key={i} position={[s.x, -16.8 + s.height / 2, s.z]}>
+          <cylinderGeometry args={[s.radius * 0.8, s.radius, s.height, 8]} />
+          <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.1} roughness={0.8} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Starfish (5 thin boxes in a star) ──────────────────────────
+function Starfish({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 4 : 10;
+  const STAR_COLORS = ["#FF4500", "#FF6347", "#E04020", "#D4380D", "#FF5733"];
+
+  const stars = useMemo(() => {
+    const rng = seededRandom(6666);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 90,
+      z: (rng() - 0.5) * 90,
+      rotY: rng() * Math.PI * 2,
+      scale: 0.2 + rng() * 0.15,
+      color: STAR_COLORS[Math.floor(rng() * STAR_COLORS.length)],
+    }));
+  }, [count]);
+
+  return (
+    <>
+      {stars.map((s, i) => (
+        <group key={i} position={[s.x, -16.9, s.z]} rotation={[-Math.PI / 2, 0, s.rotY]}>
+          {[0, 1, 2, 3, 4].map((arm) => {
+            const angle = (arm / 5) * Math.PI * 2;
+            return (
+              <mesh key={arm} position={[Math.cos(angle) * s.scale * 0.7, Math.sin(angle) * s.scale * 0.7, 0]} rotation={[0, 0, angle]}>
+                <boxGeometry args={[s.scale * 0.3, s.scale * 1.2, s.scale * 0.08]} />
+                <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.1} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Sea Urchins (spiky icosahedrons) ───────────────────────────
+function SeaUrchins({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 3 : 8;
+  const URCHIN_COLORS = ["#1A1A2E", "#2D2D44", "#1E1E30", "#252540"];
+
+  const urchins = useMemo(() => {
+    const rng = seededRandom(8888);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 80,
+      z: (rng() - 0.5) * 80,
+      scale: 0.15 + rng() * 0.12,
+      color: URCHIN_COLORS[Math.floor(rng() * URCHIN_COLORS.length)],
+    }));
+  }, [count]);
+
+  return (
+    <>
+      {urchins.map((u, i) => (
+        <mesh key={i} position={[u.x, -16.7, u.z]}>
+          <icosahedronGeometry args={[u.scale, 0]} />
+          <meshStandardMaterial color={u.color} roughness={0.9} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Seafloor Carpet (algae/moss patches) ───────────────────────
+function SeafloorCarpet() {
+  const patches = useMemo(() => {
+    const rng = seededRandom(9999);
+    return Array.from({ length: 4 }, () => ({
+      x: (rng() - 0.5) * 60,
+      z: (rng() - 0.5) * 60,
+      radius: 8 + rng() * 4,
+    }));
+  }, []);
+
+  return (
+    <>
+      {patches.map((p, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[p.x, -16.95, p.z]}>
+          <circleGeometry args={[p.radius, 16]} />
+          <meshBasicMaterial color="#1a3020" transparent opacity={0.2} depthWrite={false} />
+        </mesh>
+      ))}
+    </>
   );
 }
 
@@ -750,41 +989,40 @@ function Jellyfish({ startPos, color }: { startPos: [number, number, number]; co
   );
 }
 
-// ─── Light Rays (stronger, more dramatic) ───────────────────────
-function LightRays() {
-  const raysRef = useRef<THREE.Group>(null!);
+// ─── Light Beams (soft volumetric planes) ────────────────────────
+function LightBeams() {
+  const beamsRef = useRef<THREE.Group>(null!);
 
-  const rays = useMemo(() => [
-    { pos: [-10, 8, -12] as [number, number, number], rotZ: 0.15, tint: "#FFE8B0" },
-    { pos: [8, 10, -8] as [number, number, number], rotZ: -0.1, tint: "#FFF5D6" },
-    { pos: [20, 7, -18] as [number, number, number], rotZ: 0.08, tint: "#FFE8B0" },
-    { pos: [-25, 9, -5] as [number, number, number], rotZ: 0.12, tint: "#FFF0C0" },
-    { pos: [0, 9, -15] as [number, number, number], rotZ: -0.05, tint: "#D4E8F0" },
-    { pos: [-18, 8, -20] as [number, number, number], rotZ: 0.18, tint: "#FFE0A0" },
-    { pos: [30, 9, -12] as [number, number, number], rotZ: -0.12, tint: "#C8DEF0" },
+  const beams = useMemo(() => [
+    { pos: [-12, 8, -12] as [number, number, number], rotZ: 0.12, rotY: 0.3, width: 8, height: 30, opacity: 0.07 },
+    { pos: [8, 10, -8] as [number, number, number], rotZ: -0.08, rotY: 0.8, width: 10, height: 32, opacity: 0.06 },
+    { pos: [22, 7, -18] as [number, number, number], rotZ: 0.1, rotY: 1.5, width: 7, height: 28, opacity: 0.08 },
+    { pos: [-25, 9, -5] as [number, number, number], rotZ: 0.15, rotY: 2.2, width: 12, height: 35, opacity: 0.06 },
+    { pos: [0, 9, -15] as [number, number, number], rotZ: -0.05, rotY: 3.0, width: 9, height: 25, opacity: 0.07 },
+    { pos: [-18, 8, -20] as [number, number, number], rotZ: 0.18, rotY: 4.0, width: 6, height: 30, opacity: 0.07 },
   ], []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    const children = raysRef.current.children;
+    const children = beamsRef.current.children;
     for (let i = 0; i < children.length; i++) {
-      const baseRot = rays[i].rotZ;
-      const swayAmount = 0.04 + i * 0.008;
-      const swaySpeed = 0.2 + i * 0.06;
-      children[i].rotation.z = baseRot + Math.sin(t * swaySpeed + i * 0.5) * swayAmount;
-      children[i].rotation.x = Math.sin(t * swaySpeed * 0.5 + i) * 0.015;
+      const b = beams[i];
+      const swayAmount = 0.02 + i * 0.005;
+      const swaySpeed = 0.15 + i * 0.04;
+      children[i].rotation.z = b.rotZ + Math.sin(t * swaySpeed + i * 0.5) * swayAmount;
+      children[i].rotation.x = Math.sin(t * swaySpeed * 0.5 + i) * 0.01;
     }
   });
 
   return (
-    <group ref={raysRef}>
-      {rays.map((ray, i) => (
-        <mesh key={i} position={ray.pos} rotation={[0, 0, ray.rotZ]}>
-          <coneGeometry args={[6, 28, 8, 1, true]} />
-          <meshStandardMaterial
-            color={ray.tint}
+    <group ref={beamsRef}>
+      {beams.map((beam, i) => (
+        <mesh key={i} position={beam.pos} rotation={[0, beam.rotY, beam.rotZ]}>
+          <planeGeometry args={[beam.width, beam.height]} />
+          <meshBasicMaterial
+            color="#a8d8ea"
             transparent
-            opacity={0.17}
+            opacity={beam.opacity}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -864,26 +1102,27 @@ function SeaFloor({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Underwater Cliffs (between depth zones) ─────────────────────
-function UnderwaterCliffs() {
+// ─── Scattered Terrain Rocks (replaces cliff walls) ──────────────
+function TerrainRocks() {
+  const rocks = useMemo(() => {
+    const rng = seededRandom(2222);
+    return Array.from({ length: 8 }, () => ({
+      x: (rng() - 0.5) * 70,
+      z: (rng() - 0.5) * 70,
+      scale: 1.5 + rng() * 2.5,
+      squish: 0.5 + rng() * 0.3, // vertical squish
+      rotY: rng() * Math.PI * 2,
+    }));
+  }, []);
+
   return (
     <>
-      <mesh position={[-5, -5, -5]} rotation={[0, 0.3, 0]}>
-        <boxGeometry args={[35, 6, 2]} />
-        <meshStandardMaterial color="#1A2D42" roughness={0.9} />
-      </mesh>
-      <mesh position={[20, -5.5, 2]} rotation={[0, -0.5, 0.05]}>
-        <boxGeometry args={[20, 5, 2.5]} />
-        <meshStandardMaterial color="#15263B" roughness={0.95} />
-      </mesh>
-      <mesh position={[10, -11, 12]} rotation={[0, 0.2, 0]}>
-        <boxGeometry args={[40, 5, 2]} />
-        <meshStandardMaterial color="#0E1C2E" roughness={0.95} />
-      </mesh>
-      <mesh position={[-15, -11.5, 18]} rotation={[0, -0.4, 0.03]}>
-        <boxGeometry args={[25, 6, 2.5]} />
-        <meshStandardMaterial color="#0B1624" roughness={1} />
-      </mesh>
+      {rocks.map((r, i) => (
+        <mesh key={i} position={[r.x, -17 + r.scale * r.squish * 0.3, r.z]} rotation={[0, r.rotY, 0]} scale={[1, r.squish, 1]}>
+          <sphereGeometry args={[r.scale, 6, 5]} />
+          <meshStandardMaterial color="#1A2D42" roughness={0.95} />
+        </mesh>
+      ))}
     </>
   );
 }
@@ -1284,26 +1523,44 @@ function UnderwaterScene({
       {/* Sea floor with details */}
       <SeaFloor isMobile={isMobile} />
 
-      {/* Underwater cliffs */}
-      <UnderwaterCliffs />
+      {/* Terrain rocks (replacing cliff walls) */}
+      <TerrainRocks />
 
-      {/* Light rays */}
-      <LightRays />
+      {/* Light beams (soft volumetric planes) */}
+      <LightBeams />
 
-      {/* Seagrass meadows */}
+      {/* Scattered seagrass everywhere (instanced) */}
+      <ScatteredSeagrass isMobile={isMobile} />
+
+      {/* Seagrass meadow clusters */}
       <SeagrassMeadow position={[-18, -16.5, -10]} seed={101} />
       <SeagrassMeadow position={[12, -16.5, -18]} seed={202} />
       <SeagrassMeadow position={[-28, -16.5, 8]} seed={303} />
       {!isMobile && <SeagrassMeadow position={[25, -16.5, -8]} seed={404} />}
 
-      {/* Fan corals scattered */}
+      {/* Fan corals scattered (doubled) */}
       <FanCorals isMobile={isMobile} />
 
-      {/* Tube sponges */}
+      {/* Tube sponges (more scattered) */}
       <TubeSponges isMobile={isMobile} />
 
-      {/* Sea anemones scattered */}
+      {/* Sea anemones scattered (more clusters) */}
       <SeaAnemonesScattered isMobile={isMobile} />
+
+      {/* Floor coral groups (scattered on sea floor) */}
+      <FloorCorals isMobile={isMobile} />
+
+      {/* Sea sponges (barrel-shaped) */}
+      <SeaSponges isMobile={isMobile} />
+
+      {/* Starfish on the floor */}
+      <Starfish isMobile={isMobile} />
+
+      {/* Sea urchins on rocks */}
+      <SeaUrchins isMobile={isMobile} />
+
+      {/* Seafloor carpet (algae/moss patches) */}
+      <SeafloorCarpet />
 
       {/* Bioluminescent dots in abyss */}
       <BioluminescentDots isMobile={isMobile} />
