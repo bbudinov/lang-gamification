@@ -20,7 +20,7 @@ export const WORLDS: World[] = [
     requiredXP: 0,
     themeColor: "#22c55e",
     bgColor: "#7a9ab0",
-    topicIds: ["animals", "colors", "food", "numbers", "travel", "work", "family", "body", "weather", "school", "library", "sports", "music"],
+    topicIds: ["animals", "colors", "food", "numbers", "travel", "work", "family", "body", "weather", "school", "library", "sports", "music", "botanical-garden", "central-park", "university", "art-museum", "history-museum", "legendary-places"],
   },
   {
     id: "ocean",
