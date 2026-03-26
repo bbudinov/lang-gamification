@@ -76,32 +76,32 @@ function MagicRing({ color, radius }: { color: string; radius: number }) {
   );
 }
 
-// ─── Star-field Sky ─────────────────────────────────────────────
-function StarField() {
-  const count = IS_MOBILE ? 100 : 150;
+// ─── Star-field Sky (2 layers for parallax) ─────────────────────
+function StarFieldLayer({ count, size, driftSpeed }: { count: number; size: number; driftSpeed: number }) {
   const ref = useRef<THREE.Points>(null!);
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI * 0.45; // upper dome
+      const phi = Math.random() * Math.PI * 0.45;
       const r = 60 + Math.random() * 30;
       arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = 20 + r * Math.cos(phi); // y 20-80
+      arr[i * 3 + 1] = 20 + r * Math.cos(phi);
       arr[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
     }
     return arr;
   }, [count]);
 
-  const offsets = useMemo(() => Array.from({ length: count }, () => Math.random() * Math.PI * 2), [count]);
-
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const mat = ref.current.material as THREE.PointsMaterial;
     const t = clock.getElapsedTime();
-    // Global twinkle — individual star twinkle handled via subtle opacity
     mat.opacity = 0.6 + Math.sin(t * 0.8) * 0.15;
+    // Subtle drift for parallax
+    if (driftSpeed > 0) {
+      ref.current.rotation.y = t * driftSpeed * 0.01;
+    }
   });
 
   return (
@@ -109,19 +109,33 @@ function StarField() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial color="#ffffff" size={0.15} transparent opacity={0.7} sizeAttenuation={false} />
+      <pointsMaterial color="#ffffff" size={size} transparent opacity={0.7} sizeAttenuation={false} />
     </points>
+  );
+}
+
+function StarField() {
+  return (
+    <>
+      {/* Layer 1 (near): fewer, larger, subtle drift */}
+      <StarFieldLayer count={IS_MOBILE ? 30 : 60} size={0.2} driftSpeed={1.5} />
+      {/* Layer 2 (far): more, tiny, nearly static */}
+      <StarFieldLayer count={IS_MOBILE ? 60 : 100} size={0.1} driftSpeed={0} />
+    </>
   );
 }
 
 // ─── Nebula Clouds ──────────────────────────────────────────────
 function NebulaClouds() {
   const clouds = useMemo(() => [
-    { pos: [-55, 30, -50] as [number, number, number], color: "#3a1a5a", radius: 20, opacity: 0.05 },
-    { pos: [60, 25, -45] as [number, number, number], color: "#1a2a5a", radius: 25, opacity: 0.04 },
-    { pos: [-40, 40, 55] as [number, number, number], color: "#4a1a3a", radius: 18, opacity: 0.06 },
-    { pos: [50, 35, 50] as [number, number, number], color: "#1a3a3a", radius: 22, opacity: 0.05 },
-    { pos: [0, 45, -60] as [number, number, number], color: "#2a1a4a", radius: 20, opacity: 0.04 },
+    { pos: [-55, 30, -50] as [number, number, number], color: "#6a2a8a", radius: 25, opacity: 0.10 },
+    { pos: [60, 25, -45] as [number, number, number], color: "#2a3a8a", radius: 30, opacity: 0.09 },
+    { pos: [-40, 40, 55] as [number, number, number], color: "#8a2a5a", radius: 22, opacity: 0.12 },
+    { pos: [50, 35, 50] as [number, number, number], color: "#6a2a8a", radius: 28, opacity: 0.10 },
+    { pos: [0, 45, -60] as [number, number, number], color: "#2a3a8a", radius: 25, opacity: 0.08 },
+    { pos: [-30, 50, -30] as [number, number, number], color: "#8a2a5a", radius: 20, opacity: 0.09 },
+    { pos: [40, 28, -20] as [number, number, number], color: "#6a2a8a", radius: 24, opacity: 0.10 },
+    { pos: [-10, 55, 40] as [number, number, number], color: "#2a3a8a", radius: 22, opacity: 0.08 },
   ], []);
 
   const groupRef = useRef<THREE.Group>(null!);
@@ -188,6 +202,36 @@ function Stalactites({ radius }: { radius: number }) {
   );
 }
 
+// ─── Energy Crystal (under each island) ──────────────────────────
+function EnergyCrystal({ radius, color }: { radius: number; color: string }) {
+  const crystalRef = useRef<THREE.Mesh>(null!);
+
+  useFrame(({ clock }) => {
+    if (crystalRef.current) {
+      const t = clock.getElapsedTime();
+      const pulse = 1 + Math.sin(t * 2) * 0.15;
+      crystalRef.current.scale.setScalar(pulse);
+    }
+  });
+
+  const rockHeight = radius * 1.1;
+
+  return (
+    <>
+      {/* Crystal cone pointing DOWN */}
+      <mesh ref={crystalRef} position={[0, -rockHeight - 1.0, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.5, 1.5, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.5} transparent opacity={0.9} />
+      </mesh>
+      {/* Light beam going UP through island */}
+      <mesh position={[0, -rockHeight / 2 + 2, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 8, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} transparent opacity={0.08} />
+      </mesh>
+    </>
+  );
+}
+
 // ─── Floating Island ─────────────────────────────────────────────
 function FloatingIsland({
   position,
@@ -196,6 +240,7 @@ function FloatingIsland({
   bobOffset,
   emissiveColor,
   emissiveIntensity,
+  crystalColor,
 }: {
   position: [number, number, number];
   radius: number;
@@ -203,6 +248,7 @@ function FloatingIsland({
   bobOffset: number;
   emissiveColor?: string;
   emissiveIntensity?: number;
+  crystalColor?: string;
 }) {
   const groupRef = useRef<THREE.Group>(null!);
 
@@ -223,6 +269,8 @@ function FloatingIsland({
         <meshStandardMaterial color="#4a3050" roughness={0.9} />
       </mesh>
       <Stalactites radius={radius} />
+      {/* Energy crystal core */}
+      {crystalColor && <EnergyCrystal radius={radius} color={crystalColor} />}
       {/* Grass/terrain surface */}
       <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[radius, radius, radius * 0.2, 8]} />
@@ -343,7 +391,7 @@ function MagicForestZone({ position }: { position: [number, number, number] }) {
         <Mushroom key={`m${i}`} position={[m.x, 0.1, m.z]} color={m.color} />
       ))}
       <Fireflies center={[0, 0, 0]} count={IS_MOBILE ? 8 : 20} />
-      <pointLight position={[0, 3, 0]} color="#44ff66" intensity={0.6} distance={15} />
+      <pointLight position={[0, 3, 0]} color="#44ff66" intensity={1.5} distance={18} />
     </group>
   );
 }
@@ -445,8 +493,8 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
         </>
       )}
       {/* Golden interior glow */}
-      <pointLight position={[0, 4, 0]} color="#ffcc66" intensity={0.6} distance={15} />
-      <pointLight position={[0, 6, 0]} color="#ffcc66" intensity={0.8} distance={20} />
+      <pointLight position={[0, 4, 0]} color="#ffcc66" intensity={1.5} distance={20} />
+      <pointLight position={[0, 6, 0]} color="#ffcc66" intensity={2} distance={20} />
     </group>
   );
 }
@@ -520,7 +568,7 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <OrbitingOrbs center={[0, 0, 0]} />
       {/* Magic circle on ground */}
       <MagicCircle position={[0, 0.15, 0]} />
-      <pointLight position={[0, 10, 0]} color="#9944ff" intensity={0.7} distance={18} />
+      <pointLight position={[0, 10, 0]} color="#9944ff" intensity={2.5} distance={18} />
     </group>
   );
 }
@@ -619,7 +667,7 @@ function DragonCaveZone({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#1a1a1a" transparent opacity={0.4} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <pointLight ref={lightRef} position={[0, 2, 0]} color="#ff5500" intensity={0.6} distance={15} />
+      <pointLight ref={lightRef} position={[0, 2, 0]} color="#ff5500" intensity={2} distance={15} />
     </group>
   );
 }
@@ -1158,12 +1206,13 @@ function FantasyScene({
   return (
     <>
       {/* Lighting — brighter magical ambient */}
-      <ambientLight intensity={0.5} color="#2a1a3a" />
-      {/* Fill light from above */}
-      <directionalLight position={[0, 40, 0]} color="#4a3a5a" intensity={0.3} />
+      <ambientLight intensity={0.7} color="#3a2a4a" />
+      {/* Fill light from above + below */}
+      <directionalLight position={[0, 40, 0]} color="#4a3a5a" intensity={0.4} />
+      <directionalLight position={[-10, -5, 10]} color="#2a1a3a" intensity={0.2} />
 
       {/* Fog — lighter purple, less dense */}
-      <fog attach="fog" args={["#1a0f2e", 40, 120]} />
+      <fog attach="fog" args={["#2a1a3e", 50, 140]} />
 
       {/* Star-field sky */}
       <StarField />
