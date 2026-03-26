@@ -923,7 +923,7 @@ function AirScene({
         const config = ISLAND_CONFIG[city.id];
         if (!config) return null;
         const { pos, radius } = config;
-        const unlocked = totalPoints >= city.requiredXP;
+        const unlocked = true; // TODO: restore: totalPoints >= city.requiredXP
         const bobOffset = pos[0] + pos[2];
 
         return (

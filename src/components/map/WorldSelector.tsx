@@ -19,7 +19,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
     >
       {WORLDS.map((world) => {
         const isActive = world.id === activeWorld;
-        const isLocked = totalPoints < world.requiredXP;
+        const isLocked = false; // TODO: restore unlock logic: totalPoints < world.requiredXP
 
         return (
           <button

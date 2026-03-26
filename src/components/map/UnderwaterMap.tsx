@@ -876,7 +876,7 @@ function UnderwaterScene({
       {/* Coral platforms + markers + landmarks */}
       {UNDERWATER_CITIES.map((city, i) => {
         const pos = getCityPos(city);
-        const unlocked = totalPoints >= city.requiredXP;
+        const unlocked = true; // TODO: restore: totalPoints >= city.requiredXP
         const zone = getDepthZone(pos[1]);
         return (
           <React.Fragment key={city.id}>

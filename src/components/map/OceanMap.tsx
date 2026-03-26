@@ -1452,7 +1452,7 @@ export function OceanMap({ onSelectCity }: { onSelectCity: (city: City) => void 
   const [overlayHidden, setOverlayHidden] = useState(false);
 
   const unlockedIds = useMemo(
-    () => new Set(OCEAN_CITIES.filter((c) => totalPoints >= c.requiredXP).map((c) => c.id)),
+    () => new Set(OCEAN_CITIES.map((c) => c.id)), // TODO: restore unlock: .filter((c) => totalPoints >= c.requiredXP)
     [totalPoints]
   );
 
