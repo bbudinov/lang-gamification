@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { WORLDS } from "@/data/worlds";
 import { useProgressStore } from "@/stores/progressStore";
 import type { WorldId } from "@/types";
@@ -11,64 +12,108 @@ interface WorldSelectorProps {
 
 export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps) {
   const totalPoints = useProgressStore((s) => s.totalPoints);
+  const [expanded, setExpanded] = useState(false);
+
+  const activeWorldData = WORLDS.find((w) => w.id === activeWorld);
 
   return (
-    <div
-      className="fixed right-3 flex gap-2 rounded-full bg-black/40 backdrop-blur-sm px-3 py-2 z-[100]"
-      style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
-    >
-      {WORLDS.map((world) => {
-        const isActive = world.id === activeWorld;
-        const isLocked = false; // TODO: restore unlock logic: totalPoints < world.requiredXP
+    <>
+      {/* Collapsed: show only active world button */}
+      {!expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="fixed right-3 z-[100] flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-sm px-3 py-2 active:scale-95 transition-all"
+          style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
+        >
+          <span className="text-xl">{activeWorldData?.emoji ?? "🌍"}</span>
+          <span className="text-white text-xs font-medium">{activeWorldData?.name.en ?? "Worlds"}</span>
+          <span className="text-white/50 text-xs">▲</span>
+        </button>
+      )}
 
-        return (
-          <button
-            key={world.id}
-            onClick={() => !isLocked && onSelectWorld(world.id)}
-            className="flex flex-col items-center gap-0.5 transition-all duration-300"
-            disabled={isLocked}
+      {/* Expanded: grid of all worlds */}
+      {expanded && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[99] bg-black/40"
+            onClick={() => setExpanded(false)}
+          />
+
+          {/* World grid */}
+          <div
+            className="fixed left-3 right-3 z-[100] bg-black/70 backdrop-blur-md rounded-2xl p-4 max-h-[70vh] overflow-y-auto"
+            style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
           >
-            {/* Circle icon */}
-            <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center relative transition-all duration-300 ${
-                isLocked
-                  ? "grayscale opacity-50 border-2 border-white/20"
-                  : isActive
-                    ? "border-[3px] scale-110 shadow-lg"
-                    : "border-2 border-white/30 hover:border-white/60"
-              }`}
-              style={
-                isActive
-                  ? {
-                      borderColor: world.themeColor,
-                      boxShadow: `0 0 12px ${world.themeColor}80`,
-                      backgroundColor: `${world.themeColor}20`,
-                    }
-                  : !isLocked
-                    ? { backgroundColor: `${world.themeColor}15` }
-                    : undefined
-              }
-            >
-              <span className="text-xl">{isLocked ? "🔒" : world.emoji}</span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white font-bold text-sm">Worlds</h3>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-white/50 text-xs px-2 py-1 active:text-white"
+              >
+                Close
+              </button>
             </div>
 
-            {/* Label below */}
-            <span
-              className={`text-[9px] font-medium leading-tight ${
-                isLocked
-                  ? "text-white/40"
-                  : isActive
-                    ? "text-white"
-                    : "text-white/60"
-              }`}
-            >
-              {isLocked
-                ? `${(world.requiredXP / 1000).toFixed(0)}k XP`
-                : world.name.en}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+            <div className="grid grid-cols-4 gap-3">
+              {WORLDS.map((world) => {
+                const isActive = world.id === activeWorld;
+                const isLocked = false; // TODO: restore: totalPoints < world.requiredXP
+
+                return (
+                  <button
+                    key={world.id}
+                    onClick={() => {
+                      if (!isLocked) {
+                        onSelectWorld(world.id);
+                        setExpanded(false);
+                      }
+                    }}
+                    disabled={isLocked}
+                    className="flex flex-col items-center gap-1 transition-all duration-200"
+                  >
+                    <div
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center relative transition-all duration-200 ${
+                        isLocked
+                          ? "grayscale opacity-40 border-2 border-white/10"
+                          : isActive
+                            ? "border-[3px] scale-105 shadow-lg"
+                            : "border-2 border-white/20 active:scale-95 hover:border-white/50"
+                      }`}
+                      style={
+                        isActive
+                          ? {
+                              borderColor: world.themeColor,
+                              boxShadow: `0 0 16px ${world.themeColor}60`,
+                              backgroundColor: `${world.themeColor}25`,
+                            }
+                          : !isLocked
+                            ? { backgroundColor: `${world.themeColor}15` }
+                            : undefined
+                      }
+                    >
+                      <span className="text-2xl">{isLocked ? "🔒" : world.emoji}</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-medium leading-tight text-center ${
+                        isLocked
+                          ? "text-white/30"
+                          : isActive
+                            ? "text-white"
+                            : "text-white/60"
+                      }`}
+                    >
+                      {isLocked
+                        ? `${(world.requiredXP / 1000).toFixed(0)}k`
+                        : world.name.en}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }

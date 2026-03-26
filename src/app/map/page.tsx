@@ -32,6 +32,38 @@ const UnderwaterMap = dynamic(
   () => import("@/components/map/UnderwaterMap").then((m) => m.UnderwaterMap),
   { ssr: false }
 );
+const SpaceMap = dynamic(
+  () => import("@/components/map/SpaceMap").then((m) => m.SpaceMap),
+  { ssr: false }
+);
+const SocialMap = dynamic(
+  () => import("@/components/map/SocialMap").then((m) => m.SocialMap),
+  { ssr: false }
+);
+const FantasyMap = dynamic(
+  () => import("@/components/map/FantasyMap").then((m) => m.FantasyMap),
+  { ssr: false }
+);
+const TimeMap = dynamic(
+  () => import("@/components/map/TimeMap").then((m) => m.TimeMap),
+  { ssr: false }
+);
+const CultureMap = dynamic(
+  () => import("@/components/map/CultureMap").then((m) => m.CultureMap),
+  { ssr: false }
+);
+const EmotionsMap = dynamic(
+  () => import("@/components/map/EmotionsMap").then((m) => m.EmotionsMap),
+  { ssr: false }
+);
+const ScienceMap = dynamic(
+  () => import("@/components/map/ScienceMap").then((m) => m.ScienceMap),
+  { ssr: false }
+);
+const MetaMap = dynamic(
+  () => import("@/components/map/MetaMap").then((m) => m.MetaMap),
+  { ssr: false }
+);
 
 // Extract search params reader into its own component for Suspense boundary
 function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void; onWorld: (id: WorldId) => void }) {
@@ -40,7 +72,7 @@ function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void
     const topic = searchParams.get("topic");
     if (topic) onTopic(topic);
     const world = searchParams.get("world") as WorldId | null;
-    if (world && ["land", "ocean", "underwater", "air"].includes(world)) onWorld(world);
+    if (world && ["land", "ocean", "underwater", "air", "space", "social", "fantasy", "time", "culture", "emotions", "science", "meta"].includes(world)) onWorld(world);
   }, [searchParams, onTopic, onWorld]);
   return null;
 }
@@ -96,6 +128,14 @@ export default function MapPage() {
       {!helpOpen && activeWorld === "ocean" && <OceanMap onSelectCity={handleSelectCity} />}
       {!helpOpen && activeWorld === "air" && <AirMap onSelectCity={handleSelectCity} />}
       {!helpOpen && activeWorld === "underwater" && <UnderwaterMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "space" && <SpaceMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "social" && <SocialMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "fantasy" && <FantasyMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "time" && <TimeMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "culture" && <CultureMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "emotions" && <EmotionsMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "science" && <ScienceMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "meta" && <MetaMap onSelectCity={handleSelectCity} />}
 
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
