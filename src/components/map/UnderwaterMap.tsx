@@ -41,7 +41,7 @@ function getDepthZone(y: number): "shallow" | "mid" | "abyss" {
 const DEPTH_LABELS: Record<string, string> = { shallow: "Shallow", mid: "Deep", abyss: "Abyss" };
 
 // ─── Coral palette (upgraded — more vivid) ───────────────────────
-const CORAL_SHALLOW = ["#FF1493", "#9B30FF", "#FF6600", "#FFD700", "#FF4040", "#FF69B4", "#7B68EE", "#00FF7F"];
+const CORAL_SHALLOW = ["#FF1493", "#9B30FF", "#FF6600", "#FFD700", "#FF4040", "#FF69B4", "#7B68EE", "#00FF7F", "#FFFFFF", "#FFB6C1"];
 const CORAL_DEEP    = ["#1E3A5F", "#0E4D6E", "#3B1F6E", "#0D9488", "#155E75"];
 
 function getCoralColors(y: number): string[] {
@@ -164,30 +164,26 @@ function UnderwaterDust({ count }: { count: number }) {
   );
 }
 
-// ─── Scattered Seagrass (instanced) ─────────────────────────────
+// ─── Scattered Seagrass (instanced — doubled + color variety) ────
 function ScatteredSeagrass({ isMobile }: { isMobile: boolean }) {
-  const count = isMobile ? 30 : 100;
+  const count = isMobile ? 60 : 200;
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const GREENS = ["#2d8a4e", "#1e7a3a", "#3d9a5e", "#25804a", "#48a860"];
+  const COLORS = ["#2d8a4e", "#1e7a3a", "#3d9a5e", "#25804a", "#48a860", "#8B4513", "#CD853F"];
 
   const blades = useMemo(() => {
     const rng = seededRandom(7777);
     return Array.from({ length: count }, () => ({
       x: (rng() - 0.5) * 120,
       z: (rng() - 0.5) * 120,
-      y: -17 + rng() * 12, // spread across y=-17 to y=-5
+      y: -17 + rng() * 12,
       height: 1 + rng() * 3,
       phase: rng() * Math.PI * 2,
       speed: 0.3 + rng() * 0.4,
-      colorIndex: Math.floor(rng() * GREENS.length),
+      // ~20% red/brown (indices 5,6), ~80% greens (indices 0-4)
+      colorIndex: rng() < 0.8 ? Math.floor(rng() * 5) : 5 + Math.floor(rng() * 2),
     }));
   }, [count]);
-
-  // Set colors once
-  useMemo(() => {
-    // Colors set on first frame
-  }, []);
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
@@ -202,7 +198,7 @@ function ScatteredSeagrass({ isMobile }: { isMobile: boolean }) {
       dummy.scale.set(0.15, b.height, 1);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, new THREE.Color(GREENS[b.colorIndex]));
+      mesh.setColorAt(i, new THREE.Color(COLORS[b.colorIndex]));
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
@@ -263,18 +259,18 @@ function SeagrassMeadow({ position, seed }: { position: [number, number, number]
   );
 }
 
-// ─── Fan Corals (doubled to 20) ─────────────────────────────────
+// ─── Fan Corals (increased to 30/10) ─────────────────────────────
 function FanCorals({ isMobile }: { isMobile: boolean }) {
   const FAN_COLORS = ["#9B30FF", "#FF69B4", "#FF6600", "#E040FB", "#FF1493"];
   const fans = useMemo(() => {
-    const count = isMobile ? 8 : 20;
+    const count = isMobile ? 10 : 30;
     const rng = seededRandom(777);
     return Array.from({ length: count }, () => ({
       x: (rng() - 0.5) * 80,
       z: (rng() - 0.5) * 80,
       y: -16.5 + rng() * 0.5,
       rotY: rng() * Math.PI,
-      radius: 0.6 + rng() * 0.8,
+      radius: 0.5 + rng() * 2.5, // more size variety: 0.5 to 3
       color: FAN_COLORS[Math.floor(rng() * FAN_COLORS.length)],
     }));
   }, [isMobile]);
@@ -323,10 +319,10 @@ function TubeSponges({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Sea Anemones (more clusters) ───────────────────────────────
+// ─── Sea Anemones (more clusters + neon colors) ─────────────────
 function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
-  const clusterCount = isMobile ? 5 : 12;
-  const ANEMONE_COLORS = ["#FF69B4", "#9B30FF", "#FF6347", "#FF1493", "#DA70D6"];
+  const clusterCount = isMobile ? 8 : 20;
+  const ANEMONE_COLORS = ["#FF69B4", "#9B30FF", "#FF6347", "#FF1493", "#DA70D6", "#00FF7F", "#FF6347"];
   const groupRef = useRef<THREE.Group>(null!);
 
   const clusters = useMemo(() => {
@@ -365,7 +361,7 @@ function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
           </mesh>
           <mesh position={[0, a.stalkH, 0]}>
             <sphereGeometry args={[a.tipR, 6, 4]} />
-            <meshStandardMaterial color={a.color} emissive={a.color} emissiveIntensity={0.3} />
+            <meshStandardMaterial color={a.color} emissive={a.color} emissiveIntensity={0.5} />
           </mesh>
         </group>
       ))}
@@ -373,15 +369,15 @@ function SeaAnemonesScattered({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Floor Coral Groups (scattered on sea floor, not on platforms) ──
+// ─── Floor Coral Groups (increased + new coral types) ────────────
 function FloorCorals({ isMobile }: { isMobile: boolean }) {
-  const count = isMobile ? 6 : 18;
-  const CORAL_COLORS = ["#FF69B4", "#FF6600", "#9B30FF", "#FF1493", "#DAA520", "#00FF7F", "#FFD700", "#E040FB"];
+  const count = isMobile ? 12 : 35;
+  const CORAL_COLORS = ["#FF69B4", "#FF6600", "#9B30FF", "#FF1493", "#DAA520", "#00FF7F", "#FFD700", "#E040FB", "#FFFFFF", "#FFB6C1", "#7B68EE", "#6A5ACD"];
 
   const corals = useMemo(() => {
     const rng = seededRandom(4444);
     return Array.from({ length: count }, () => {
-      const shapeType = Math.floor(rng() * 3); // 0=brain, 1=branch, 2=mushroom
+      const shapeType = Math.floor(rng() * 6); // 0=brain, 1=branch, 2=mushroom, 3=staghorn, 4=table, 5=finger
       return {
         x: (rng() - 0.5) * 100,
         z: (rng() - 0.5) * 100,
@@ -401,7 +397,7 @@ function FloorCorals({ isMobile }: { isMobile: boolean }) {
             /* Brain coral — squashed sphere */
             <mesh position={[0, c.scale * 0.5, 0]} scale={[1, 0.6, 1]}>
               <sphereGeometry args={[c.scale, 8, 6]} />
-              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} roughness={0.6} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.35} roughness={0.6} />
             </mesh>
           )}
           {c.shapeType === 1 && (
@@ -409,15 +405,15 @@ function FloorCorals({ isMobile }: { isMobile: boolean }) {
             <group>
               <mesh position={[0, c.scale * 0.5, 0]}>
                 <cylinderGeometry args={[c.scale * 0.15, c.scale * 0.2, c.scale, 5]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.35} />
               </mesh>
               <mesh position={[c.scale * 0.15, c.scale * 0.8, 0]} rotation={[0, 0, 0.4]}>
                 <cylinderGeometry args={[c.scale * 0.08, c.scale * 0.12, c.scale * 0.5, 4]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.35} />
               </mesh>
               <mesh position={[-c.scale * 0.12, c.scale * 0.7, 0.1]} rotation={[0, 0, -0.3]}>
                 <cylinderGeometry args={[c.scale * 0.06, c.scale * 0.1, c.scale * 0.4, 4]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.15} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.35} />
               </mesh>
             </group>
           )}
@@ -426,12 +422,61 @@ function FloorCorals({ isMobile }: { isMobile: boolean }) {
             <group>
               <mesh position={[0, c.scale * 0.3, 0]}>
                 <cylinderGeometry args={[c.scale * 0.08, c.scale * 0.1, c.scale * 0.6, 4]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.1} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.3} />
               </mesh>
               <mesh position={[0, c.scale * 0.65, 0]} scale={[1, 0.3, 1]}>
                 <sphereGeometry args={[c.scale * 0.5, 8, 6]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.2} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.35} />
               </mesh>
+            </group>
+          )}
+          {c.shapeType === 3 && (
+            /* Staghorn coral — Y-shaped branching */
+            <group>
+              {/* Main trunk */}
+              <mesh position={[0, c.scale * 0.5, 0]}>
+                <cylinderGeometry args={[c.scale * 0.1, c.scale * 0.15, c.scale, 5]} />
+                <meshStandardMaterial color="#FFB6C1" emissive="#FFB6C1" emissiveIntensity={0.35} />
+              </mesh>
+              {/* Left branch */}
+              <mesh position={[-c.scale * 0.15, c.scale * 1.1, 0]} rotation={[0, 0, -0.5]}>
+                <cylinderGeometry args={[c.scale * 0.06, c.scale * 0.09, c.scale * 0.7, 4]} />
+                <meshStandardMaterial color="#FFFFFF" emissive="#FFB6C1" emissiveIntensity={0.3} />
+              </mesh>
+              {/* Right branch */}
+              <mesh position={[c.scale * 0.15, c.scale * 1.1, 0]} rotation={[0, 0, 0.5]}>
+                <cylinderGeometry args={[c.scale * 0.06, c.scale * 0.09, c.scale * 0.7, 4]} />
+                <meshStandardMaterial color="#FFFFFF" emissive="#FFB6C1" emissiveIntensity={0.3} />
+              </mesh>
+            </group>
+          )}
+          {c.shapeType === 4 && (
+            /* Table coral — flat wide disc on short stalk */
+            <group>
+              <mesh position={[0, c.scale * 0.3, 0]}>
+                <cylinderGeometry args={[c.scale * 0.1, c.scale * 0.12, c.scale * 0.6, 5]} />
+                <meshStandardMaterial color="#8B7355" emissive="#8B7355" emissiveIntensity={0.2} />
+              </mesh>
+              <mesh position={[0, c.scale * 0.65, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <circleGeometry args={[c.scale * 1.2, 10]} />
+                <meshStandardMaterial color="#CD853F" emissive="#CD853F" emissiveIntensity={0.3} side={THREE.DoubleSide} />
+              </mesh>
+            </group>
+          )}
+          {c.shapeType === 5 && (
+            /* Finger coral — cluster of small vertical cylinders */
+            <group>
+              {[0, 1, 2, 3, 4, 5, 6, 7].slice(0, 5 + Math.floor(c.scale * 6)).map((fi) => {
+                const fAngle = (fi / 8) * Math.PI * 2;
+                const fDist = c.scale * 0.2;
+                const fHeight = c.scale * (0.5 + (fi % 3) * 0.3);
+                return (
+                  <mesh key={fi} position={[Math.cos(fAngle) * fDist, fHeight / 2, Math.sin(fAngle) * fDist]}>
+                    <cylinderGeometry args={[c.scale * 0.05, c.scale * 0.07, fHeight, 4]} />
+                    <meshStandardMaterial color="#6A5ACD" emissive="#6A5ACD" emissiveIntensity={0.35} />
+                  </mesh>
+                );
+              })}
             </group>
           )}
         </group>
@@ -530,14 +575,16 @@ function SeaUrchins({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// ─── Seafloor Carpet (algae/moss patches) ───────────────────────
+// ─── Seafloor Carpet (algae/moss patches — more variety) ────────
 function SeafloorCarpet() {
+  const CARPET_COLORS = ["#1a3020", "#2a3520", "#3a1520", "#2a1530", "#1a2818", "#301828"];
   const patches = useMemo(() => {
     const rng = seededRandom(9999);
-    return Array.from({ length: 4 }, () => ({
+    return Array.from({ length: 8 }, () => ({
       x: (rng() - 0.5) * 60,
       z: (rng() - 0.5) * 60,
       radius: 8 + rng() * 4,
+      color: CARPET_COLORS[Math.floor(rng() * CARPET_COLORS.length)],
     }));
   }, []);
 
@@ -546,8 +593,368 @@ function SeafloorCarpet() {
       {patches.map((p, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[p.x, -16.95, p.z]}>
           <circleGeometry args={[p.radius, 16]} />
-          <meshBasicMaterial color="#1a3020" transparent opacity={0.2} depthWrite={false} />
+          <meshBasicMaterial color={p.color} transparent opacity={0.2} depthWrite={false} />
         </mesh>
+      ))}
+    </>
+  );
+}
+
+// ─── Flowering Sea Plants (new) ─────────────────────────────────
+function FloweringSeaPlants({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 5 : 15;
+  const FLOWER_COLORS = ["#FF69B4", "#FFD700", "#FFFFFF", "#9B30FF", "#FF1493", "#FFA07A"];
+
+  const plants = useMemo(() => {
+    const rng = seededRandom(11111);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 100,
+      z: (rng() - 0.5) * 100,
+      height: 1 + rng() * 1,
+      color: FLOWER_COLORS[Math.floor(rng() * FLOWER_COLORS.length)],
+      phase: rng() * Math.PI * 2,
+    }));
+  }, [count]);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const sway = Math.sin(t * 0.5 + plants[i].phase) * 0.08;
+      children[i].rotation.x = sway;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {plants.map((p, i) => (
+        <group key={i} position={[p.x, -16.8, p.z]}>
+          {/* Thin stalk */}
+          <mesh position={[0, p.height / 2, 0]}>
+            <cylinderGeometry args={[0.02, 0.03, p.height, 4]} />
+            <meshStandardMaterial color="#2d8a4e" emissive="#2d8a4e" emissiveIntensity={0.1} />
+          </mesh>
+          {/* Flower sphere on top */}
+          <mesh position={[0, p.height, 0]}>
+            <sphereGeometry args={[0.08, 6, 4]} />
+            <meshStandardMaterial color={p.color} emissive={p.color} emissiveIntensity={0.4} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Crabs (new — instanced for static placement) ───────────────
+function Crabs({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 3 : 8;
+  const CRAB_COLORS = ["#E04020", "#FF6347", "#CD5C5C", "#B22222", "#FF4500"];
+
+  const crabs = useMemo(() => {
+    const rng = seededRandom(12345);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 80,
+      z: (rng() - 0.5) * 80,
+      rotY: rng() * Math.PI * 2,
+      scale: 0.15 + rng() * 0.1,
+      color: CRAB_COLORS[Math.floor(rng() * CRAB_COLORS.length)],
+      phase: rng() * Math.PI * 2,
+      speed: 0.1 + rng() * 0.15,
+    }));
+  }, [count]);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const c = crabs[i];
+      // Very slow sideways movement
+      children[i].position.x = c.x + Math.sin(t * c.speed + c.phase) * 0.5;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {crabs.map((c, i) => (
+        <group key={i} position={[c.x, -16.85, c.z]} rotation={[0, c.rotY, 0]}>
+          {/* Body — flat wide box */}
+          <mesh>
+            <boxGeometry args={[c.scale * 2, c.scale * 0.5, c.scale * 1.5]} />
+            <meshStandardMaterial color={c.color} roughness={0.7} />
+          </mesh>
+          {/* Left claw */}
+          <mesh position={[-c.scale * 1.2, 0, 0]}>
+            <sphereGeometry args={[c.scale * 0.4, 5, 4]} />
+            <meshStandardMaterial color={c.color} roughness={0.6} />
+          </mesh>
+          {/* Right claw */}
+          <mesh position={[c.scale * 1.2, 0, 0]}>
+            <sphereGeometry args={[c.scale * 0.4, 5, 4]} />
+            <meshStandardMaterial color={c.color} roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Seahorses (new) ────────────────────────────────────────────
+function Seahorses({ isMobile }: { isMobile: boolean }) {
+  const count = isMobile ? 1 : 4;
+  const SEAHORSE_COLORS = ["#FFD700", "#FFA500", "#FF8C00", "#DAA520"];
+
+  const seahorses = useMemo(() => {
+    const rng = seededRandom(13579);
+    return Array.from({ length: count }, () => ({
+      x: (rng() - 0.5) * 70,
+      y: -14 + rng() * 8,
+      z: (rng() - 0.5) * 70,
+      color: SEAHORSE_COLORS[Math.floor(rng() * SEAHORSE_COLORS.length)],
+      phase: rng() * Math.PI * 2,
+      scale: 0.12 + rng() * 0.08,
+    }));
+  }, [count]);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const s = seahorses[i];
+      // Gentle up/down bob
+      children[i].position.y = s.y + Math.sin(t * 0.5 + s.phase) * 0.3;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {seahorses.map((s, i) => (
+        <group key={i} position={[s.x, s.y, s.z]}>
+          {/* Head */}
+          <mesh position={[0, s.scale * 5, 0]}>
+            <sphereGeometry args={[s.scale * 1.2, 6, 4]} />
+            <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.15} />
+          </mesh>
+          {/* Upper body — angled cylinder */}
+          <mesh position={[0, s.scale * 3.5, 0]} rotation={[0.2, 0, 0]}>
+            <cylinderGeometry args={[s.scale * 0.6, s.scale * 0.8, s.scale * 3, 5]} />
+            <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.1} />
+          </mesh>
+          {/* Mid body — angled other way */}
+          <mesh position={[0, s.scale * 1.5, s.scale * 0.3]} rotation={[-0.3, 0, 0]}>
+            <cylinderGeometry args={[s.scale * 0.8, s.scale * 0.6, s.scale * 2.5, 5]} />
+            <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.1} />
+          </mesh>
+          {/* Tail — curved down */}
+          <mesh position={[0, s.scale * -0.5, s.scale * -0.2]} rotation={[0.4, 0, 0]}>
+            <cylinderGeometry args={[s.scale * 0.3, s.scale * 0.6, s.scale * 2, 4]} />
+            <meshStandardMaterial color={s.color} emissive={s.color} emissiveIntensity={0.1} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Clownfish Pairs (new — near anemones) ──────────────────────
+function ClownfishPairs({ isMobile }: { isMobile: boolean }) {
+  const pairCount = isMobile ? 2 : 6;
+
+  const pairs = useMemo(() => {
+    const rng = seededRandom(24680);
+    return Array.from({ length: pairCount }, () => ({
+      cx: (rng() - 0.5) * 60,
+      cy: -14 + rng() * 6,
+      cz: (rng() - 0.5) * 60,
+      phase1: rng() * Math.PI * 2,
+      phase2: rng() * Math.PI * 2,
+      speed: 1.5 + rng() * 1.5,
+      radius: 0.8 + rng() * 0.5,
+    }));
+  }, [pairCount]);
+
+  const groupRef = useRef<THREE.Group>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const children = groupRef.current.children;
+    for (let pi = 0; pi < pairCount; pi++) {
+      const p = pairs[pi];
+      const pairGroup = children[pi] as THREE.Group;
+      if (!pairGroup) continue;
+      // Fish 1
+      const f1 = pairGroup.children[0];
+      if (f1) {
+        f1.position.set(
+          p.cx + Math.sin(t * p.speed + p.phase1) * p.radius,
+          p.cy + Math.sin(t * p.speed * 0.7 + p.phase1) * 0.3,
+          p.cz + Math.cos(t * p.speed + p.phase1) * p.radius,
+        );
+      }
+      // Fish 2
+      const f2 = pairGroup.children[1];
+      if (f2) {
+        f2.position.set(
+          p.cx + Math.sin(t * p.speed + p.phase2 + Math.PI) * p.radius,
+          p.cy + Math.sin(t * p.speed * 0.7 + p.phase2) * 0.3,
+          p.cz + Math.cos(t * p.speed + p.phase2 + Math.PI) * p.radius,
+        );
+      }
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {pairs.map((_, pi) => (
+        <group key={pi}>
+          {/* Fish 1 */}
+          <group>
+            <mesh scale={[1.5, 1, 0.8]}>
+              <sphereGeometry args={[0.1, 6, 4]} />
+              <meshStandardMaterial color="#FF6600" emissive="#FF6600" emissiveIntensity={0.15} />
+            </mesh>
+            {/* White stripe */}
+            <mesh rotation={[0, 0, Math.PI / 2]}>
+              <torusGeometry args={[0.1, 0.015, 4, 8]} />
+              <meshStandardMaterial color="#FFFFFF" />
+            </mesh>
+          </group>
+          {/* Fish 2 */}
+          <group>
+            <mesh scale={[1.5, 1, 0.8]}>
+              <sphereGeometry args={[0.08, 6, 4]} />
+              <meshStandardMaterial color="#FF8C00" emissive="#FF8C00" emissiveIntensity={0.15} />
+            </mesh>
+            <mesh rotation={[0, 0, Math.PI / 2]}>
+              <torusGeometry args={[0.08, 0.012, 4, 8]} />
+              <meshStandardMaterial color="#FFFFFF" />
+            </mesh>
+          </group>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ─── Large Fish (new — desktop only) ────────────────────────────
+function LargeFish() {
+  const LARGE_FISH_DATA = useMemo(() => {
+    const rng = seededRandom(77777);
+    const colors = ["#C0C0C0", "#3B82F6", "#374151", "#4A6FA5"];
+    return Array.from({ length: 4 }, () => {
+      const points = Array.from({ length: 5 }, () =>
+        new THREE.Vector3(
+          (rng() - 0.5) * 80,
+          -3 - rng() * 8,
+          (rng() - 0.5) * 80,
+        )
+      );
+      return {
+        curve: new THREE.CatmullRomCurve3(points, true),
+        color: colors[Math.floor(rng() * colors.length)],
+        speed: 0.005 + rng() * 0.005,
+        offset: rng(),
+      };
+    });
+  }, []);
+
+  const refs = useRef<(THREE.Group | null)[]>([]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    LARGE_FISH_DATA.forEach((f, i) => {
+      const group = refs.current[i];
+      if (!group) return;
+      const progress = (t * f.speed + f.offset) % 1;
+      const pos = f.curve.getPointAt(progress);
+      const tangent = f.curve.getTangentAt(progress);
+      group.position.copy(pos);
+      group.lookAt(pos.clone().add(tangent));
+    });
+  });
+
+  return (
+    <>
+      {LARGE_FISH_DATA.map((f, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }}>
+          <mesh scale={[2, 1, 0.6]}>
+            <sphereGeometry args={[0.5, 8, 6]} />
+            <meshStandardMaterial color={f.color} metalness={0.4} roughness={0.5} />
+          </mesh>
+          {/* Tail fin */}
+          <mesh position={[-0.9, 0, 0]} rotation={[0, 0, 0]}>
+            <coneGeometry args={[0.3, 0.5, 4]} />
+            <meshStandardMaterial color={f.color} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
+// ─── Eels (new — desktop only) ──────────────────────────────────
+function Eels() {
+  const EEL_DATA = useMemo(() => {
+    const rng = seededRandom(88888);
+    return Array.from({ length: 2 }, () => {
+      const points = Array.from({ length: 6 }, () =>
+        new THREE.Vector3(
+          (rng() - 0.5) * 50,
+          -14 - rng() * 3,
+          (rng() - 0.5) * 50,
+        )
+      );
+      return {
+        curve: new THREE.CatmullRomCurve3(points, true),
+        color: rng() > 0.5 ? "#2D4A2D" : "#3A2D1A",
+        speed: 0.008 + rng() * 0.004,
+        offset: rng(),
+      };
+    });
+  }, []);
+
+  const refs = useRef<(THREE.Group | null)[]>([]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    EEL_DATA.forEach((e, i) => {
+      const group = refs.current[i];
+      if (!group) return;
+      const progress = (t * e.speed + e.offset) % 1;
+      const pos = e.curve.getPointAt(progress);
+      const tangent = e.curve.getTangentAt(progress);
+      group.position.copy(pos);
+      group.lookAt(pos.clone().add(tangent));
+      // Body undulation
+      const children = group.children;
+      for (let s = 0; s < children.length; s++) {
+        children[s].position.y = Math.sin(t * 2 + s * 0.8) * 0.08;
+      }
+    });
+  });
+
+  return (
+    <>
+      {EEL_DATA.map((e, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }}>
+          {/* Eel body — 5 segments */}
+          {[0, 1, 2, 3, 4].map((seg) => (
+            <mesh key={seg} position={[seg * 0.3 - 0.6, 0, 0]}>
+              <cylinderGeometry args={[0.06 - seg * 0.008, 0.07 - seg * 0.008, 0.35, 5]} />
+              <meshStandardMaterial color={e.color} roughness={0.7} />
+            </mesh>
+          ))}
+          {/* Head */}
+          <mesh position={[-0.8, 0, 0]}>
+            <sphereGeometry args={[0.08, 5, 4]} />
+            <meshStandardMaterial color={e.color} />
+          </mesh>
+        </group>
       ))}
     </>
   );
@@ -606,7 +1013,7 @@ function AnemoneCluster({ position, index }: { position: [number, number, number
   );
 }
 
-// ─── Coral Reef Platform (upgraded coral variety) ────────────────
+// ─── Coral Reef Platform (upgraded coral variety + boosted emissive) ─
 function CoralPlatform({
   position,
   index,
@@ -646,6 +1053,12 @@ function CoralPlatform({
     });
   }, [index, coralCount, palette, heightMultiplier, isShallow]);
 
+  // Boosted emissive for shallow zone corals
+  const shallowEmissive = 0.35;
+  const midEmissive = 0.15;
+  const abyssEmissive = 0.6;
+  const getEmissive = (base: number) => isGlowing ? abyssEmissive + base * 0.2 : isShallow ? shallowEmissive : midEmissive;
+
   return (
     <group position={position}>
       {/* Base rock */}
@@ -666,11 +1079,11 @@ function CoralPlatform({
               {/* Branch coral */}
               <mesh position={[0, c.height / 2, 0]}>
                 <cylinderGeometry args={[c.radius * 0.5, c.radius, c.height, 6]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.6 : isShallow ? 0.25 : 0.12} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={getEmissive(0)} />
               </mesh>
               <mesh position={[0, c.height + 0.1, 0]}>
                 <coneGeometry args={[c.radius * 0.7, 0.3, 5]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.8 : isShallow ? 0.3 : 0.2} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={getEmissive(0.1)} />
               </mesh>
             </>
           )}
@@ -678,14 +1091,14 @@ function CoralPlatform({
             /* Round/brain coral */
             <mesh position={[0, c.radius * 1.5, 0]}>
               <sphereGeometry args={[c.radius * 2, 8, 6]} />
-              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.6 : isShallow ? 0.25 : 0.12} roughness={0.6} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={getEmissive(0)} roughness={0.6} />
             </mesh>
           )}
           {c.shapeType === 2 && (
             /* Flat disc coral */
             <mesh position={[0, 0.15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[c.radius * 2.5, 10]} />
-              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={isGlowing ? 0.5 : isShallow ? 0.25 : 0.1} side={THREE.DoubleSide} />
+              <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={getEmissive(-0.05)} side={THREE.DoubleSide} />
             </mesh>
           )}
           {/* Extra side branch for shallow corals (branch type) */}
@@ -693,7 +1106,7 @@ function CoralPlatform({
             <group position={[0, c.height * 0.6, 0]} rotation={[0.4, 0, 0.5]}>
               <mesh position={[0, 0.3, 0]}>
                 <cylinderGeometry args={[c.radius * 0.3, c.radius * 0.5, 0.6, 5]} />
-                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.2} />
+                <meshStandardMaterial color={c.color} emissive={c.color} emissiveIntensity={0.3} />
               </mesh>
             </group>
           )}
@@ -878,11 +1291,11 @@ function FishSchool({
   );
 }
 
-// ─── Background Fish (ambient tiny fish — instanced) ─────────────
+// ─── Background Fish (ambient tiny fish — instanced, increased) ──
 function BackgroundFish({ count }: { count: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const FISH_COLORS_LIST = [0x3b82f6, 0xf97316, 0xc0c0c0, 0xff6b9d, 0x2dd4bf, 0xfacc15, 0xa78bfa];
+  const FISH_COLORS_LIST = [0x3b82f6, 0xf97316, 0xc0c0c0, 0xff6b9d, 0x2dd4bf, 0xfacc15, 0xa78bfa, 0xff1493, 0x00ced1, 0xffd700];
 
   const fishData = useMemo(() => {
     const rng = seededRandom(999);
@@ -896,11 +1309,6 @@ function BackgroundFish({ count }: { count: number }) {
       colorIndex: Math.floor(rng() * FISH_COLORS_LIST.length),
     }));
   }, [count]);
-
-  // Set colors once
-  useMemo(() => {
-    // Will be set on first frame
-  }, []);
 
   useFrame(() => {
     const mesh = meshRef.current;
@@ -1186,8 +1594,8 @@ function KelpForest({ position, isMobile }: { position: [number, number, number]
   );
 }
 
-// ─── Sea Turtle (desktop only) ──────────────────────────────────
-function SeaTurtle({ pathSeed }: { pathSeed: number }) {
+// ─── Sea Turtle (desktop only — now 4 with size variety) ─────────
+function SeaTurtle({ pathSeed, scale = 1 }: { pathSeed: number; scale?: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const flippersRef = useRef<THREE.Group>(null!);
 
@@ -1222,7 +1630,7 @@ function SeaTurtle({ pathSeed }: { pathSeed: number }) {
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={[scale, scale, scale]}>
       {/* Shell (half sphere) */}
       <mesh rotation={[Math.PI, 0, 0]}>
         <sphereGeometry args={[0.8, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
@@ -1261,24 +1669,33 @@ function SeaTurtle({ pathSeed }: { pathSeed: number }) {
   );
 }
 
-// ─── Manta Ray (desktop only) ───────────────────────────────────
-function MantaRay() {
+// ─── Manta Ray (desktop only — now supports different paths) ─────
+function MantaRay({ pathIndex = 0 }: { pathIndex?: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const meshRef = useRef<THREE.Mesh>(null!);
 
   const curve = useMemo(() => {
-    const points = [
-      new THREE.Vector3(-30, -6, -10),
-      new THREE.Vector3(-10, -5, 15),
-      new THREE.Vector3(20, -7, 10),
-      new THREE.Vector3(30, -6, -15),
-      new THREE.Vector3(10, -5, -25),
+    const paths = [
+      [
+        new THREE.Vector3(-30, -6, -10),
+        new THREE.Vector3(-10, -5, 15),
+        new THREE.Vector3(20, -7, 10),
+        new THREE.Vector3(30, -6, -15),
+        new THREE.Vector3(10, -5, -25),
+      ],
+      [
+        new THREE.Vector3(25, -4, -20),
+        new THREE.Vector3(15, -3, 10),
+        new THREE.Vector3(-20, -5, 20),
+        new THREE.Vector3(-35, -4, -5),
+        new THREE.Vector3(-5, -3, -30),
+      ],
     ];
-    return new THREE.CatmullRomCurve3(points, true);
-  }, []);
+    return new THREE.CatmullRomCurve3(paths[pathIndex % paths.length], true);
+  }, [pathIndex]);
 
   useFrame(({ clock }) => {
-    const t = (clock.getElapsedTime() * 0.01) % 1;
+    const t = (clock.getElapsedTime() * (0.01 + pathIndex * 0.003)) % 1;
     const pos = curve.getPointAt(t);
     const tangent = curve.getTangentAt(t);
     groupRef.current.position.copy(pos);
@@ -1498,7 +1915,7 @@ function UnderwaterScene({
   const dustCount = isMobile ? 20 : 50;
   const showJellyfish = true; // now shown on both
   const showSeaFans = !isMobile;
-  const backgroundFishCount = isMobile ? 10 : 30;
+  const backgroundFishCount = isMobile ? 20 : 50;
 
   return (
     <>
@@ -1529,7 +1946,7 @@ function UnderwaterScene({
       {/* Light beams (soft volumetric planes) */}
       <LightBeams />
 
-      {/* Scattered seagrass everywhere (instanced) */}
+      {/* Scattered seagrass everywhere (instanced — doubled) */}
       <ScatteredSeagrass isMobile={isMobile} />
 
       {/* Seagrass meadow clusters */}
@@ -1538,16 +1955,16 @@ function UnderwaterScene({
       <SeagrassMeadow position={[-28, -16.5, 8]} seed={303} />
       {!isMobile && <SeagrassMeadow position={[25, -16.5, -8]} seed={404} />}
 
-      {/* Fan corals scattered (doubled) */}
+      {/* Fan corals scattered (increased to 30/10) */}
       <FanCorals isMobile={isMobile} />
 
       {/* Tube sponges (more scattered) */}
       <TubeSponges isMobile={isMobile} />
 
-      {/* Sea anemones scattered (more clusters) */}
+      {/* Sea anemones scattered (more clusters + neon) */}
       <SeaAnemonesScattered isMobile={isMobile} />
 
-      {/* Floor coral groups (scattered on sea floor) */}
+      {/* Floor coral groups (increased + new types) */}
       <FloorCorals isMobile={isMobile} />
 
       {/* Sea sponges (barrel-shaped) */}
@@ -1559,8 +1976,20 @@ function UnderwaterScene({
       {/* Sea urchins on rocks */}
       <SeaUrchins isMobile={isMobile} />
 
-      {/* Seafloor carpet (algae/moss patches) */}
+      {/* Seafloor carpet (algae/moss patches — more variety) */}
       <SeafloorCarpet />
+
+      {/* Flowering sea plants (new) */}
+      <FloweringSeaPlants isMobile={isMobile} />
+
+      {/* Crabs (new) */}
+      <Crabs isMobile={isMobile} />
+
+      {/* Seahorses (new) */}
+      <Seahorses isMobile={isMobile} />
+
+      {/* Clownfish pairs (new) */}
+      <ClownfishPairs isMobile={isMobile} />
 
       {/* Bioluminescent dots in abyss */}
       <BioluminescentDots isMobile={isMobile} />
@@ -1608,7 +2037,7 @@ function UnderwaterScene({
       {/* Bubbles */}
       <Bubbles count={bubbleCount} />
 
-      {/* Background ambient fish */}
+      {/* Background ambient fish (increased to 50/20) */}
       <BackgroundFish count={backgroundFishCount} />
 
       {/* Fish schools — larger groups with shimmer */}
@@ -1630,16 +2059,29 @@ function UnderwaterScene({
         </>
       )}
 
-      {/* Sea turtles (desktop only) */}
+      {/* Sea turtles — 4 with size variety (desktop only) */}
       {!isMobile && (
         <>
-          <SeaTurtle pathSeed={1} />
-          <SeaTurtle pathSeed={2} />
+          <SeaTurtle pathSeed={1} scale={1.0} />
+          <SeaTurtle pathSeed={2} scale={1.2} />
+          <SeaTurtle pathSeed={3} scale={0.6} />
+          <SeaTurtle pathSeed={4} scale={0.7} />
         </>
       )}
 
-      {/* Manta ray (desktop only) */}
-      {!isMobile && <MantaRay />}
+      {/* Manta rays — 2 at different depths (desktop only) */}
+      {!isMobile && (
+        <>
+          <MantaRay pathIndex={0} />
+          <MantaRay pathIndex={1} />
+        </>
+      )}
+
+      {/* Large solitary fish (desktop only) */}
+      {!isMobile && <LargeFish />}
+
+      {/* Eels near rocks/shipwreck (desktop only) */}
+      {!isMobile && <Eels />}
 
       {/* Camera controls */}
       <OrbitControls
