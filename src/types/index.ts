@@ -4,9 +4,17 @@ export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "wo
   | "ocean-sailing" | "ocean-fishing" | "ocean-lighthouse" | "ocean-sailing-school" | "ocean-cruise" | "ocean-storm" | "ocean-pirates" | "ocean-shipping"
   | "underwater-reef" | "underwater-creatures" | "underwater-exploration" | "underwater-kelp" | "underwater-submarine" | "underwater-abyss" | "underwater-bubbles" | "underwater-treasure" | "underwater-volcano"
   | "air-flying" | "air-birds" | "air-weather-sky" | "air-airport" | "air-storm-clouds" | "air-mountain" | "air-balloon" | "air-wind"
-  | "botanical-garden" | "central-park" | "university" | "art-museum" | "history-museum" | "legendary-places";
+  | "botanical-garden" | "central-park" | "university" | "art-museum" | "history-museum" | "legendary-places"
+  | "space-planets" | "space-rockets" | "space-astronaut" | "space-aliens" | "space-station" | "space-moon" | "space-stars" | "space-galaxy"
+  | "social-cafe" | "social-office" | "social-party" | "social-hotel" | "social-airport-desk" | "social-restaurant" | "social-shopping" | "social-hospital"
+  | "fantasy-forest" | "fantasy-dragon" | "fantasy-wizard" | "fantasy-castle" | "fantasy-village" | "fantasy-quest" | "fantasy-potion" | "fantasy-dungeon"
+  | "time-ancient" | "time-medieval" | "time-present" | "time-future" | "time-dinosaur" | "time-industrial" | "time-station" | "time-museum"
+  | "culture-italian" | "culture-japanese" | "culture-french" | "culture-mexican" | "culture-indian" | "culture-african" | "culture-british" | "culture-brazilian"
+  | "emotions-joy" | "emotions-fear" | "emotions-anger" | "emotions-calm" | "emotions-surprise" | "emotions-love" | "emotions-dream" | "emotions-courage"
+  | "science-lab" | "science-robot" | "science-space-station" | "science-energy" | "science-nature" | "science-medicine" | "science-computer" | "science-invention"
+  | "meta-ui" | "meta-game" | "meta-code" | "meta-internet" | "meta-social-media" | "meta-ai" | "meta-music-studio" | "meta-movie";
 
-export type WorldId = "land" | "ocean" | "underwater" | "air";
+export type WorldId = "land" | "ocean" | "underwater" | "air" | "space" | "social" | "fantasy" | "time" | "culture" | "emotions" | "science" | "meta";
 
 export interface WordEntry {
   id: string;
