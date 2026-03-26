@@ -281,6 +281,158 @@ function JoyIsland({ position }: { position: [number, number, number] }) {
   );
 }
 
+// ─── Glow Aura Ring (per island) ──────────────────────────────
+function GlowAura({
+  position,
+  radius,
+  color,
+}: {
+  position: [number, number, number];
+  radius: number;
+  color: string;
+}) {
+  const ringRef = useRef<THREE.Mesh>(null!);
+
+  useFrame((state) => {
+    if (ringRef.current) {
+      (ringRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.05;
+    }
+  });
+
+  return (
+    <mesh
+      ref={ringRef}
+      position={position}
+      rotation={[-Math.PI / 2, 0, 0]}
+    >
+      <ringGeometry args={[radius * 1.2, radius * 1.5, 32]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={0.15}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+// ─── Background Distant Islands ───────────────────────────────
+function DistantIslands() {
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const islands = useMemo(() => {
+    const rng = seededRandom(999);
+    return Array.from({ length: 6 }, () => {
+      const angle = rng() * Math.PI * 2;
+      const dist = 50 + rng() * 20;
+      return {
+        x: Math.cos(angle) * dist,
+        y: rng() * 15,
+        z: Math.sin(angle) * dist,
+        scale: 0.5 + rng() * 0.5,
+        color: ["#4a3a5a", "#3a4a5a", "#5a3a4a", "#3a5a4a", "#5a4a3a", "#4a4a5a"][
+          Math.floor(rng() * 6)
+        ],
+        speed: 0.1 + rng() * 0.15,
+        detail: rng() > 0.5 ? 1 : 0,
+      };
+    });
+  }, []);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    groupRef.current.children.forEach((child, i) => {
+      const island = islands[i];
+      if (island) {
+        child.position.y =
+          island.y + Math.sin(state.clock.elapsedTime * island.speed + i * 2) * 0.5;
+      }
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {islands.map((island, i) => (
+        <mesh key={i} position={[island.x, island.y, island.z]} scale={island.scale}>
+          {island.detail === 1 ? (
+            <icosahedronGeometry args={[1.5, 0]} />
+          ) : (
+            <sphereGeometry args={[1.5, 6, 6]} />
+          )}
+          <meshStandardMaterial
+            color={island.color}
+            transparent
+            opacity={0.12 + i * 0.02}
+            roughness={0.9}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Global Ambient Particles ──────────────────────────────────
+function AmbientParticles() {
+  const pointsRef = useRef<THREE.Points>(null!);
+  const count = IS_MOBILE ? 40 : 100;
+
+  const { positions, velocities } = useMemo(() => {
+    const rng = seededRandom(1234);
+    const pos = new Float32Array(count * 3);
+    const vel = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      pos[i3] = (rng() - 0.5) * 100;
+      pos[i3 + 1] = -5 + rng() * 25;
+      pos[i3 + 2] = (rng() - 0.5) * 100;
+      vel[i3] = (rng() - 0.5) * 0.005;
+      vel[i3 + 1] = (rng() - 0.5) * 0.003;
+      vel[i3 + 2] = (rng() - 0.5) * 0.005;
+    }
+    return { positions: pos, velocities: vel };
+  }, [count]);
+
+  useFrame(() => {
+    if (!pointsRef.current) return;
+    const posAttr = pointsRef.current.geometry.attributes
+      .position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      arr[i3] += velocities[i3];
+      arr[i3 + 1] += velocities[i3 + 1];
+      arr[i3 + 2] += velocities[i3 + 2];
+      if (Math.abs(arr[i3]) > 50) velocities[i3] *= -1;
+      if (arr[i3 + 1] > 20 || arr[i3 + 1] < -5) velocities[i3 + 1] *= -1;
+      if (Math.abs(arr[i3 + 2]) > 50) velocities[i3 + 2] *= -1;
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={count}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#E0E0FF"
+        size={0.08}
+        transparent
+        opacity={0.15}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
 // ─── Fear Cave — Dark arch with glowing eyes ────────────────────
 function FearCave({ position }: { position: [number, number, number] }) {
   const eyeRef1 = useRef<THREE.Mesh>(null!);
@@ -298,10 +450,10 @@ function FearCave({ position }: { position: [number, number, number] }) {
 
   return (
     <group position={position}>
-      {/* Base rock */}
-      <mesh position={[0, -0.5, 0]}>
-        <boxGeometry args={[6, 2, 4]} />
-        <meshStandardMaterial color="#1a1a3a" roughness={0.9} />
+      {/* Base rock — angular cone */}
+      <mesh position={[0, 0.5, 0]}>
+        <coneGeometry args={[4, 3, 6]} />
+        <meshStandardMaterial color="#1a1a3a" roughness={0.9} flatShading />
       </mesh>
       {/* Left pillar */}
       <mesh position={[-2, 1.5, 0]}>
@@ -346,19 +498,51 @@ function AngerVolcano({
   position: [number, number, number];
 }) {
   const lavaRef = useRef<THREE.Mesh>(null!);
+  const volcanoRef = useRef<THREE.Group>(null!);
+  const smokeRef = useRef<THREE.Group>(null!);
+
+  const smokeParticles = useMemo(() => {
+    const rng = seededRandom(555);
+    return Array.from({ length: 10 }, () => ({
+      x: (rng() - 0.5) * 1.2,
+      z: (rng() - 0.5) * 1.2,
+      speed: 0.3 + rng() * 0.5,
+      scale: 0.15 + rng() * 0.15,
+      offset: rng() * Math.PI * 2,
+    }));
+  }, []);
 
   useFrame((state) => {
+    const t = state.clock.elapsedTime;
     if (lavaRef.current) {
       const mat = lavaRef.current.material as THREE.MeshStandardMaterial;
-      mat.emissiveIntensity = 0.8 + Math.sin(state.clock.elapsedTime * 3) * 0.4;
+      mat.emissiveIntensity = 0.8 + Math.sin(t * 3) * 0.4;
+    }
+    // Scale breathing
+    if (volcanoRef.current) {
+      volcanoRef.current.scale.y = 1 + Math.sin(t * 3) * 0.03;
+    }
+    // Smoke rising
+    if (smokeRef.current) {
+      smokeRef.current.children.forEach((child, i) => {
+        const sp = smokeParticles[i];
+        if (sp) {
+          const cycle = ((t * sp.speed + sp.offset) % 3) / 3; // 0-1
+          child.position.y = 5.5 + cycle * 4;
+          child.scale.setScalar(sp.scale * (1 + cycle * 2));
+          (child as THREE.Mesh).material &&
+            ((child as THREE.Mesh).material as THREE.MeshStandardMaterial).opacity !== undefined &&
+            (((child as THREE.Mesh).material as THREE.MeshStandardMaterial).opacity = 0.4 * (1 - cycle));
+        }
+      });
     }
   });
 
   return (
-    <group position={position}>
-      {/* Volcano cone */}
+    <group ref={volcanoRef} position={position}>
+      {/* Volcano cone — angular 6-sided */}
       <mesh position={[0, 2.5, 0]}>
-        <coneGeometry args={[4, 6, 8]} />
+        <coneGeometry args={[4, 6, 6]} />
         <meshStandardMaterial
           color="#4A1010"
           roughness={0.8}
@@ -383,8 +567,8 @@ function AngerVolcano({
           emissiveIntensity={0.8}
         />
       </mesh>
-      {/* Lava cracks on sides */}
-      {[0, 1.5, 3, 4.5].map((angle, i) => (
+      {/* Lava cracks on sides — emissive orange/red lines */}
+      {[0, 1.2, 2.5, 3.8].map((angle, i) => (
         <mesh
           key={i}
           position={[
@@ -394,14 +578,28 @@ function AngerVolcano({
           ]}
           rotation={[0, -angle, Math.PI / 4]}
         >
-          <boxGeometry args={[0.08, 1.5, 0.05]} />
+          <boxGeometry args={[0.08, 1.8, 0.05]} />
           <meshStandardMaterial
-            color="#FF6600"
-            emissive="#FF4500"
-            emissiveIntensity={0.9}
+            color={i % 2 === 0 ? "#FF6600" : "#FF2200"}
+            emissive={i % 2 === 0 ? "#FF4500" : "#FF0000"}
+            emissiveIntensity={1.0}
           />
         </mesh>
       ))}
+      {/* Smoke particles */}
+      <group ref={smokeRef}>
+        {smokeParticles.map((sp, i) => (
+          <mesh key={i} position={[sp.x, 5.5, sp.z]}>
+            <sphereGeometry args={[sp.scale, 5, 5]} />
+            <meshStandardMaterial
+              color="#3a3a3a"
+              transparent
+              opacity={0.4}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
@@ -423,18 +621,17 @@ function CalmForest({ position }: { position: [number, number, number] }) {
 
   return (
     <group position={position}>
-      {/* Island base */}
+      {/* Island base — flat smooth cylinder */}
       <mesh>
-        <cylinderGeometry args={[4, 4.5, 2, 8]} />
+        <cylinderGeometry args={[4, 4.5, 2, 16]} />
         <meshStandardMaterial
           color="#1B5E20"
           roughness={0.7}
-          flatShading
         />
       </mesh>
       {/* Grass top */}
       <mesh position={[0, 1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[4, 8]} />
+        <circleGeometry args={[4, 16]} />
         <meshStandardMaterial color="#4CAF50" />
       </mesh>
       {/* Trees */}
@@ -560,9 +757,9 @@ function LoveGarden({ position }: { position: [number, number, number] }) {
 
   return (
     <group position={position}>
-      {/* Island */}
+      {/* Island — soft organic icosahedron */}
       <mesh>
-        <cylinderGeometry args={[4, 4.2, 1.5, 8]} />
+        <icosahedronGeometry args={[3.5, 1]} />
         <meshStandardMaterial
           color="#FFB6C1"
           emissive="#FF69B4"
@@ -616,15 +813,17 @@ function DreamCloud({ position }: { position: [number, number, number] }) {
 
   const floatingShapes = useMemo(() => {
     const rng = seededRandom(778);
-    const count = IS_MOBILE ? 3 : 6;
+    const count = IS_MOBILE ? 5 : 10;
+    const pastelColors = ["#E6E6FA", "#DDA0DD", "#B0C4DE", "#C8A2C8", "#98FB98", "#FFB6C1", "#B0E0E6"];
     return Array.from({ length: count }, (_, i) => ({
-      x: (rng() - 0.5) * 8,
-      y: 2 + rng() * 4,
-      z: (rng() - 0.5) * 8,
-      type: i % 3, // 0=torus, 1=icosa, 2=box
-      scale: 0.3 + rng() * 0.3,
-      color: ["#E6E6FA", "#DDA0DD", "#B0C4DE", "#C8A2C8"][i % 4],
-      speed: 0.3 + rng() * 0.5,
+      x: (rng() - 0.5) * 10,
+      y: 2 + rng() * 5,
+      z: (rng() - 0.5) * 10,
+      type: i % 4, // 0=torus, 1=icosa, 2=box, 3=small sphere
+      scale: 0.2 + rng() * 0.35,
+      color: pastelColors[i % pastelColors.length],
+      speed: 0.2 + rng() * 0.4,
+      rotAxis: i % 3, // which axis to mainly rotate on
     }));
   }, []);
 
@@ -633,10 +832,20 @@ function DreamCloud({ position }: { position: [number, number, number] }) {
       shapesRef.current.children.forEach((child, i) => {
         const shape = floatingShapes[i];
         if (shape) {
-          child.rotation.x = state.clock.elapsedTime * shape.speed * 0.3;
-          child.rotation.y = state.clock.elapsedTime * shape.speed * 0.2;
+          const t = state.clock.elapsedTime;
+          // Different rotation axes per shape
+          if (shape.rotAxis === 0) {
+            child.rotation.x = t * shape.speed * 0.3;
+            child.rotation.y = t * shape.speed * 0.1;
+          } else if (shape.rotAxis === 1) {
+            child.rotation.y = t * shape.speed * 0.3;
+            child.rotation.z = t * shape.speed * 0.15;
+          } else {
+            child.rotation.z = t * shape.speed * 0.25;
+            child.rotation.x = t * shape.speed * 0.12;
+          }
           child.position.y =
-            shape.y + Math.sin(state.clock.elapsedTime * shape.speed + i) * 0.5;
+            shape.y + Math.sin(t * shape.speed + i) * 0.5;
         }
       });
     }
@@ -665,16 +874,28 @@ function DreamCloud({ position }: { position: [number, number, number] }) {
             {s.type === 0 && <torusGeometry args={[s.scale, s.scale * 0.3, 6, 12]} />}
             {s.type === 1 && <icosahedronGeometry args={[s.scale, 0]} />}
             {s.type === 2 && <boxGeometry args={[s.scale, s.scale, s.scale]} />}
+            {s.type === 3 && <sphereGeometry args={[s.scale * 0.6, 6, 6]} />}
             <meshStandardMaterial
               color={s.color}
               emissive={s.color}
               emissiveIntensity={0.3}
               transparent
-              opacity={0.6}
+              opacity={0.55}
             />
           </mesh>
         ))}
       </group>
+      {/* Purple-tinted fog sphere around dream zone */}
+      <mesh position={[0, 2, 0]}>
+        <sphereGeometry args={[8, 12, 12]} />
+        <meshStandardMaterial
+          color="#9370DB"
+          transparent
+          opacity={0.06}
+          side={THREE.BackSide}
+          depthWrite={false}
+        />
+      </mesh>
     </group>
   );
 }
@@ -683,9 +904,9 @@ function DreamCloud({ position }: { position: [number, number, number] }) {
 function CouragePeak({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      {/* Mountain base */}
-      <mesh position={[0, 2.5, 0]}>
-        <coneGeometry args={[4, 7, 7]} />
+      {/* Mountain base — taller cone */}
+      <mesh position={[0, 3.5, 0]}>
+        <coneGeometry args={[4, 9, 7]} />
         <meshStandardMaterial
           color="#4A4A4A"
           roughness={0.8}
@@ -693,7 +914,7 @@ function CouragePeak({ position }: { position: [number, number, number] }) {
         />
       </mesh>
       {/* Golden peak cap */}
-      <mesh position={[0, 5.5, 0]}>
+      <mesh position={[0, 7.5, 0]}>
         <coneGeometry args={[1.2, 2, 6]} />
         <meshStandardMaterial
           color="#FFD700"
@@ -703,7 +924,7 @@ function CouragePeak({ position }: { position: [number, number, number] }) {
         />
       </mesh>
       {/* Sword blade */}
-      <mesh position={[0, 7.2, 0]}>
+      <mesh position={[0, 9.2, 0]}>
         <boxGeometry args={[0.12, 2.5, 0.05]} />
         <meshStandardMaterial
           color="#C0C0C0"
@@ -713,7 +934,7 @@ function CouragePeak({ position }: { position: [number, number, number] }) {
         />
       </mesh>
       {/* Sword cross guard */}
-      <mesh position={[0, 6.2, 0]}>
+      <mesh position={[0, 8.2, 0]}>
         <boxGeometry args={[0.8, 0.12, 0.12]} />
         <meshStandardMaterial
           color="#8B6914"
@@ -721,17 +942,17 @@ function CouragePeak({ position }: { position: [number, number, number] }) {
         />
       </mesh>
       {/* Sword handle */}
-      <mesh position={[0, 5.9, 0]}>
+      <mesh position={[0, 7.9, 0]}>
         <cylinderGeometry args={[0.06, 0.06, 0.6, 5]} />
         <meshStandardMaterial color="#5C3317" roughness={0.7} />
       </mesh>
       {/* Flag pole */}
-      <mesh position={[1.5, 5, 0]}>
+      <mesh position={[1.5, 7, 0]}>
         <cylinderGeometry args={[0.04, 0.04, 3, 4]} />
         <meshStandardMaterial color="#8B6914" />
       </mesh>
       {/* Flag */}
-      <mesh position={[2.2, 5.8, 0]}>
+      <mesh position={[2.2, 7.8, 0]}>
         <boxGeometry args={[1.2, 0.7, 0.02]} />
         <meshStandardMaterial
           color="#CC0000"
@@ -784,8 +1005,8 @@ function ZoneRoutes() {
             <tubeGeometry args={[curve, 20, 0.08, 6, false]} />
             <meshStandardMaterial
               color="#FFFFFF"
-              emissive="#C0C0FF"
-              emissiveIntensity={0.5}
+              emissive="#8888aa"
+              emissiveIntensity={0.3}
               transparent
               opacity={0.35}
               depthWrite={false}
@@ -998,7 +1219,13 @@ function EmotionsScene({
       {/* Routes between zones */}
       <ZoneRoutes />
 
-      {/* Islands + particles + markers */}
+      {/* Background distant islands */}
+      <DistantIslands />
+
+      {/* Global ambient particles */}
+      <AmbientParticles />
+
+      {/* Islands + particles + aura rings + markers */}
       {EMOTION_CITIES.map((city) => {
         const pos = getCityPos(city);
         const config = ZONE_CONFIG[city.id];
@@ -1007,6 +1234,15 @@ function EmotionsScene({
         return (
           <React.Fragment key={city.id}>
             <ZoneIsland cityId={city.id} position={pos} />
+
+            {/* Glow aura ring */}
+            {config && (
+              <GlowAura
+                position={pos}
+                radius={4}
+                color={config.color}
+              />
+            )}
 
             {config && (
               <ZoneParticles
