@@ -558,7 +558,7 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <group rotation={[0, 0, 0.05]}>
         <mesh position={[0, 7, 0]}>
           <cylinderGeometry args={[1.2, 1.5, 14, 8]} />
-          <meshStandardMaterial color="#28183e" roughness={0.7} />
+          <meshStandardMaterial color="#4a5a8a" roughness={0.7} /> {/* light blue-gray tower */}
         </mesh>
         {/* Cone hat roof */}
         <mesh position={[0, 14.5, 0]}>
@@ -904,16 +904,16 @@ function DarkDungeonZone({ position }: { position: [number, number, number] }) {
       {/* Stone columns */}
       <mesh position={[-1.2, 2, 0]}>
         <cylinderGeometry args={[0.5, 0.6, 4, 6]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
+        <meshStandardMaterial color="#4a3a2a" roughness={0.95} />
       </mesh>
       <mesh position={[1.2, 2, 0]}>
         <cylinderGeometry args={[0.5, 0.6, 4, 6]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
+        <meshStandardMaterial color="#4a3a2a" roughness={0.95} />
       </mesh>
       {/* Arch */}
       <mesh position={[0, 4.2, 0]}>
         <boxGeometry args={[3.5, 0.6, 0.8]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
+        <meshStandardMaterial color="#4a3a2a" roughness={0.95} />
       </mesh>
       {/* Stairs going down */}
       {[0, 1, 2, 3].map((s) => (
@@ -925,7 +925,7 @@ function DarkDungeonZone({ position }: { position: [number, number, number] }) {
       {/* Iron gate */}
       <mesh position={[0, 2, 0.1]}>
         <planeGeometry args={[2, 3.5]} />
-        <meshStandardMaterial color="#1a1a2a" transparent opacity={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#4a3a2a" transparent opacity={0.5} side={THREE.DoubleSide} />
       </mesh>
       {/* Skull */}
       <group position={[-2, 0.3, 1]}>
@@ -1026,15 +1026,15 @@ function Bat({ center, radius, speed, offset }: { center: [number, number, numbe
     <group ref={groupRef}>
       <mesh scale={[0.1, 0.05, 0.15]}>
         <sphereGeometry args={[1, 4, 3]} />
-        <meshStandardMaterial color="#1a1a2a" />
+        <meshStandardMaterial color="#4a3a2a" />
       </mesh>
       <mesh ref={leftRef} position={[-0.18, 0, 0]}>
         <planeGeometry args={[0.25, 0.1]} />
-        <meshStandardMaterial color="#1a1a2a" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#4a3a2a" side={THREE.DoubleSide} />
       </mesh>
       <mesh ref={rightRef} position={[0.18, 0, 0]}>
         <planeGeometry args={[0.25, 0.1]} />
-        <meshStandardMaterial color="#1a1a2a" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#4a3a2a" side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
