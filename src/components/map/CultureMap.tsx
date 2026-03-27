@@ -21,7 +21,7 @@ const CULTURE_TOPIC_IDS = new Set(
 const CULTURE_CITIES = CITIES.filter((c) => CULTURE_TOPIC_IDS.has(c.topicId));
 
 // ─── Lat/Lng to 3D position on sphere ──────────────────────────
-function latLngToPos(lat: number, lng: number, radius: number = 18): [number, number, number] {
+function latLngToPos(lat: number, lng: number, radius: number = 14): [number, number, number] {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lng + 180) * (Math.PI / 180);
   return [
@@ -47,10 +47,17 @@ const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   "american-city":      { lat: 41, lng: -74 },
   "brazilian-beach":    { lat: -23, lng: -43 },
   "australian-coast":   { lat: -34, lng: 151 },
+  "canadian-lodge":     { lat: 56, lng: -106 },
+  "argentinian-ranch":  { lat: -34, lng: -58 },
+  "moroccan-market":    { lat: 32, lng: -5 },
+  "kenyan-safari":      { lat: -1, lng: 37 },
+  "south-african-coast":{ lat: -34, lng: 18 },
+  "korean-street":      { lat: 37, lng: 127 },
+  "thai-temple":        { lat: 14, lng: 100 },
 };
 
 // ─── Get position for a city ────────────────────────────────────
-function cityGlobePos(cityId: string, radius: number = 18): [number, number, number] {
+function cityGlobePos(cityId: string, radius: number = 14): [number, number, number] {
   const coords = COUNTRY_COORDS[cityId];
   if (!coords) return [0, 0, 0];
   return latLngToPos(coords.lat, coords.lng, radius);
@@ -98,16 +105,15 @@ function GlobeSphere() {
     <group>
       {/* Main ocean sphere */}
       <mesh>
-        <sphereGeometry args={[18, SPHERE_SEGS, SPHERE_SEGS]} />
+        <sphereGeometry args={[14, SPHERE_SEGS, SPHERE_SEGS]} />
         <meshStandardMaterial color="#3a8a6a" roughness={0.7} metalness={0.05} />
       </mesh>
 
       {/* Continent patches — slightly elevated green/brown areas */}
-      <ContinentPatch lat={50} lng={0} scale={3.5} color="#5a9a50" /> {/* Europe */}
-      <ContinentPatch lat={35} lng={105} scale={4} color="#6a9a45" /> {/* Asia */}
-      <ContinentPatch lat={10} lng={25} scale={3} color="#8a9040" /> {/* Africa */}
-      <ContinentPatch lat={40} lng={-95} scale={3.5} color="#5a9050" /> {/* N. America */}
-      <ContinentPatch lat={-15} lng={-55} scale={3} color="#4a8a40" /> {/* S. America */}
+      <ContinentPatch lat={48} lng={10} scale={3.5} color="#5a9a50" /> {/* Europe */}
+      <ContinentPatch lat={35} lng={100} scale={4} color="#6a9a45" /> {/* Asia */}
+      <ContinentPatch lat={5} lng={25} scale={3.5} color="#7a8a40" /> {/* Africa */}
+      <ContinentPatch lat={20} lng={-80} scale={4} color="#5a9050" /> {/* Americas */}
       <ContinentPatch lat={-25} lng={135} scale={2.5} color="#9a8a50" /> {/* Australia */}
     </group>
   );
@@ -115,7 +121,7 @@ function GlobeSphere() {
 
 function ContinentPatch({ lat, lng, scale, color }: { lat: number; lng: number; scale: number; color: string }) {
   const ref = useRef<THREE.Mesh>(null);
-  const pos = latLngToPos(lat, lng, 18.05);
+  const pos = latLngToPos(lat, lng, 14.05);
 
   useEffect(() => {
     if (ref.current) {
@@ -141,7 +147,7 @@ function CloudLayer() {
   });
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[18.8, SPHERE_SEGS, SPHERE_SEGS]} />
+      <sphereGeometry args={[14.8, SPHERE_SEGS, SPHERE_SEGS]} />
       <meshStandardMaterial color="#ffffff" transparent opacity={0.12} depthWrite={false} />
     </mesh>
   );
@@ -153,7 +159,7 @@ function CloudLayer() {
 function AtmosphereGlow() {
   return (
     <mesh>
-      <sphereGeometry args={[19.5, SPHERE_SEGS, SPHERE_SEGS]} />
+      <sphereGeometry args={[15.5, SPHERE_SEGS, SPHERE_SEGS]} />
       <meshBasicMaterial color="#4ac8e8" transparent opacity={0.08} side={THREE.BackSide} depthWrite={false} />
     </mesh>
   );
@@ -162,9 +168,9 @@ function AtmosphereGlow() {
 // ═════════════════════════════════════════════════════════════════
 //  LANDMARK GROUP WRAPPER — orients children outward on globe
 // ═════════════════════════════════════════════════════════════════
-function LandmarkGroup({ lat, lng, children }: { lat: number; lng: number; children: React.ReactNode }) {
+function LandmarkGroup({ lat, lng, scale, children }: { lat: number; lng: number; scale?: [number, number, number]; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null);
-  const surfacePos = latLngToPos(lat, lng, 18.3);
+  const surfacePos = latLngToPos(lat, lng, 14.3);
 
   useEffect(() => {
     if (ref.current) {
@@ -174,7 +180,7 @@ function LandmarkGroup({ lat, lng, children }: { lat: number; lng: number; child
   }, []);
 
   return (
-    <group ref={ref} position={surfacePos}>
+    <group ref={ref} position={surfacePos} scale={scale}>
       {children}
     </group>
   );
@@ -188,7 +194,7 @@ function LandmarkGroup({ lat, lng, children }: { lat: number; lng: number; child
 function UKLandmark() {
   const c = COUNTRY_COORDS["british-pub"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.4, 0]}>
         <cylinderGeometry args={[0.08, 0.1, 0.8, 6]} />
         <meshStandardMaterial color="#8a8a80" roughness={0.8} />
@@ -211,7 +217,7 @@ function UKLandmark() {
 function FranceLandmark() {
   const c = COUNTRY_COORDS["french-cafe"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       {/* 4 legs converging */}
       <mesh position={[-0.12, 0.3, -0.12]} rotation={[0.15, 0, 0.15]}>
         <cylinderGeometry args={[0.02, 0.04, 0.6, 4]} />
@@ -242,7 +248,7 @@ function FranceLandmark() {
 function ItalyLandmark() {
   const c = COUNTRY_COORDS["italian-plaza"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.08, 0]}>
         <cylinderGeometry args={[0.2, 0.22, 0.15, IS_MOBILE ? 8 : 12]} />
         <meshStandardMaterial color="#c0b8a0" roughness={0.6} />
@@ -259,7 +265,7 @@ function ItalyLandmark() {
 function SpainLandmark() {
   const c = COUNTRY_COORDS["spanish-plaza"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[-0.1, 0.3, 0]}>
         <coneGeometry args={[0.06, 0.6, 6]} />
         <meshStandardMaterial color="#c8a050" roughness={0.5} />
@@ -282,7 +288,7 @@ function SpainLandmark() {
 function GermanyLandmark() {
   const c = COUNTRY_COORDS["german-castle"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.15, 0]}>
         <boxGeometry args={[0.3, 0.3, 0.2]} />
         <meshStandardMaterial color="#a0a0a0" roughness={0.7} />
@@ -303,7 +309,7 @@ function GermanyLandmark() {
 function BulgariaLandmark() {
   const c = COUNTRY_COORDS["bulgarian-village"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.1, 0]}>
         <boxGeometry args={[0.2, 0.2, 0.15]} />
         <meshStandardMaterial color="#e0d8c0" roughness={0.6} />
@@ -325,7 +331,7 @@ function BulgariaLandmark() {
 function JapanLandmark() {
   const c = COUNTRY_COORDS["japanese-street"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       {/* Two posts */}
       <mesh position={[-0.12, 0.2, 0]}>
         <cylinderGeometry args={[0.025, 0.025, 0.4, 6]} />
@@ -348,7 +354,7 @@ function JapanLandmark() {
 function ChinaLandmark() {
   const c = COUNTRY_COORDS["chinese-temple"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.08, 0]}>
         <boxGeometry args={[0.25, 0.15, 0.25]} />
         <meshStandardMaterial color="#c83020" />
@@ -371,7 +377,7 @@ function ChinaLandmark() {
 function IndiaLandmark() {
   const c = COUNTRY_COORDS["indian-temple"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.1, 0]}>
         <boxGeometry args={[0.22, 0.2, 0.22]} />
         <meshStandardMaterial color="#e0d0a0" roughness={0.5} />
@@ -388,7 +394,7 @@ function IndiaLandmark() {
 function EgyptLandmark() {
   const c = COUNTRY_COORDS["egyptian-pyramid"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.2, 0]}>
         <coneGeometry args={[0.25, 0.4, 4]} />
         <meshStandardMaterial color="#d4b060" roughness={0.6} />
@@ -407,7 +413,7 @@ function EgyptLandmark() {
 function AfricaLandmark() {
   const c = COUNTRY_COORDS["african-village"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[0, 0.1, 0]}>
         <cylinderGeometry args={[0.12, 0.12, 0.2, 8]} />
         <meshStandardMaterial color="#c0a060" roughness={0.8} />
@@ -424,7 +430,7 @@ function AfricaLandmark() {
 function MexicoLandmark() {
   const c = COUNTRY_COORDS["mexican-market"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       {/* Cactus */}
       <mesh position={[-0.08, 0.18, 0]}>
         <cylinderGeometry args={[0.03, 0.04, 0.35, 6]} />
@@ -451,7 +457,7 @@ function MexicoLandmark() {
 function USALandmark() {
   const c = COUNTRY_COORDS["american-city"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[-0.08, 0.25, 0]}>
         <boxGeometry args={[0.06, 0.5, 0.06]} />
         <meshStandardMaterial color="#8090a0" />
@@ -474,7 +480,7 @@ function USALandmark() {
 function BrazilLandmark() {
   const c = COUNTRY_COORDS["brazilian-beach"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       {/* Hill */}
       <mesh position={[0, 0.1, 0]}>
         <coneGeometry args={[0.2, 0.2, 8]} />
@@ -498,7 +504,7 @@ function BrazilLandmark() {
 function AustraliaLandmark() {
   const c = COUNTRY_COORDS["australian-coast"];
   return (
-    <LandmarkGroup lat={c.lat} lng={c.lng}>
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
       <mesh position={[-0.08, 0.08, 0]} rotation={[0, 0, 0.3]}>
         <sphereGeometry args={[0.08, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#f0f0f0" />
@@ -510,6 +516,145 @@ function AustraliaLandmark() {
       <mesh position={[0.1, 0.08, 0]} rotation={[0, 0, -0.2]}>
         <sphereGeometry args={[0.07, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#f0f0f0" />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Canada — small log cabin
+function CanadaLandmark() {
+  const c = COUNTRY_COORDS["canadian-lodge"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Cabin body */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.22, 0.18, 0.16]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      {/* Roof */}
+      <mesh position={[0, 0.25, 0]} rotation={[0, 0, 0]}>
+        <coneGeometry args={[0.18, 0.15, 4]} />
+        <meshStandardMaterial color="#654321" roughness={0.7} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Argentina — small ranch
+function ArgentinaLandmark() {
+  const c = COUNTRY_COORDS["argentinian-ranch"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Ranch body */}
+      <mesh position={[0, 0.08, 0]}>
+        <boxGeometry args={[0.25, 0.15, 0.18]} />
+        <meshStandardMaterial color="#c08040" roughness={0.7} />
+      </mesh>
+      {/* Fence posts */}
+      <mesh position={[-0.18, 0.06, 0]}>
+        <cylinderGeometry args={[0.015, 0.015, 0.12, 4]} />
+        <meshStandardMaterial color="#8B6914" />
+      </mesh>
+      <mesh position={[0.18, 0.06, 0]}>
+        <cylinderGeometry args={[0.015, 0.015, 0.12, 4]} />
+        <meshStandardMaterial color="#8B6914" />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Morocco — small archway
+function MoroccoLandmark() {
+  const c = COUNTRY_COORDS["moroccan-market"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Two pillars */}
+      <mesh position={[-0.1, 0.18, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.35, 6]} />
+        <meshStandardMaterial color="#d4a050" roughness={0.6} />
+      </mesh>
+      <mesh position={[0.1, 0.18, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.35, 6]} />
+        <meshStandardMaterial color="#d4a050" roughness={0.6} />
+      </mesh>
+      {/* Top arch */}
+      <mesh position={[0, 0.38, 0]}>
+        <boxGeometry args={[0.26, 0.06, 0.08]} />
+        <meshStandardMaterial color="#e0a040" roughness={0.5} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Kenya — acacia tree
+function KenyaLandmark() {
+  const c = COUNTRY_COORDS["kenyan-safari"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Thin trunk */}
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[0.02, 0.03, 0.4, 6]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.8} />
+      </mesh>
+      {/* Flat wide canopy */}
+      <mesh position={[0, 0.42, 0]}>
+        <cylinderGeometry args={[0.25, 0.25, 0.04, IS_MOBILE ? 8 : 12]} />
+        <meshStandardMaterial color="#3a8a30" roughness={0.7} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// South Africa — Table Mountain (flat-top)
+function SouthAfricaLandmark() {
+  const c = COUNTRY_COORDS["south-african-coast"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      <mesh position={[0, 0.12, 0]}>
+        <boxGeometry args={[0.35, 0.24, 0.2]} />
+        <meshStandardMaterial color="#808080" roughness={0.8} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Korea — small palace gate
+function KoreaLandmark() {
+  const c = COUNTRY_COORDS["korean-street"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Two posts */}
+      <mesh position={[-0.1, 0.18, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.35, 6]} />
+        <meshStandardMaterial color="#c83030" />
+      </mesh>
+      <mesh position={[0.1, 0.18, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.35, 6]} />
+        <meshStandardMaterial color="#c83030" />
+      </mesh>
+      {/* Decorative roof */}
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.3, 0.06, 0.12]} />
+        <meshStandardMaterial color="#c8a030" />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Thailand — small golden temple
+function ThailandLandmark() {
+  const c = COUNTRY_COORDS["thai-temple"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Base */}
+      <mesh position={[0, 0.08, 0]}>
+        <boxGeometry args={[0.2, 0.15, 0.2]} />
+        <meshStandardMaterial color="#d4a030" roughness={0.4} metalness={0.3} />
+      </mesh>
+      {/* Pointed cone top */}
+      <mesh position={[0, 0.28, 0]}>
+        <coneGeometry args={[0.08, 0.3, 6]} />
+        <meshStandardMaterial color="#e0b030" roughness={0.3} metalness={0.4} />
       </mesh>
     </LandmarkGroup>
   );
@@ -536,6 +681,13 @@ function AllLandmarks() {
       <USALandmark />
       <BrazilLandmark />
       <AustraliaLandmark />
+      <CanadaLandmark />
+      <ArgentinaLandmark />
+      <MoroccoLandmark />
+      <KenyaLandmark />
+      <SouthAfricaLandmark />
+      <KoreaLandmark />
+      <ThailandLandmark />
     </>
   );
 }
@@ -555,8 +707,8 @@ function TravelArc({ fromId, toId }: { fromId: string; toId: string }) {
   const toCoords = COUNTRY_COORDS[toId];
   if (!fromCoords || !toCoords) return null;
 
-  const from = new THREE.Vector3(...latLngToPos(fromCoords.lat, fromCoords.lng, 18.5));
-  const to = new THREE.Vector3(...latLngToPos(toCoords.lat, toCoords.lng, 18.5));
+  const from = new THREE.Vector3(...latLngToPos(fromCoords.lat, fromCoords.lng, 14.5));
+  const to = new THREE.Vector3(...latLngToPos(toCoords.lat, toCoords.lng, 14.5));
   const mid = from.clone().add(to).multiplyScalar(0.5);
   // Pull midpoint outward from globe center for arc height
   const arcHeight = from.distanceTo(to) * 0.3 + 20;
@@ -590,8 +742,8 @@ function FlyingAirplane() {
   const curve = useMemo(() => {
     const fromC = COUNTRY_COORDS["british-pub"];
     const toC = COUNTRY_COORDS["american-city"];
-    const from = new THREE.Vector3(...latLngToPos(fromC.lat, fromC.lng, 18.5));
-    const to = new THREE.Vector3(...latLngToPos(toC.lat, toC.lng, 18.5));
+    const from = new THREE.Vector3(...latLngToPos(fromC.lat, fromC.lng, 14.5));
+    const to = new THREE.Vector3(...latLngToPos(toC.lat, toC.lng, 14.5));
     const mid = from.clone().add(to).multiplyScalar(0.5);
     mid.normalize().multiplyScalar(from.distanceTo(to) * 0.3 + 20);
     return new THREE.QuadraticBezierCurve3(from, mid, to);
@@ -642,7 +794,7 @@ function CultureCityMarker({
 }) {
   const coords = COUNTRY_COORDS[city.id];
   if (!coords) return null;
-  const pos = latLngToPos(coords.lat, coords.lng, 20);
+  const pos = latLngToPos(coords.lat, coords.lng, 16);
 
   return (
     <group position={pos}>
