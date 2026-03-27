@@ -927,12 +927,8 @@ export function SpaceMap({ onSelectCity }: { onSelectCity: (city: City) => void 
   const getTopicCompletedLevels = useProgressStore((s) => s.getTopicCompletedLevels);
 
   const unlockedIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const c of SPACE_CITIES) {
-      if (unlockedTopicIds.includes(c.topicId)) ids.add(c.id);
-    }
-    return ids;
-  }, [unlockedTopicIds]);
+    return new Set(SPACE_CITIES.map((c) => c.id)); // TODO: restore unlock logic
+  }, []);
 
   const nextCityId = useMemo(() => {
     const lastUnlocked = [...SPACE_CITIES]

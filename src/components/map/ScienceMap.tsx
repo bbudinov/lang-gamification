@@ -1121,7 +1121,7 @@ function ScienceScene({
       {SCIENCE_CITIES.map((city) => {
         const pos = getCityPos(city);
         const config = ZONE_CONFIG[city.id];
-        const unlocked = totalPoints >= city.requiredXP;
+        const unlocked = true; // TODO: restore: totalPoints >= city.requiredXP
 
         return (
           <React.Fragment key={city.id}>
