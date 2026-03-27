@@ -2,7 +2,7 @@
 
 import React, { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
+import { OrbitControls, Html, PerformanceMonitor, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { TOUCH, MOUSE } from "three";
 import { CITIES, type City } from "@/data/cities";
@@ -16,9 +16,9 @@ const IS_MOBILE =
   (window.innerWidth < 800 || "ontouchstart" in window);
 
 const WORLD_ID = "history-bg";
-const BG_TOP = "#0a0a1a";
-const BG_BOTTOM = "#2a1a08";
-const FOG_COLOR = "#2a1a08";
+const BG_TOP = "#2a4f8f";
+const BG_BOTTOM = "#b9d7f5";
+const FOG_COLOR = "#90b9df";
 
 const historyWorld = WORLDS.find((w) => w.id === WORLD_ID)!;
 const HISTORY_CITIES = CITIES.filter((c) =>
@@ -54,7 +54,9 @@ const TIMELINE_ORDER = [
 // All POI positions for full timeline path (interactive + decorative, chronological)
 const ALL_POI_POSITIONS: [number, number, number][] = [
   [-24, 0.5, 0],     // Foundation marker (681)
+  [-22, 0.4, -4],    // Tervel (705)
   [-18, 0.5, -2],    // Pliska
+  [-14, 0.5, 2],     // Christianization (864)
   [-12, 0.5, -4],    // Preslav
   [-6, 2, -4],       // Tarnovo
   [-2, 0.5, 6],      // Rila
@@ -64,13 +66,15 @@ const ALL_POI_POSITIONS: [number, number, number][] = [
   [16, 1, -6],       // Shipka
   [18, 0.5, -4],     // Liberation
   [20, 0.5, 0],      // Sofia
+  [22, 0.5, 2],      // Unification (1885)
+  [24, 0.5, -2],     // Independence (1908)
 ];
 
 function getCityPos(city: City): [number, number, number] {
   return CITY_POSITIONS[city.id] ?? [0, 0, 0];
 }
 
-// ─── Background gradient ─────────────────────────────────────────
+// ─── Background gradient (blue sky) ─────────────────────────────
 function BackgroundGradient() {
   return (
     <mesh position={[0, 0, -80]} renderOrder={-1}>
@@ -101,126 +105,232 @@ function BackgroundGradient() {
   );
 }
 
-// ─── Terrain ground ──────────────────────────────────────────────
+// ─── Terrain with Bulgarian flag gradient (white→green→red by X) + procedural mountains ──
 function Terrain() {
-  return (
-    <group>
-      {/* Main elevated terrain */}
-      <mesh position={[0, -0.3, 0]}>
-        <boxGeometry args={[60, 0.6, 35]} />
-        <meshStandardMaterial color="#4a6a35" roughness={0.9} />
-      </mesh>
-      {/* Slight relief patches */}
-      {[
-        [-10, 0.05, 3, 8, 6],
-        [8, 0.08, -3, 10, 7],
-        [-5, 0.04, 8, 7, 5],
-        [15, 0.06, -5, 6, 8],
-      ].map(([x, y, z, w, d], i) => (
-        <mesh key={i} position={[x, y, z]}>
-          <boxGeometry args={[w, 0.15, d]} />
-          <meshStandardMaterial color="#3d5e2e" roughness={1} transparent opacity={0.5} />
-        </mesh>
-      ))}
-    </group>
-  );
+  const { geo, mat } = useMemo(() => {
+    const geometry = new THREE.PlaneGeometry(60, 35, 80, 50);
+    geometry.rotateX(-Math.PI / 2);
+
+    const posAttr = geometry.attributes.position;
+
+    // Mountain ridge bumps: [cx, cz, spread, height]
+    const ridges: [number, number, number, number][] = [
+      // Stara Planina (across center-north)
+      [-4, -6, 30, 4],
+      [8, -7, 25, 3.5],
+      // Rila
+      [-2, 5, 18, 5],
+      // Rhodope
+      [8, 10, 35, 3],
+      // Pirin
+      [2, 8, 15, 4],
+    ];
+
+    // General rolling hills
+    const hills: [number, number, number, number][] = [
+      [-15, 2, 60, 1],
+      [15, -3, 50, 0.8],
+      [-8, 8, 40, 1.2],
+      [20, 6, 55, 0.6],
+    ];
+
+    for (let i = 0; i < posAttr.count; i++) {
+      const x = posAttr.getX(i);
+      const z = posAttr.getZ(i);
+      let y = 0;
+
+      // Mountain ridges (gaussian bumps)
+      for (const [cx, cz, spread, height] of ridges) {
+        y += Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / spread) * height;
+      }
+
+      // Gentle rolling hills
+      for (const [cx, cz, spread, height] of hills) {
+        y += Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / spread) * height;
+      }
+
+      posAttr.setY(i, y);
+    }
+
+    geometry.computeVertexNormals();
+
+    // Custom shader material: Bulgarian flag gradient by X + height blend
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        minX: { value: -30 },
+        maxX: { value: 30 },
+      },
+      vertexShader: `
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 wp = modelMatrix * vec4(position, 1.0);
+          vWorldPos = wp.xyz;
+          gl_Position = projectionMatrix * viewMatrix * wp;
+        }
+      `,
+      fragmentShader: `
+        uniform float minX;
+        uniform float maxX;
+        varying vec3 vWorldPos;
+        void main() {
+          float t = clamp((vWorldPos.x - minX) / (maxX - minX), 0.0, 1.0);
+          // White (#e9e5d8) → Green (#4f7d45) → Red (#8a2d2d)
+          vec3 white = vec3(0.914, 0.898, 0.847);
+          vec3 green = vec3(0.31, 0.49, 0.27);
+          vec3 red = vec3(0.541, 0.176, 0.176);
+          vec3 col;
+          if (t < 0.5) {
+            col = mix(white, green, t * 2.0);
+          } else {
+            col = mix(green, red, (t - 0.5) * 2.0);
+          }
+          // Height-based blend: higher = lighter mountain color
+          float heightFactor = clamp(vWorldPos.y / 6.0, 0.0, 1.0);
+          vec3 mountainLight = vec3(0.75, 0.72, 0.65);
+          col = mix(col, mountainLight, heightFactor * 0.4);
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `,
+    });
+
+    return { geo: geometry, mat: material };
+  }, []);
+
+  return <mesh geometry={geo} material={mat} />;
 }
 
-// ─── Mountain ranges ─────────────────────────────────────────────
-function Mountains() {
-  const mountains: { pos: [number, number, number]; h: number; r: number; color: string }[] = [
-    // Balkan range (Stara Planina) — across center, z=-4 to z=-8
-    { pos: [-8, 0, -5], h: 5, r: 4, color: "#2e4a22" },
-    { pos: [0, 0, -6], h: 6, r: 4.5, color: "#2a4620" },
-    { pos: [8, 0, -7], h: 5.5, r: 4, color: "#2e4a22" },
-    { pos: [16, 0, -8], h: 4.5, r: 3.5, color: "#2a4620" },
-    // Rila / Pirin — larger cones south
-    { pos: [-4, 0, 5], h: 7, r: 5, color: "#254018" },
-    { pos: [2, 0, 7], h: 8, r: 5.5, color: "#1f3a14" },
-    // Rhodope — southeast
-    { pos: [6, 0, 10], h: 5, r: 4, color: "#254018" },
-    { pos: [12, 0, 11], h: 4, r: 3.5, color: "#2a4620" },
-    { pos: [18, 0, 9], h: 3.5, r: 3, color: "#254018" },
-  ];
-
-  return (
-    <group>
-      {mountains.map((m, i) => (
-        <mesh key={i} position={[m.pos[0], m.h / 2 - 0.3, m.pos[2]]}>
-          <coneGeometry args={[m.r, m.h, 6]} />
-          <meshStandardMaterial color={m.color} roughness={0.9} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-// ─── Danube River ────────────────────────────────────────────────
-function DanubeRiver() {
-  return (
-    <mesh position={[0, -0.1, -14]}>
-      <boxGeometry args={[55, 0.12, 1.5]} />
-      <meshStandardMaterial color="#2a6090" roughness={0.4} metalness={0.2} />
-    </mesh>
-  );
-}
-
-// ─── Three Seas ──────────────────────────────────────────────────
+// ─── Three Seas — larger, darker, with wave animation ───────────
 function ThreeSeas() {
-  const blackSeaRef = useRef<THREE.MeshStandardMaterial>(null);
-  const aegeanRef = useRef<THREE.MeshStandardMaterial>(null);
-  const adriaticRef = useRef<THREE.MeshStandardMaterial>(null);
+  const blackSeaRef = useRef<THREE.ShaderMaterial>(null);
+  const aegeanRef = useRef<THREE.ShaderMaterial>(null);
+  const adriaticRef = useRef<THREE.ShaderMaterial>(null);
+
+  const seaVertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const seaFragmentShader = `
+    uniform vec3 baseColor;
+    uniform float time;
+    varying vec2 vUv;
+    void main() {
+      float wave = sin(vUv.x * 12.0 + time * 2.0) * 0.03 + sin(vUv.y * 10.0 + time * 1.5) * 0.03;
+      vec3 col = baseColor + vec3(wave * 0.5, wave * 0.7, wave);
+      float pulse = 0.15 + sin(time * 1.5) * 0.08;
+      col += baseColor * pulse * 0.3;
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    const pulse = (ref: React.RefObject<THREE.MeshStandardMaterial | null>, offset: number) => {
-      if (ref.current) {
-        ref.current.emissiveIntensity = 0.15 + Math.sin(t * 1.5 + offset) * 0.08;
-      }
-    };
-    pulse(blackSeaRef, 0);
-    pulse(aegeanRef, 2);
-    pulse(adriaticRef, 4);
+    if (blackSeaRef.current) blackSeaRef.current.uniforms.time.value = t;
+    if (aegeanRef.current) aegeanRef.current.uniforms.time.value = t + 2;
+    if (adriaticRef.current) adriaticRef.current.uniforms.time.value = t + 4;
   });
+
+  const makeSea = (
+    ref: React.RefObject<THREE.ShaderMaterial | null>,
+    pos: [number, number, number],
+    radius: number,
+    color: string,
+    shoreRadius: number
+  ) => (
+    <group>
+      {/* Shoreline ring */}
+      <mesh position={[pos[0], pos[1] - 0.01, pos[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[radius, shoreRadius, 32]} />
+        <meshStandardMaterial color="#c2b89e" roughness={0.9} transparent opacity={0.5} />
+      </mesh>
+      {/* Sea */}
+      <mesh position={pos} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[radius, 32]} />
+        <shaderMaterial
+          ref={ref}
+          uniforms={{
+            baseColor: { value: new THREE.Color(color) },
+            time: { value: 0 },
+          }}
+          vertexShader={seaVertexShader}
+          fragmentShader={seaFragmentShader}
+        />
+      </mesh>
+    </group>
+  );
 
   return (
     <group>
-      {/* Black Sea — east */}
-      <mesh position={[28, -0.2, -4]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[6, 24]} />
-        <meshStandardMaterial
-          ref={blackSeaRef}
-          color="#1f5f8b"
-          emissive="#1f5f8b"
-          emissiveIntensity={0.15}
-          roughness={0.3}
-          metalness={0.1}
-        />
-      </mesh>
+      {/* Black Sea — east (large) */}
+      {makeSea(blackSeaRef, [28, -0.3, -2], 8, "#1b4f78", 8.6)}
       {/* Aegean Sea — south */}
-      <mesh position={[8, -0.2, 16]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[5, 24]} />
-        <meshStandardMaterial
-          ref={aegeanRef}
-          color="#28707d"
-          emissive="#28707d"
-          emissiveIntensity={0.15}
-          roughness={0.3}
-          metalness={0.1}
-        />
-      </mesh>
+      {makeSea(aegeanRef, [6, -0.3, 14], 6, "#1f5f8b", 6.5)}
       {/* Adriatic Sea — west */}
-      <mesh position={[-26, -0.2, 10]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[4, 24]} />
-        <meshStandardMaterial
-          ref={adriaticRef}
-          color="#1b4f78"
-          emissive="#1b4f78"
-          emissiveIntensity={0.15}
-          roughness={0.3}
-          metalness={0.1}
-        />
-      </mesh>
+      {makeSea(adriaticRef, [-28, -0.3, 8], 5, "#163e63", 5.4)}
+    </group>
+  );
+}
+
+// ─── Rivers as smooth CatmullRomCurve3 ──────────────────────────
+function Rivers() {
+  const danubePoints: [number, number, number][] = [
+    [-28, 0.15, -13],
+    [-20, 0.15, -14],
+    [-10, 0.15, -13.5],
+    [0, 0.15, -14],
+    [10, 0.15, -13],
+    [20, 0.15, -13.5],
+    [27, 0.15, -12],
+  ];
+
+  const maritsaPoints: [number, number, number][] = [
+    [-2, 0.8, 5],
+    [2, 0.3, 6],
+    [6, 0.2, 8],
+    [12, 0.15, 10],
+    [18, 0.1, 12],
+  ];
+
+  const iskarPoints: [number, number, number][] = [
+    [-4, 1.5, -5],
+    [-3, 0.8, -2],
+    [-1, 0.4, 1],
+    [0, 0.3, 4],
+  ];
+
+  const makeSmooth = (pts: [number, number, number][]) => {
+    const curve = new THREE.CatmullRomCurve3(
+      pts.map((p) => new THREE.Vector3(...p)),
+      false,
+      "catmullrom",
+      0.5
+    );
+    return curve.getPoints(40).map((p) => [p.x, p.y, p.z] as [number, number, number]);
+  };
+
+  return (
+    <group>
+      {/* Danube — long curve along north */}
+      <Line
+        points={makeSmooth(danubePoints)}
+        color="#4b94d1"
+        lineWidth={3}
+      />
+      {/* Maritsa — from Rila area south-east */}
+      <Line
+        points={makeSmooth(maritsaPoints)}
+        color="#4b94d1"
+        lineWidth={2}
+      />
+      {/* Iskar — near Sofia */}
+      <Line
+        points={makeSmooth(iskarPoints)}
+        color="#4b94d1"
+        lineWidth={1.5}
+      />
     </group>
   );
 }
@@ -238,7 +348,7 @@ function DistantMountains() {
       {silhouettes.map(([x, h, z, r], i) => (
         <mesh key={i} position={[x, h / 2 - 1, z]}>
           <coneGeometry args={[r, h, 4]} />
-          <meshStandardMaterial color="#0a0e18" roughness={1} transparent opacity={0.3} />
+          <meshStandardMaterial color="#6a8ab0" roughness={1} transparent opacity={0.3} />
         </mesh>
       ))}
     </group>
@@ -827,6 +937,89 @@ function LiberationMarker() {
   );
 }
 
+// ─── Tervel marker (705) ─────────────────────────────────────────
+function TervelMarker() {
+  return (
+    <group position={[-22, 0.4, -4]}>
+      {/* Small stone pillar */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.2, 0.25, 1.0, 6]} />
+        <meshStandardMaterial color="#9a8a7a" roughness={0.8} />
+      </mesh>
+      {/* Shield shape on top */}
+      <mesh position={[0, 1.1, 0]}>
+        <coneGeometry args={[0.3, 0.4, 4]} />
+        <meshStandardMaterial color="#c8a832" metalness={0.5} />
+      </mesh>
+      <pointLight position={[0, 1.2, 0]} color="#ffc040" intensity={0.5} distance={4} />
+    </group>
+  );
+}
+
+// ─── Christianization marker (864) ──────────────────────────────
+function ChristianizationMarker() {
+  return (
+    <group position={[-14, 0.5, 2]}>
+      {/* Small chapel */}
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.8, 0.8, 0.6]} />
+        <meshStandardMaterial color="#d8d0c0" roughness={0.7} />
+      </mesh>
+      {/* Cross on top */}
+      <mesh position={[0, 1.0, 0]}>
+        <boxGeometry args={[0.04, 0.5, 0.04]} />
+        <meshStandardMaterial color="#c8a832" metalness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.1, 0]}>
+        <boxGeometry args={[0.25, 0.04, 0.04]} />
+        <meshStandardMaterial color="#c8a832" metalness={0.6} />
+      </mesh>
+      <pointLight position={[0, 1.3, 0]} color="#ffe8c0" intensity={0.5} distance={4} />
+    </group>
+  );
+}
+
+// ─── Unification marker (1885) ──────────────────────────────────
+function UnificationMarker() {
+  return (
+    <group position={[22, 0.5, 2]}>
+      {/* Two small blocks joining */}
+      <mesh position={[-0.3, 0.3, 0]}>
+        <boxGeometry args={[0.5, 0.6, 0.4]} />
+        <meshStandardMaterial color="#e0e0e0" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.3, 0.3, 0]}>
+        <boxGeometry args={[0.5, 0.6, 0.4]} />
+        <meshStandardMaterial color="#e0e0e0" roughness={0.5} />
+      </mesh>
+      {/* Flag on top */}
+      <BulgarianFlag position={[0, 0.6, 0]} offset={7} />
+      <pointLight position={[0, 1.5, 0]} color="#ffe8c0" intensity={0.5} distance={4} />
+    </group>
+  );
+}
+
+// ─── Independence marker (1908) ─────────────────────────────────
+function IndependenceMarker() {
+  return (
+    <group position={[24, 0.5, -2]}>
+      {/* Tall narrow monument */}
+      <mesh position={[0, 0.8, 0]}>
+        <boxGeometry args={[0.2, 1.6, 0.2]} />
+        <meshStandardMaterial color="#f0f0f0" roughness={0.4} />
+      </mesh>
+      {/* Star on top */}
+      <mesh position={[0, 1.7, 0]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#c8a832" metalness={0.6} emissive="#c8a832" emissiveIntensity={0.5} />
+      </mesh>
+      {/* Flag */}
+      <BulgarianFlag position={[0.4, 0.3, 0.2]} offset={9} />
+      <pointLight position={[0, 2, 0]} color="#ffe8c0" intensity={0.5} distance={4} />
+    </group>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // TIMELINE PATH + PARTICLES + LABELS
 // ═══════════════════════════════════════════════════════════════════
@@ -933,11 +1126,15 @@ function AllFloatingLabels() {
   // Decorative landmark labels
   const decoLabels: { pos: [number, number, number]; text: string }[] = [
     { pos: [-24, 3.5, 0], text: "681 \u0410\u0441\u043F\u0430\u0440\u0443\u0445" },
+    { pos: [-22, 3, -4], text: "705 \u0422\u0435\u0440\u0432\u0435\u043B" },
     { pos: [-12, 3.5, -4], text: "Preslav" },
+    { pos: [-14, 3, 2], text: "864" },
     { pos: [2, 3, -2], text: "1396" },
     { pos: [14, 3, -2], text: "1876" },
     { pos: [16, 6.5, -6], text: "Shipka 1877" },
     { pos: [18, 4.5, -4], text: "1878" },
+    { pos: [22, 3, 2], text: "1885" },
+    { pos: [24, 3, -2], text: "1908" },
   ];
 
   return (
@@ -1112,16 +1309,15 @@ function SceneContent({
 
   return (
     <>
-      {/* Lighting — warm golden atmosphere */}
-      <ambientLight intensity={0.5} color="#2a1a0a" />
+      {/* Lighting — warm golden atmosphere with bright ambient */}
+      <ambientLight intensity={0.75} color="#e8dcc8" />
       <directionalLight position={[-15, 25, 10]} intensity={0.9} color="#ffc860" />
-      <hemisphereLight color="#87ceeb" groundColor="#3a2a10" intensity={0.3} />
+      <hemisphereLight color="#87ceeb" groundColor="#6a8a50" intensity={0.4} />
 
       {/* Background + terrain */}
       <BackgroundGradient />
       <Terrain />
-      <Mountains />
-      <DanubeRiver />
+      <Rivers />
       <ThreeSeas />
       <DistantMountains />
 
@@ -1132,13 +1328,17 @@ function SceneContent({
       <RevivalTownLandmark />
       <ModernSofiaLandmark />
 
-      {/* ── 6 Decorative landmarks ── */}
+      {/* ── 10 Decorative landmarks ── */}
       <FoundationMarker />
+      <TervelMarker />
       <PreslavMarker />
+      <ChristianizationMarker />
       <OttomanMarker />
       <AprilUprisingMarker />
       <ShipkaMarker />
       <LiberationMarker />
+      <UnificationMarker />
+      <IndependenceMarker />
 
       {/* Timeline golden path */}
       <TimelinePath />
@@ -1179,7 +1379,7 @@ export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => v
         dpr={dpr}
         camera={{ position: [0, 25, 35], fov: 50 }}
         gl={{ antialias: !IS_MOBILE, powerPreference: "high-performance" }}
-        style={{ background: "#1a1208" }}
+        style={{ background: "#6ea6dc" }}
       >
         <PerformanceMonitor
           onDecline={() => setDpr([0.6, 0.8])}
@@ -1190,9 +1390,11 @@ export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => v
           enablePan
           enableZoom
           enableRotate
-          maxPolarAngle={Math.PI / 2.2}
-          minDistance={15}
-          maxDistance={50}
+          minPolarAngle={Math.PI / 5}
+          maxPolarAngle={Math.PI / 1.8}
+          minDistance={12}
+          maxDistance={45}
+          enableDamping={true}
           mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }}
           touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }}
         />
