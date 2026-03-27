@@ -30,7 +30,10 @@ function shuffle<T>(arr: T[]): T[] {
 
 function generateCards(topic: Topic, nativeLang: string, targetLang: string, mastery: Record<string, WordMastery>, pairsCount: number): MemoryCardType[] {
   const maxDiff = getUnlockedDifficulty(topic.words, mastery);
+  // Request pairsCount words, but use however many we actually get
   const selected = selectAdaptiveWords(topic.words, mastery, pairsCount, 2, maxDiff);
+  // If we got fewer words than requested, adjust pairsCount to actual
+  const actualPairs = selected.length;
 
   const cards: MemoryCardType[] = [];
   for (const word of selected) {
@@ -131,7 +134,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
   // Initialize game
   useEffect(() => {
     const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery, difficulty.pairs);
-    initMemoryGame(generated, difficulty.pairs);
+    initMemoryGame(generated, generated.length / 2); // use actual card count, not requested
   }, [topic, nativeLanguage, targetLanguage, initMemoryGame, difficulty.pairs]);
 
   // Handle card flip sound
@@ -243,7 +246,7 @@ export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
     const newDifficulty = isMix ? getMixPairsCount() : getPairsCount(topic.id);
     setDifficulty(newDifficulty);
     const generated = generateCards(topic, nativeLanguage, targetLanguage, wordMastery, newDifficulty.pairs);
-    initMemoryGame(generated, newDifficulty.pairs);
+    initMemoryGame(generated, generated.length / 2);
     setShakingPair(null);
     setMatchPopup(null);
     setLives(MAX_LIVES);
