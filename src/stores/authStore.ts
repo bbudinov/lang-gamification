@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { syncToCloud, syncFromCloud } from "@/lib/sync";
 import type { User } from "@supabase/supabase-js";
 
 interface AuthState {
@@ -49,6 +50,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
         set({ user: session.user, profile, loading: false, initialized: true });
+        // Sync on session restore
+        try {
+          await syncFromCloud(session.user.id);
+          await syncToCloud(session.user.id);
+        } catch (e) { console.error("Sync on init failed:", e); }
       } else {
         set({ user: null, profile: null, loading: false, initialized: true });
       }
@@ -123,6 +129,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
       const profile = await fetchProfile(data.user.id);
       set({ user: data.user, profile, loading: false });
+
+      // Sync local progress to cloud (merge local XP with new account)
+      try {
+        await syncToCloud(data.user.id);
+      } catch (e) { console.error("Sync after signup failed:", e); }
     } catch (err: any) {
       set({ loading: false });
       const msg = err?.message || "Unknown error";
@@ -146,7 +157,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const cleanEmail = email.replace(/[^\x20-\x7E]/g, "").trim();
     const cleanPassword = password.trim();
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+      if (!error && data.user) {
+        // Sync: merge local progress with cloud, then push local to cloud
+        try {
+          await syncFromCloud(data.user.id);
+          await syncToCloud(data.user.id);
+        } catch (e) { console.error("Sync after login failed:", e); }
+      }
       set({ loading: false });
       return { error: error?.message ?? null };
     } catch (e: unknown) {
@@ -167,7 +185,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     const email = `kid-${safeName}-${pin}@langworld.app`;
     const password = `lw-pin-${pin}-${safeName}`;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (!error && data.user) {
+      // Sync: merge local progress with cloud, then push local to cloud
+      try {
+        await syncFromCloud(data.user.id);
+        await syncToCloud(data.user.id);
+      } catch (e) { console.error("Sync after PIN login failed:", e); }
+    }
 
     set({ loading: false });
     if (error) {
