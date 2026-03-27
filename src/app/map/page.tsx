@@ -65,6 +65,22 @@ const MetaMap = dynamic(
   () => import("@/components/map/MetaMap").then((m) => m.MetaMap),
   { ssr: false }
 );
+const SportsMap = dynamic(
+  () => import("@/components/map/SportsMap").then((m) => m.SportsMap),
+  { ssr: false }
+);
+const HistoryBGMap = dynamic(
+  () => import("@/components/map/HistoryBGMap").then((m) => m.HistoryBGMap),
+  { ssr: false }
+);
+const ProfessionsMap = dynamic(
+  () => import("@/components/map/ProfessionsMap").then((m) => m.ProfessionsMap),
+  { ssr: false }
+);
+const BodyHealthMap = dynamic(
+  () => import("@/components/map/BodyHealthMap").then((m) => m.BodyHealthMap),
+  { ssr: false }
+);
 
 // Extract search params reader into its own component for Suspense boundary
 function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void; onWorld: (id: WorldId) => void }) {
@@ -73,7 +89,7 @@ function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void
     const topic = searchParams.get("topic");
     if (topic) onTopic(topic);
     const world = searchParams.get("world") as WorldId | null;
-    if (world && ["land", "ocean", "underwater", "air", "space", "social", "fantasy", "time", "culture", "emotions", "science", "meta"].includes(world)) onWorld(world);
+    if (world && ["land", "ocean", "underwater", "air", "space", "social", "fantasy", "time", "culture", "emotions", "science", "meta", "sports-world", "history-bg", "professions", "body-health"].includes(world)) onWorld(world);
   }, [searchParams, onTopic, onWorld]);
   return null;
 }
@@ -146,6 +162,10 @@ export default function MapPage() {
       {!helpOpen && activeWorld === "emotions" && <EmotionsMap onSelectCity={handleSelectCity} />}
       {!helpOpen && activeWorld === "science" && <ScienceMap onSelectCity={handleSelectCity} />}
       {!helpOpen && activeWorld === "meta" && <MetaMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "sports-world" && <SportsMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "history-bg" && <HistoryBGMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "professions" && <ProfessionsMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && activeWorld === "body-health" && <BodyHealthMap onSelectCity={handleSelectCity} />}
 
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
