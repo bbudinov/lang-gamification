@@ -16,7 +16,7 @@ export function PetWidget() {
   const progress = nextThreshold ? pet.gamesPlayed / nextThreshold : 1;
 
   return (
-    <div className="absolute bottom-5 right-4" style={{ zIndex: 9999 }}>
+    <div className="absolute bottom-5 left-3" style={{ zIndex: 9999 }}>
       <button
         onClick={() => router.push("/shop")}
         className="relative w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center active:scale-90 transition-transform"
