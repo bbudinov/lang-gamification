@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { WORLDS, type World } from "@/data/worlds";
 import { topics } from "@/data/words";
@@ -72,7 +72,7 @@ function generateQuestions(
   });
 }
 
-export default function WorldExamPage() {
+function WorldExamContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const worldId = searchParams.get("world") as WorldId | null;
@@ -443,5 +443,13 @@ export default function WorldExamPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function WorldExamPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a1628] flex items-center justify-center"><p className="text-white">Loading exam...</p></div>}>
+      <WorldExamContent />
+    </Suspense>
   );
 }
