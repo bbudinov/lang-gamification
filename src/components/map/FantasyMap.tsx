@@ -237,6 +237,7 @@ function FloatingIsland({
   position,
   radius,
   topColor,
+  sideColor,
   bobOffset,
   emissiveColor,
   emissiveIntensity,
@@ -245,6 +246,7 @@ function FloatingIsland({
   position: [number, number, number];
   radius: number;
   topColor: string;
+  sideColor?: string;
   bobOffset: number;
   emissiveColor?: string;
   emissiveIntensity?: number;
@@ -266,7 +268,7 @@ function FloatingIsland({
       {/* Rocky underside */}
       <mesh position={[0, -rockHeight / 2, 0]}>
         <cylinderGeometry args={[radius, radius * 0.35, rockHeight, 8]} />
-        <meshStandardMaterial color="#4a3050" roughness={0.9} />
+        <meshStandardMaterial color={sideColor ?? "#4a3050"} roughness={0.9} />
       </mesh>
       <Stalactites radius={radius} />
       {/* Energy crystal core */}
@@ -391,7 +393,7 @@ function MagicForestZone({ position }: { position: [number, number, number] }) {
         <Mushroom key={`m${i}`} position={[m.x, 0.1, m.z]} color={m.color} />
       ))}
       <Fireflies center={[0, 0, 0]} count={IS_MOBILE ? 8 : 20} />
-      <pointLight position={[0, 3, 0]} color="#44ff66" intensity={1.5} distance={18} />
+      <pointLight position={[0, 3, 0]} color="#4ade80" intensity={1.5} distance={15} />
     </group>
   );
 }
@@ -438,7 +440,7 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
       {/* Gate opening */}
       <mesh position={[0, 1.2, 2.01]}>
         <boxGeometry args={[1.2, 2.4, 0.1]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color="#2a1a38" />
       </mesh>
       {/* Corner towers — taller */}
       {towerPositions.slice(0, towerCount).map((tp, i) => (
@@ -449,7 +451,7 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
           </mesh>
           <mesh position={[0, 11.5, 0]}>
             <coneGeometry args={[1.3, 2.5, 8]} />
-            <meshStandardMaterial color="#8b2020" />
+            <meshStandardMaterial color="#5a2a1a" />
           </mesh>
         </group>
       ))}
@@ -493,8 +495,8 @@ function RoyalCastleZone({ position }: { position: [number, number, number] }) {
         </>
       )}
       {/* Golden interior glow */}
-      <pointLight position={[0, 4, 0]} color="#ffcc66" intensity={1.5} distance={20} />
-      <pointLight position={[0, 6, 0]} color="#ffcc66" intensity={2} distance={20} />
+      <pointLight position={[0, 4, 0]} color="#FFC46B" intensity={1.5} distance={20} />
+      <pointLight position={[0, 6, 0]} color="#FFC46B" intensity={2} distance={20} />
     </group>
   );
 }
@@ -556,7 +558,7 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <group rotation={[0, 0, 0.05]}>
         <mesh position={[0, 7, 0]}>
           <cylinderGeometry args={[1.2, 1.5, 14, 8]} />
-          <meshStandardMaterial color="#5a4a6a" roughness={0.7} />
+          <meshStandardMaterial color="#28183e" roughness={0.7} />
         </mesh>
         {/* Cone hat roof */}
         <mesh position={[0, 14.5, 0]}>
@@ -568,7 +570,7 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <OrbitingOrbs center={[0, 0, 0]} />
       {/* Magic circle on ground */}
       <MagicCircle position={[0, 0.15, 0]} />
-      <pointLight position={[0, 10, 0]} color="#9944ff" intensity={2.5} distance={18} />
+      <pointLight position={[0, 10, 0]} color="#9f7aea" intensity={2} distance={18} />
     </group>
   );
 }
@@ -628,21 +630,21 @@ function DragonCaveZone({ position }: { position: [number, number, number] }) {
       {/* Cave arch — two angled pillars */}
       <mesh position={[-1.2, 2, 0]} rotation={[0, 0, 0.2]}>
         <cylinderGeometry args={[0.5, 0.7, 5, 6]} />
-        <meshStandardMaterial color="#3a3a3a" roughness={0.95} />
+        <meshStandardMaterial color="#2a1215" roughness={0.95} />
       </mesh>
       <mesh position={[1.2, 2, 0]} rotation={[0, 0, -0.2]}>
         <cylinderGeometry args={[0.5, 0.7, 5, 6]} />
-        <meshStandardMaterial color="#3a3a3a" roughness={0.95} />
+        <meshStandardMaterial color="#2a1215" roughness={0.95} />
       </mesh>
       {/* Lintel */}
       <mesh position={[0, 4.3, 0]}>
         <boxGeometry args={[3.5, 0.8, 1.2]} />
-        <meshStandardMaterial color="#2a2a2a" roughness={0.95} />
+        <meshStandardMaterial color="#2a1215" roughness={0.95} />
       </mesh>
       {/* Fire glow inside */}
       <mesh position={[0, 1.5, -0.5]}>
         <planeGeometry args={[2, 3]} />
-        <meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={0.6} transparent opacity={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={1.5} transparent opacity={0.5} side={THREE.DoubleSide} />
       </mesh>
       {/* Bones */}
       {[[-1.5, 0.1, 1.5], [1.2, 0.1, 1.8], [0.5, 0.1, 2.2]].map((bp, i) => (
@@ -664,10 +666,19 @@ function DragonCaveZone({ position }: { position: [number, number, number] }) {
               itemSize={3}
             />
           </bufferGeometry>
-          <meshStandardMaterial color="#1a1a1a" transparent opacity={0.4} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#2a1215" transparent opacity={0.4} side={THREE.DoubleSide} />
         </mesh>
       )}
-      <pointLight ref={lightRef} position={[0, 2, 0]} color="#ff5500" intensity={2} distance={15} />
+      {/* Lava cracks on ground */}
+      <mesh position={[-0.8, 0.06, 1.2]} rotation={[-Math.PI / 2, 0, 0.4]}>
+        <boxGeometry args={[1.2, 0.06, 0.04]} />
+        <meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={2} />
+      </mesh>
+      <mesh position={[0.5, 0.06, 1.8]} rotation={[-Math.PI / 2, 0, -0.3]}>
+        <boxGeometry args={[0.9, 0.05, 0.04]} />
+        <meshStandardMaterial color="#ff4400" emissive="#ff3300" emissiveIntensity={2} />
+      </mesh>
+      <pointLight ref={lightRef} position={[0, 2, 0]} color="#FF7A33" intensity={2} distance={15} />
     </group>
   );
 }
@@ -679,7 +690,7 @@ function VillageTavernZone({ position }: { position: [number, number, number] })
       {/* House body */}
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[3, 3, 3]} />
-        <meshStandardMaterial color="#8b6b3a" roughness={0.8} />
+        <meshStandardMaterial color="#3a2818" roughness={0.8} />
       </mesh>
       {/* Pitched roof — two planes forming A-frame */}
       <mesh position={[-0.05, 3.6, 0]} rotation={[0, 0, 0.55]}>
@@ -716,7 +727,7 @@ function VillageTavernZone({ position }: { position: [number, number, number] })
           </mesh>
         </group>
       ))}
-      <pointLight position={[0, 3, 2]} color="#ffaa44" intensity={0.6} distance={12} />
+      <pointLight position={[0, 3, 2]} color="#FFC46B" intensity={1.2} distance={10} />
     </group>
   );
 }
@@ -728,7 +739,7 @@ function QuestBoardZone({ position }: { position: [number, number, number] }) {
       {/* Board */}
       <mesh position={[0, 2, 0]}>
         <boxGeometry args={[2, 3, 0.2]} />
-        <meshStandardMaterial color="#6b4a2e" roughness={0.9} />
+        <meshStandardMaterial color="#3a2a18" roughness={0.9} />
       </mesh>
       {/* Poles */}
       <mesh position={[-0.8, 1, 0]}>
@@ -843,13 +854,13 @@ function PotionLabZone({ position }: { position: [number, number, number] }) {
       {/* Table */}
       <mesh position={[0, 0.8, 0]}>
         <boxGeometry args={[3, 0.15, 1.2]} />
-        <meshStandardMaterial color="#3a2a1e" roughness={0.9} />
+        <meshStandardMaterial color="#1a2a1a" roughness={0.9} />
       </mesh>
       {/* Table legs */}
       {[[-1.3, 0.4, -0.4], [1.3, 0.4, -0.4], [-1.3, 0.4, 0.4], [1.3, 0.4, 0.4]].map((lp, i) => (
         <mesh key={i} position={lp as [number, number, number]}>
           <cylinderGeometry args={[0.05, 0.05, 0.8, 4]} />
-          <meshStandardMaterial color="#3a2a1e" />
+          <meshStandardMaterial color="#1a2a1a" />
         </mesh>
       ))}
       {/* Bottles */}
@@ -857,11 +868,11 @@ function PotionLabZone({ position }: { position: [number, number, number] }) {
         <group key={i} position={[b.x, 1.1, 0]}>
           <mesh position={[0, 0, 0]}>
             <cylinderGeometry args={[0.06, 0.08, 0.3, 6]} />
-            <meshStandardMaterial color={b.color} emissive={b.emissive} emissiveIntensity={0.5} transparent opacity={0.8} />
+            <meshStandardMaterial color={b.color} emissive={b.emissive} emissiveIntensity={1.5} transparent opacity={0.8} />
           </mesh>
           <mesh position={[0, 0.2, 0]}>
             <sphereGeometry args={[0.05, 6, 4]} />
-            <meshStandardMaterial color={b.color} emissive={b.emissive} emissiveIntensity={0.5} />
+            <meshStandardMaterial color={b.color} emissive={b.emissive} emissiveIntensity={1.5} />
           </mesh>
         </group>
       ))}
@@ -869,19 +880,19 @@ function PotionLabZone({ position }: { position: [number, number, number] }) {
       <group position={[0, 0, 2]}>
         <mesh position={[0, 0.5, 0]}>
           <sphereGeometry args={[0.7, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#2a2a2a" roughness={0.9} />
+          <meshStandardMaterial color="#1a2a1a" roughness={0.9} />
         </mesh>
         {/* Green liquid surface */}
         <mesh position={[0, 0.52, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[0.65, 12]} />
-          <meshStandardMaterial color="#44ff44" emissive="#22cc22" emissiveIntensity={0.6} />
+          <meshStandardMaterial color="#44ff44" emissive="#22cc22" emissiveIntensity={1.5} />
         </mesh>
         <BubblingParticles center={[0, 0.6, 0]} count={IS_MOBILE ? 5 : 10} />
       </group>
       {/* Smoke wisps */}
       <SmokeWisps center={[0, 1.5, 2]} count={IS_MOBILE ? 2 : 4} color="#666666" speed={0.25} />
-      <pointLight position={[0, 2, 1]} color="#44cc44" intensity={0.5} distance={12} />
-      <pointLight position={[0, 1, 2]} color="#9944ff" intensity={0.3} distance={8} />
+      <pointLight position={[0, 2, 1]} color="#7CFF7A" intensity={1.5} distance={12} />
+      <pointLight position={[0, 1, 2]} color="#9944ff" intensity={0.5} distance={8} />
     </group>
   );
 }
@@ -893,16 +904,16 @@ function DarkDungeonZone({ position }: { position: [number, number, number] }) {
       {/* Stone columns */}
       <mesh position={[-1.2, 2, 0]}>
         <cylinderGeometry args={[0.5, 0.6, 4, 6]} />
-        <meshStandardMaterial color="#4a4a4a" roughness={0.95} />
+        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
       </mesh>
       <mesh position={[1.2, 2, 0]}>
         <cylinderGeometry args={[0.5, 0.6, 4, 6]} />
-        <meshStandardMaterial color="#4a4a4a" roughness={0.95} />
+        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
       </mesh>
       {/* Arch */}
       <mesh position={[0, 4.2, 0]}>
         <boxGeometry args={[3.5, 0.6, 0.8]} />
-        <meshStandardMaterial color="#3a3a3a" roughness={0.95} />
+        <meshStandardMaterial color="#1a1a2a" roughness={0.95} />
       </mesh>
       {/* Stairs going down */}
       {[0, 1, 2, 3].map((s) => (
@@ -924,18 +935,27 @@ function DarkDungeonZone({ position }: { position: [number, number, number] }) {
         </mesh>
         <mesh position={[-0.06, 0.03, 0.16]}>
           <sphereGeometry args={[0.04, 4, 4]} />
-          <meshStandardMaterial color="#111111" />
+          <meshStandardMaterial color="#0d0d1a" />
         </mesh>
         <mesh position={[0.06, 0.03, 0.16]}>
           <sphereGeometry args={[0.04, 4, 4]} />
-          <meshStandardMaterial color="#111111" />
+          <meshStandardMaterial color="#0d0d1a" />
         </mesh>
       </group>
       {/* Wall torch */}
       <Torch position={[1.5, 2, 0.5]} />
       {/* Fog */}
       <SmokeWisps center={[0, 0.3, 1.5]} count={IS_MOBILE ? 2 : 4} color="#222244" speed={0.15} />
-      <pointLight position={[0, 2, 1]} color="#3344aa" intensity={0.3} distance={10} />
+      {/* Cyan emissive cracks on ground */}
+      <mesh position={[-0.6, 0.05, 1.8]} rotation={[-Math.PI / 2, 0, 0.6]}>
+        <boxGeometry args={[1.0, 0.05, 0.03]} />
+        <meshStandardMaterial color="#4ac8e8" emissive="#4ac8e8" emissiveIntensity={1.5} />
+      </mesh>
+      <mesh position={[0.7, 0.05, 2.5]} rotation={[-Math.PI / 2, 0, -0.4]}>
+        <boxGeometry args={[0.8, 0.04, 0.03]} />
+        <meshStandardMaterial color="#4ac8e8" emissive="#4ac8e8" emissiveIntensity={1.5} />
+      </mesh>
+      <pointLight position={[0, 2, 1]} color="#7AA6FF" intensity={1.2} distance={10} />
     </group>
   );
 }
@@ -1006,15 +1026,15 @@ function Bat({ center, radius, speed, offset }: { center: [number, number, numbe
     <group ref={groupRef}>
       <mesh scale={[0.1, 0.05, 0.15]}>
         <sphereGeometry args={[1, 4, 3]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color="#1a1a2a" />
       </mesh>
       <mesh ref={leftRef} position={[-0.18, 0, 0]}>
         <planeGeometry args={[0.25, 0.1]} />
-        <meshStandardMaterial color="#222222" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#1a1a2a" side={THREE.DoubleSide} />
       </mesh>
       <mesh ref={rightRef} position={[0.18, 0, 0]}>
         <planeGeometry args={[0.25, 0.1]} />
-        <meshStandardMaterial color="#222222" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#1a1a2a" side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -1242,15 +1262,15 @@ function FantasyScene({
         const unlocked = true;
         const bobOffset = pos[0] + pos[2];
 
-        const islandColors: Record<string, string> = {
-          "magic-forest": "#3a8a3a",
-          "dragon-cave": "#4a3a3a",
-          "wizard-tower": "#5a4a6a",
-          "royal-castle": "#5a7a5a",
-          "village-tavern": "#6a8a4a",
-          "quest-board": "#7a6a4a",
-          "potion-lab": "#4a5a4a",
-          "dark-dungeon": "#3a3a4a",
+        const islandColors: Record<string, { top: string; side: string }> = {
+          "magic-forest":   { top: "#2a4a2a", side: "#1a2a1a" },
+          "dragon-cave":    { top: "#3a1a14", side: "#2a0f12" },
+          "wizard-tower":   { top: "#2a1a4a", side: "#1a1028" },
+          "royal-castle":   { top: "#2a1a30", side: "#1b1028" },
+          "village-tavern": { top: "#3a2a1a", side: "#2a1d14" },
+          "quest-board":    { top: "#2a3a24", side: "#1a2a18" },
+          "potion-lab":     { top: "#1a3a24", side: "#102417" },
+          "dark-dungeon":   { top: "#1a1a30", side: "#0d1830" },
         };
 
         const emissive = ISLAND_EMISSIVE[city.id];
@@ -1262,7 +1282,8 @@ function FantasyScene({
             <FloatingIsland
               position={pos}
               radius={radius}
-              topColor={islandColors[city.id] ?? "#5a5a5a"}
+              topColor={islandColors[city.id]?.top ?? "#5a5a5a"}
+              sideColor={islandColors[city.id]?.side ?? "#4a3050"}
               bobOffset={bobOffset}
               emissiveColor={emissive?.color}
               emissiveIntensity={emissive?.intensity}
