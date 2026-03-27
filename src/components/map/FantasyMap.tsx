@@ -545,7 +545,7 @@ function MagicCircle({ position }: { position: [number, number, number] }) {
   return (
     <mesh ref={ref} position={position} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[2.5, 3, 32]} />
-      <meshStandardMaterial color="#9944ff" emissive="#7722cc" emissiveIntensity={0.5} transparent opacity={0.6} side={THREE.DoubleSide} />
+      <meshStandardMaterial color="#3a1a6a" emissive="#2a0a5a" emissiveIntensity={0.4} transparent opacity={0.5} side={THREE.DoubleSide} />
     </mesh>
   );
 }
@@ -558,12 +558,12 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <group rotation={[0, 0, 0.05]}>
         <mesh position={[0, 7, 0]}>
           <cylinderGeometry args={[1.2, 1.5, 14, 8]} />
-          <meshStandardMaterial color="#5a4bff" emissive="#1a1aff" emissiveIntensity={0.2} roughness={0.6} />
+          <meshStandardMaterial color="#6a8abf" emissive="#2a4a7a" emissiveIntensity={0.15} roughness={0.6} /> {/* light blue body */}
         </mesh>
-        {/* Cone hat roof */}
+        {/* Cone hat roof — darker purple */}
         <mesh position={[0, 14.5, 0]}>
           <coneGeometry args={[1.8, 3, 8]} />
-          <meshStandardMaterial color="#9b5cff" emissive="#6a00ff" emissiveIntensity={0.4} />
+          <meshStandardMaterial color="#3a1a6a" emissive="#2a0a5a" emissiveIntensity={0.3} />
         </mesh>
       </group>
       {/* Orbiting orbs */}
