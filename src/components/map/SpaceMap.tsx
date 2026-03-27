@@ -165,6 +165,7 @@ function DriftingAsteroids() {
       );
       child.rotation.x = t * 0.3;
       child.rotation.y = t * 0.5;
+      child.rotation.z = t * 0.2 + i;
     });
   });
 
@@ -313,9 +314,9 @@ function SunZone() {
         );
       });
     }
-    if (orbitRef1.current) orbitRef1.current.rotation.z = t * 0.1;
-    if (orbitRef2.current) orbitRef2.current.rotation.z = t * -0.07;
-    if (orbitRef3.current) orbitRef3.current.rotation.z = t * 0.05;
+    if (orbitRef1.current) orbitRef1.current.rotation.z = t * 0.06;
+    if (orbitRef2.current) orbitRef2.current.rotation.z = t * -0.12;
+    if (orbitRef3.current) orbitRef3.current.rotation.z = t * 0.18;
   });
 
   return (
@@ -381,6 +382,11 @@ function RocketPadZone() {
       <mesh position={[0.8, -0.5, 0.6]} rotation={[0.5, 0.2, 0.3]}>
         <dodecahedronGeometry args={[0.8, 0]} />
         <meshStandardMaterial color="#555555" roughness={0.95} />
+      </mesh>
+      {/* Planetary ring */}
+      <mesh rotation={[Math.PI / 3, 0.2, 0]}>
+        <torusGeometry args={[3.2, 0.06, 6, 32]} />
+        <meshBasicMaterial color="#aabbcc" transparent opacity={0.3} />
       </mesh>
 
       {/* Rocket body */}
@@ -475,13 +481,13 @@ function AlienWorldZone() {
 
   return (
     <group position={[24, -2, 8]}>
-      {/* Planet */}
+      {/* Planet — lava-like emissive */}
       <mesh>
         <sphereGeometry args={[2.5, 20, 14]} />
         <meshStandardMaterial
-          color="#8844aa"
-          emissive="#441166"
-          emissiveIntensity={0.3}
+          color="#aa4422"
+          emissive="#ff4400"
+          emissiveIntensity={0.8}
           roughness={0.6}
         />
       </mesh>
@@ -579,9 +585,9 @@ function SpaceStationZone() {
 function MoonBaseZone() {
   return (
     <group position={[8, -1, 20]}>
-      {/* Moon sphere */}
+      {/* Moon sphere — noticeably smaller */}
       <mesh>
-        <sphereGeometry args={[2, 16, 12]} />
+        <sphereGeometry args={[1.4, 16, 12]} />
         <meshStandardMaterial color="#aaaaaa" roughness={0.9} />
       </mesh>
       {/* Craters (dark spots) */}

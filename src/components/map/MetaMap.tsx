@@ -160,7 +160,13 @@ function UIWorldZone({ pos }: { pos: [number, number, number] }) {
     groupRef.current.children.forEach((child, i) => {
       if (i < panels.length) {
         child.position.y = panels[i].p[1] + Math.sin(t * 0.5 + i * 1.2) * 0.3;
+        child.rotation.y = panels[i].r[1] + Math.sin(t * 0.2 + i * 0.8) * 0.08;
         child.rotation.z = panels[i].r[2] + Math.sin(t * 0.3 + i) * 0.05;
+        // Opacity variation
+        const mesh = child as THREE.Mesh;
+        if (mesh.material && "opacity" in mesh.material) {
+          (mesh.material as THREE.MeshStandardMaterial).opacity = 0.5 + Math.sin(t * 0.6 + i * 1.5) * 0.15;
+        }
       }
     });
   });
@@ -491,7 +497,7 @@ function AIHubZone({ pos }: { pos: [number, number, number] }) {
     // Pulse the neural nodes
     networkRef.current.children.forEach((child, i) => {
       if (i < nodes.length && child instanceof THREE.Mesh) {
-        const scale = 1 + Math.sin(t * 2 + i * 0.7) * 0.2;
+        const scale = 1 + Math.sin(t * 2 + i * 0.7) * 0.08;
         child.scale.setScalar(scale);
       }
     });
@@ -842,6 +848,11 @@ function CameraDrift() {
     const t = clock.getElapsedTime();
     camera.position.x = basePos.current.x + Math.sin(t * 0.1) * 0.3;
     camera.position.y = basePos.current.y + Math.sin(t * 0.15) * 0.2;
+    // Subtle zoom breathing
+    if ("fov" in camera) {
+      (camera as THREE.PerspectiveCamera).fov = 50 + Math.sin(t * 0.3) * 0.5;
+      (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+    }
   });
 
   return null;

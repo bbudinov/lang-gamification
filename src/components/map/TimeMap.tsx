@@ -66,9 +66,15 @@ function GiantHourglass() {
   const groupRef = useRef<THREE.Group>(null);
   const sandRefs = useRef<THREE.Mesh[]>([]);
 
-  useFrame((_, delta) => {
+  const glowRef = useRef<THREE.PointLight>(null);
+
+  useFrame((state, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.08;
+    }
+    // Golden glow pulse
+    if (glowRef.current) {
+      glowRef.current.intensity = 3 + Math.sin(state.clock.elapsedTime) * 1.2;
     }
     // Animate sand particles falling
     sandRefs.current.forEach((mesh) => {
@@ -138,8 +144,8 @@ function GiantHourglass() {
         <torusGeometry args={[3.1, 0.15, 8, 24]} />
         <meshStandardMaterial color="#b8860b" metalness={0.9} roughness={0.2} />
       </mesh>
-      {/* Center glow */}
-      <pointLight position={[0, 0, 0]} color="#ffd700" intensity={3} distance={20} />
+      {/* Center glow — pulsing */}
+      <pointLight ref={glowRef} position={[0, 0, 0]} color="#ffd700" intensity={3} distance={20} />
       {/* Sand particles falling */}
       {sandParticles.map((p) => (
         <mesh
@@ -162,6 +168,31 @@ function GiantHourglass() {
 
 // ─── Ancient Village zone ───────────────────────────────────────
 function AncientVillageZone() {
+  const dustRef = useRef<THREE.Points>(null);
+  const dustCount = 6;
+  const dustPositions = useMemo(() => {
+    const arr = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 8;
+      arr[i * 3 + 1] = 0.5 + Math.random() * 3;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 8;
+    }
+    return arr;
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (!dustRef.current) return;
+    const pos = dustRef.current.geometry.attributes.position;
+    const arr = pos.array as Float32Array;
+    const t = clock.getElapsedTime();
+    for (let i = 0; i < dustCount; i++) {
+      arr[i * 3] += Math.sin(t * 0.3 + i) * 0.003;
+      arr[i * 3 + 1] += 0.002;
+      if (arr[i * 3 + 1] > 4) arr[i * 3 + 1] = 0.5;
+    }
+    pos.needsUpdate = true;
+  });
+
   return (
     <group position={[-20, 0, -16]}>
       {/* Sandy platform */}
@@ -192,6 +223,13 @@ function AncientVillageZone() {
         <boxGeometry args={[1, 0.6, 0.8]} />
         <meshStandardMaterial color="#7a7060" roughness={0.95} />
       </mesh>
+      {/* Dust particles */}
+      <points ref={dustRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[dustPositions, 3]} count={dustCount} />
+        </bufferGeometry>
+        <pointsMaterial color="#c9a84c" size={0.1} transparent opacity={0.5} sizeAttenuation />
+      </points>
       <pointLight position={[0, 3, 0]} color="#e8c870" intensity={1} distance={12} />
     </group>
   );
@@ -372,6 +410,14 @@ function FutureLabZone() {
 
 // ─── Dino Era zone ──────────────────────────────────────────────
 function DinoEraZone() {
+  const tailRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (tailRef.current) {
+      tailRef.current.rotation.y = Math.sin(clock.getElapsedTime() * 2) * 0.1;
+    }
+  });
+
   return (
     <group position={[-24, -2, -4]}>
       {/* Green/brown platform */}
@@ -390,8 +436,8 @@ function DinoEraZone() {
           <coneGeometry args={[0.4, 1, 6]} />
           <meshStandardMaterial color="#5a6a3a" roughness={0.85} />
         </mesh>
-        {/* Tail */}
-        <mesh position={[-1.5, 0.5, 0]} rotation={[0, 0, -0.5]}>
+        {/* Tail — swaying */}
+        <mesh ref={tailRef} position={[-1.5, 0.5, 0]} rotation={[0, 0, -0.5]}>
           <coneGeometry args={[0.3, 1.5, 6]} />
           <meshStandardMaterial color="#4a5a2a" roughness={0.85} />
         </mesh>
@@ -714,6 +760,23 @@ function FloatingGears() {
 
 // ─── Bronze routes between zones ────────────────────────────────
 function TimeRoutes({ unlockedIds }: { unlockedIds: Set<string> }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.children.forEach((child) => {
+      const mesh = child as THREE.Mesh;
+      if (mesh.material && "opacity" in mesh.material) {
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        const base = mat.userData?.baseOpacity ?? mat.opacity;
+        if (!mat.userData) mat.userData = {};
+        mat.userData.baseOpacity = base;
+        mat.opacity = base * (0.7 + Math.sin(t * 2) * 0.3);
+      }
+    });
+  });
+
   const routes = useMemo(() => {
     return ROUTE_PAIRS.map(([fromId, toId]) => {
       const fromCity = TIME_CITIES.find((c) => c.id === fromId);
@@ -727,7 +790,7 @@ function TimeRoutes({ unlockedIds }: { unlockedIds: Set<string> }) {
   }, [unlockedIds]);
 
   return (
-    <>
+    <group ref={groupRef}>
       {routes.map(({ from, to, unlocked, key }) => {
         const midX = (from[0] + to[0]) / 2;
         const midY = Math.max(from[1], to[1]) + 2;
@@ -750,7 +813,7 @@ function TimeRoutes({ unlockedIds }: { unlockedIds: Set<string> }) {
           </mesh>
         );
       })}
-    </>
+    </group>
   );
 }
 

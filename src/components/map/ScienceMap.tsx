@@ -179,7 +179,8 @@ function MainLab({ position }: { position: [number, number, number] }) {
 
   useFrame((state) => {
     if (helixRef.current) {
-      helixRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+      helixRef.current.rotation.y += 0.002;
+      helixRef.current.position.y = 4.5 + Math.sin(state.clock.elapsedTime) * 0.1;
     }
   });
 
@@ -187,7 +188,7 @@ function MainLab({ position }: { position: [number, number, number] }) {
     <group position={position}>
       <HexPlatform position={[0, 0, 0]} radius={5} color="#1f2937" glowColor="#00ffd5" />
       {/* DNA Helix */}
-      <group ref={helixRef} position={[0, 4.5, 0]}>
+      <group ref={helixRef} position={[0, 4.5, 0]} /* Y controlled by useFrame */>
         {/* Strand 1 — cyan */}
         <mesh>
           <tubeGeometry args={[curve1, 60, 0.12, 8, false]} />
@@ -343,10 +344,15 @@ function EnergyPlant({ position }: { position: [number, number, number] }) {
 
   useFrame((state) => {
     if (arcRef.current) {
-      // Flicker effect
+      // Random flicker effect
       const t = state.clock.elapsedTime;
       const mat = arcRef.current.material as THREE.MeshStandardMaterial;
       mat.opacity = 0.4 + Math.sin(t * 15) * 0.3 + Math.sin(t * 23) * 0.2;
+      if (Math.random() > 0.95) {
+        mat.emissiveIntensity = 3 + Math.random() * 2;
+      } else {
+        mat.emissiveIntensity = 2;
+      }
     }
   });
 
@@ -491,13 +497,21 @@ function NatureLab({ position }: { position: [number, number, number] }) {
 
 // ─── 6. Medical Center — Cross + Test Tubes + Microscope ─────────
 function MedicalCenter({ position }: { position: [number, number, number] }) {
+  const crossRef = useRef<THREE.Group>(null!);
   const tubeColors = ["#ff3333", "#3399ff", "#33cc33", "#ffcc00", "#cc33ff"];
+
+  useFrame((state) => {
+    if (crossRef.current) {
+      const s = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.05;
+      crossRef.current.scale.set(s, s, s);
+    }
+  });
 
   return (
     <group position={position}>
       <HexPlatform position={[0, 0, 0]} radius={4} color="#e8e8e8" glowColor="#ff3333" />
       {/* Red cross */}
-      <group position={[0, 3, 0]}>
+      <group ref={crossRef} position={[0, 3, 0]}>
         <mesh>
           <boxGeometry args={[0.4, 2, 0.2]} />
           <meshStandardMaterial
@@ -860,6 +874,84 @@ function MoleculeParticles() {
   );
 }
 
+// ─── Route Dots — moving emissive spheres along 3 routes ────────
+function RouteDots() {
+  const dotsRef = useRef<THREE.Group>(null!);
+
+  const routeCurves = useMemo(() => {
+    const pairs: [string, string][] = [
+      ["main-lab", "robot-factory"],
+      ["main-lab", "orbital-station"],
+      ["main-lab", "energy-plant"],
+    ];
+    return pairs.map(([from, to]) => {
+      const fromPos = CITY_POSITIONS[from]!;
+      const toPos = CITY_POSITIONS[to]!;
+      const midY = Math.max(fromPos[1], toPos[1]) + 1.5;
+      return new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(fromPos[0], fromPos[1] + 0.3, fromPos[2]),
+        new THREE.Vector3((fromPos[0] + toPos[0]) / 2, midY, (fromPos[2] + toPos[2]) / 2),
+        new THREE.Vector3(toPos[0], toPos[1] + 0.3, toPos[2])
+      );
+    });
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (!dotsRef.current) return;
+    const t = clock.getElapsedTime();
+    let idx = 0;
+    for (let r = 0; r < routeCurves.length; r++) {
+      for (let d = 0; d < 3; d++) {
+        const child = dotsRef.current.children[idx];
+        if (child) {
+          const offset = (t * 0.15 + d / 3) % 1;
+          const pt = routeCurves[r].getPointAt(offset);
+          child.position.copy(pt);
+        }
+        idx++;
+      }
+    }
+  });
+
+  return (
+    <group ref={dotsRef}>
+      {Array.from({ length: 9 }, (_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[0.08, 4, 4]} />
+          <meshStandardMaterial color="#00ffd5" emissive="#00ffd5" emissiveIntensity={2} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── Center Hologram — floating semi-transparent cyan plane ─────
+function CenterHologram() {
+  const ref = useRef<THREE.Mesh>(null!);
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    ref.current.rotation.y += 0.005;
+    ref.current.position.y = 7 + Math.sin(t * 0.8) * 0.2;
+  });
+
+  return (
+    <mesh ref={ref} position={[0, 7, 0]}>
+      <planeGeometry args={[2, 2]} />
+      <meshStandardMaterial
+        color="#00ffd5"
+        emissive="#00ffd5"
+        emissiveIntensity={0.6}
+        transparent
+        opacity={0.3}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 // ─── Camera Micro Drift ──────────────────────────────────────────
 function CameraMicroDrift() {
   const { camera } = useThree();
@@ -1012,6 +1104,12 @@ function ScienceScene({
 
       {/* Neon routes */}
       <NeonRoutes />
+
+      {/* Moving dot particles along main routes */}
+      <RouteDots />
+
+      {/* Center hologram */}
+      <CenterHologram />
 
       {/* Global molecule particles */}
       <MoleculeParticles />
