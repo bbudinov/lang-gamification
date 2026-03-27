@@ -54,6 +54,14 @@ const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   "south-african-coast":{ lat: -34, lng: 18 },
   "korean-street":      { lat: 37, lng: 127 },
   "thai-temple":        { lat: 14, lng: 100 },
+  "fjord-village":      { lat: 61, lng: 7 },
+  "nordic-town":        { lat: 59, lng: 18 },
+  "ice-settlement":     { lat: 72, lng: -40 },
+  "volcano-valley":     { lat: 65, lng: -18 },
+  "baobab-grove":       { lat: -19, lng: 47 },
+  "island-market":      { lat: -7, lng: 110 },
+  "green-hills":        { lat: -41, lng: 174 },
+  "lakeside-cabin":     { lat: 62, lng: 26 },
 };
 
 // ─── Get position for a city ────────────────────────────────────
@@ -660,6 +668,202 @@ function ThailandLandmark() {
   );
 }
 
+// Norway — small cliff + wooden house
+function NorwayLandmark() {
+  const c = COUNTRY_COORDS["fjord-village"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Cliff */}
+      <mesh position={[-0.1, 0.25, 0]}>
+        <boxGeometry args={[0.06, 0.5, 0.08]} />
+        <meshStandardMaterial color="#808080" roughness={0.8} />
+      </mesh>
+      {/* Wooden house */}
+      <mesh position={[0.1, 0.1, 0]}>
+        <boxGeometry args={[0.15, 0.18, 0.12]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.7} />
+      </mesh>
+      {!IS_MOBILE && (
+        <mesh position={[0.1, 0.24, 0]}>
+          <coneGeometry args={[0.1, 0.1, 4]} />
+          <meshStandardMaterial color="#654321" roughness={0.7} />
+        </mesh>
+      )}
+    </LandmarkGroup>
+  );
+}
+
+// Sweden — colorful yellow house + small tree
+function SwedenLandmark() {
+  const c = COUNTRY_COORDS["nordic-town"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Yellow house */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.18, 0.2, 0.14]} />
+        <meshStandardMaterial color="#facc15" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.25, 0]}>
+        <coneGeometry args={[0.12, 0.12, 4]} />
+        <meshStandardMaterial color="#c83030" roughness={0.6} />
+      </mesh>
+      {/* Small tree */}
+      {!IS_MOBILE && (
+        <>
+          <mesh position={[0.18, 0.12, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.2, 4]} />
+            <meshStandardMaterial color="#654321" />
+          </mesh>
+          <mesh position={[0.18, 0.26, 0]}>
+            <sphereGeometry args={[0.07, 6, 6]} />
+            <meshStandardMaterial color="#3a8a30" />
+          </mesh>
+        </>
+      )}
+    </LandmarkGroup>
+  );
+}
+
+// Greenland — igloo + ice block
+function GreenlandLandmark() {
+  const c = COUNTRY_COORDS["ice-settlement"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Igloo (hemisphere) */}
+      <mesh position={[0, 0.08, 0]}>
+        <sphereGeometry args={[0.15, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#f0f0f0" roughness={0.4} />
+      </mesh>
+      {/* Ice block */}
+      {!IS_MOBILE && (
+        <mesh position={[0.22, 0.06, 0]}>
+          <boxGeometry args={[0.1, 0.12, 0.08]} />
+          <meshStandardMaterial color="#c0e8f0" roughness={0.3} transparent opacity={0.8} />
+        </mesh>
+      )}
+    </LandmarkGroup>
+  );
+}
+
+// Iceland — small volcano cone with orange emissive tip
+function IcelandLandmark() {
+  const c = COUNTRY_COORDS["volcano-valley"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Volcano cone */}
+      <mesh position={[0, 0.18, 0]}>
+        <coneGeometry args={[0.2, 0.35, 8]} />
+        <meshStandardMaterial color="#404040" roughness={0.8} />
+      </mesh>
+      {/* Glowing tip */}
+      <mesh position={[0, 0.38, 0]}>
+        <coneGeometry args={[0.06, 0.08, 6]} />
+        <meshStandardMaterial color="#ff6600" emissive="#ff4400" emissiveIntensity={0.6} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Madagascar — baobab tree (thick trunk + flat crown)
+function MadagascarLandmark() {
+  const c = COUNTRY_COORDS["baobab-grove"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Thick trunk */}
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[0.08, 0.1, 0.4, 8]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.8} />
+      </mesh>
+      {/* Flat crown */}
+      <mesh position={[0, 0.42, 0]}>
+        <cylinderGeometry args={[0.22, 0.22, 0.04, IS_MOBILE ? 8 : 12]} />
+        <meshStandardMaterial color="#4a8a30" roughness={0.7} />
+      </mesh>
+    </LandmarkGroup>
+  );
+}
+
+// Indonesia — beach stall + palm
+function IndonesiaLandmark() {
+  const c = COUNTRY_COORDS["island-market"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Stall base */}
+      <mesh position={[0, 0.06, 0]}>
+        <boxGeometry args={[0.2, 0.12, 0.12]} />
+        <meshStandardMaterial color="#c08040" roughness={0.7} />
+      </mesh>
+      {/* Awning */}
+      <mesh position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.24, 0.03, 0.15]} />
+        <meshStandardMaterial color="#e05050" roughness={0.5} />
+      </mesh>
+      {/* Palm */}
+      {!IS_MOBILE && (
+        <>
+          <mesh position={[0.2, 0.2, 0]}>
+            <cylinderGeometry args={[0.02, 0.025, 0.4, 6]} />
+            <meshStandardMaterial color="#8B6914" />
+          </mesh>
+          <mesh position={[0.2, 0.42, 0]}>
+            <sphereGeometry args={[0.08, 6, 6]} />
+            <meshStandardMaterial color="#3a8a30" />
+          </mesh>
+        </>
+      )}
+    </LandmarkGroup>
+  );
+}
+
+// New Zealand — rolling hills (2-3 green hemispheres)
+function NewZealandLandmark() {
+  const c = COUNTRY_COORDS["green-hills"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      <mesh position={[-0.12, 0.06, 0]}>
+        <sphereGeometry args={[0.12, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#4a9a40" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.08, 0.06, 0.05]}>
+        <sphereGeometry args={[0.1, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#3a8a30" roughness={0.7} />
+      </mesh>
+      {!IS_MOBILE && (
+        <mesh position={[0, 0.06, -0.1]}>
+          <sphereGeometry args={[0.14, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial color="#5aaa50" roughness={0.7} />
+        </mesh>
+      )}
+    </LandmarkGroup>
+  );
+}
+
+// Finland — cabin + lake hint (blue circle)
+function FinlandLandmark() {
+  const c = COUNTRY_COORDS["lakeside-cabin"];
+  return (
+    <LandmarkGroup lat={c.lat} lng={c.lng} scale={[1.3, 1.3, 1.3]}>
+      {/* Cabin body */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.18, 0.16, 0.14]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      {/* Triangle roof */}
+      <mesh position={[0, 0.24, 0]}>
+        <coneGeometry args={[0.14, 0.12, 4]} />
+        <meshStandardMaterial color="#654321" roughness={0.7} />
+      </mesh>
+      {/* Lake circle */}
+      {!IS_MOBILE && (
+        <mesh position={[0.22, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.1, 12]} />
+          <meshStandardMaterial color="#4090c0" roughness={0.3} />
+        </mesh>
+      )}
+    </LandmarkGroup>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════
 //  ALL LANDMARKS
 // ═════════════════════════════════════════════════════════════════
@@ -688,6 +892,14 @@ function AllLandmarks() {
       <SouthAfricaLandmark />
       <KoreaLandmark />
       <ThailandLandmark />
+      <NorwayLandmark />
+      <SwedenLandmark />
+      <GreenlandLandmark />
+      <IcelandLandmark />
+      <MadagascarLandmark />
+      <IndonesiaLandmark />
+      <NewZealandLandmark />
+      <FinlandLandmark />
     </>
   );
 }
