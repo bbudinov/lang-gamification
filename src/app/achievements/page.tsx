@@ -10,7 +10,7 @@ const CATEGORY_FILTERS = [
   { key: "all", label: "All", emoji: "🏆" },
   { key: "skill", label: "Skill", emoji: "🎯" },
   { key: "streak", label: "Streak", emoji: "🔥" },
-  { key: "collection", label: "Exploration", emoji: "📚" },
+  { key: "collection", label: "Collection", emoji: "📚" },
   { key: "special", label: "Challenge", emoji: "✨" },
 ] as const;
 
@@ -54,10 +54,11 @@ const RARITY_TEXT: Record<Rarity, string> = {
 
 // Milestones for bonus coins
 const MILESTONE_REWARDS = [
-  { count: 3, reward: 100 },
-  { count: 6, reward: 150 },
-  { count: 10, reward: 250 },
-  { count: 15, reward: 500 },
+  { count: 5, reward: 100 },
+  { count: 10, reward: 150 },
+  { count: 15, reward: 250 },
+  { count: 20, reward: 400 },
+  { count: 30, reward: 750 },
 ];
 
 function getNextMilestone(unlockedCount: number) {
