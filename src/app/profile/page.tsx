@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useProgressStore } from "@/stores/progressStore";
 import { syncToCloud } from "@/lib/sync";
+import { supabase } from "@/lib/supabase";
 
 const AVATARS = ["🦊", "🐱", "🐶", "🦁", "🐼", "🐸", "🦄", "🐙", "🐬", "🦋", "🐧", "🐨"];
 
@@ -30,6 +32,11 @@ export default function ProfilePage() {
 
   const totalGames = gameResults.length;
   const wordsLearned = Object.values(wordMastery).filter((m) => m.correct >= 1).length;
+
+  const [shareCopied, setShareCopied] = useState(false);
+  const [feedbackEmoji, setFeedbackEmoji] = useState<number | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -95,6 +102,79 @@ export default function ProfilePage() {
           <StatCard emoji="🎮" label="Games Played" value={totalGames} />
           <StatCard emoji="📚" label="Words Learned" value={wordsLearned} />
           <StatCard emoji="🏆" label="Achievements" value="→" link onClick={() => router.push("/achievements")} />
+        </div>
+
+        {/* Share with friends */}
+        <button
+          onClick={async () => {
+            const shareData = {
+              title: "LangWorld — Learn Languages!",
+              text: `Join me on LangWorld! I've learned ${wordsLearned} words and earned ${totalPoints} XP! 🌍✨`,
+              url: "https://langworld.vercel.app",
+            };
+            try {
+              if (navigator.share) {
+                await navigator.share(shareData);
+              } else {
+                await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
+              }
+            } catch {}
+          }}
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl text-sm font-semibold active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          <span>📤</span>
+          {shareCopied ? "Link copied!" : "Share with Friends"}
+        </button>
+
+        {/* Feedback */}
+        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+          <p className="text-white text-sm font-semibold mb-2">How do you like LangWorld?</p>
+          <div className="flex justify-center gap-4 mb-2">
+            {["😡", "😐", "😊", "😍"].map((emoji, i) => (
+              <button
+                key={emoji}
+                onClick={() => {
+                  setFeedbackEmoji(i);
+                  setFeedbackSent(false);
+                }}
+                className={`text-3xl transition-all ${feedbackEmoji === i ? "scale-125 drop-shadow-lg" : "opacity-50 hover:opacity-80"}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+          {feedbackEmoji !== null && !feedbackSent && (
+            <div className="space-y-2 animate-in fade-in duration-200">
+              <textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Tell us more (optional)..."
+                className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white text-sm placeholder:text-slate-500 resize-none h-16"
+              />
+              <button
+                onClick={async () => {
+                  // Save feedback to Supabase
+                  try {
+                    await supabase.from("feedback").insert({
+                      user_id: user.id,
+                      rating: feedbackEmoji,
+                      message: feedbackText.trim() || null,
+                    });
+                  } catch {}
+                  setFeedbackSent(true);
+                  setFeedbackText("");
+                }}
+                className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold active:bg-green-700 transition-colors"
+              >
+                Send Feedback
+              </button>
+            </div>
+          )}
+          {feedbackSent && (
+            <p className="text-green-400 text-sm text-center animate-in fade-in">Thank you! 💚</p>
+          )}
         </div>
 
         {/* Sign out */}
