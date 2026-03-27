@@ -70,9 +70,9 @@ function getMixPairsCount(): { pairs: number; cols: number } {
   const results = useProgressStore.getState().gameResults;
   const mixPlays = results.filter((r) => r.gameType === "memory-mix").length;
 
-  if (mixPlays >= 4) return { pairs: 8, cols: 4 }; // 16 cards, 4×4
-  if (mixPlays >= 2) return { pairs: 7, cols: 4 }; // 14 cards, ~4×4
-  return { pairs: 6, cols: 3 };                      // 12 cards, 3×4
+  if (mixPlays >= 4) return { pairs: 10, cols: 5 }; // 20 cards, 5×4
+  if (mixPlays >= 2) return { pairs: 8, cols: 4 };  // 16 cards, 4×4
+  return { pairs: 6, cols: 3 };                       // 12 cards, 3×4
 }
 
 // Determine pairs count based on how many times Memory was played for this topic
@@ -82,9 +82,9 @@ function getPairsCount(topicId: string): { pairs: number; cols: number } {
     (r) => r.topicId === topicId && r.gameType === "memory-match"
   ).length;
 
-  if (memoryPlays >= 4) return { pairs: 8, cols: 4 }; // 16 cards, 4×4
-  if (memoryPlays >= 2) return { pairs: 6, cols: 3 }; // 12 cards, 3×4
-  return { pairs: 4, cols: 4 };                        //  8 cards, 4×2
+  if (memoryPlays >= 4) return { pairs: 10, cols: 5 }; // 20 cards, 5×4
+  if (memoryPlays >= 2) return { pairs: 8, cols: 4 };  // 16 cards, 4×4
+  return { pairs: 6, cols: 3 };                         // 12 cards, 3×4
 }
 
 export function MemoryMatch({ topic, isMix = false }: MemoryMatchProps) {
