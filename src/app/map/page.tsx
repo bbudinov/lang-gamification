@@ -83,6 +83,7 @@ export default function MapPage() {
   const [showMissions, setShowMissions] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeWorld, setActiveWorld] = useState<WorldId>("land");
+  const [worldSelectorOpen, setWorldSelectorOpen] = useState(false);
   const { targetLanguage, gameResults } = useProgressStore();
 
   // Update URL when world changes (without navigation)
@@ -124,18 +125,18 @@ export default function MapPage() {
 
       <TopBar />
 
-      {!helpOpen && activeWorld === "land" && <WorldMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "ocean" && <OceanMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "air" && <AirMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "underwater" && <UnderwaterMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "space" && <SpaceMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "social" && <SocialMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "fantasy" && <FantasyMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "time" && <TimeMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "culture" && <CultureMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "emotions" && <EmotionsMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "science" && <ScienceMap onSelectCity={handleSelectCity} />}
-      {!helpOpen && activeWorld === "meta" && <MetaMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "land" && <WorldMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "ocean" && <OceanMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "air" && <AirMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "underwater" && <UnderwaterMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "space" && <SpaceMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "social" && <SocialMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "fantasy" && <FantasyMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "time" && <TimeMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "culture" && <CultureMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "emotions" && <EmotionsMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "science" && <ScienceMap onSelectCity={handleSelectCity} />}
+      {!helpOpen && !worldSelectorOpen && activeWorld === "meta" && <MetaMap onSelectCity={handleSelectCity} />}
 
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
@@ -181,7 +182,7 @@ export default function MapPage() {
         <MissionBoard onClose={() => setShowMissions(false)} />
       )}
 
-      <WorldSelector activeWorld={activeWorld} onSelectWorld={handleWorldChange} />
+      <WorldSelector activeWorld={activeWorld} onSelectWorld={handleWorldChange} onExpandChange={setWorldSelectorOpen} />
 
       {selectedTopic && (
         <GameSelector

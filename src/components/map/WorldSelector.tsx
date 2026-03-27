@@ -8,11 +8,17 @@ import type { WorldId } from "@/types";
 interface WorldSelectorProps {
   activeWorld: WorldId;
   onSelectWorld: (worldId: WorldId) => void;
+  onExpandChange?: (expanded: boolean) => void;
 }
 
-export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps) {
+export function WorldSelector({ activeWorld, onSelectWorld, onExpandChange }: WorldSelectorProps) {
   const totalPoints = useProgressStore((s) => s.totalPoints);
   const [expanded, setExpanded] = useState(false);
+
+  const toggleExpanded = (val: boolean) => {
+    setExpanded(val);
+    onExpandChange?.(val);
+  };
 
   const activeWorldData = WORLDS.find((w) => w.id === activeWorld);
 
@@ -21,7 +27,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
       {/* Collapsed: show only active world button */}
       {!expanded && (
         <button
-          onClick={() => setExpanded(true)}
+          onClick={() => toggleExpanded(true)}
           className="fixed right-3 z-[100] flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-sm px-3 py-2 active:scale-95 transition-all"
           style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
         >
@@ -38,7 +44,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
           <div
             className="fixed inset-0"
             style={{ zIndex: 99999, background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 50%)" }}
-            onClick={() => setExpanded(false)}
+            onClick={() => toggleExpanded(false)}
           />
 
           {/* World grid */}
@@ -49,7 +55,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-bold text-sm">Worlds</h3>
               <button
-                onClick={() => setExpanded(false)}
+                onClick={() => toggleExpanded(false)}
                 className="text-white/50 text-xs px-2 py-1 active:text-white"
               >
                 Close
@@ -67,7 +73,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
                     onClick={() => {
                       if (!isLocked) {
                         onSelectWorld(world.id);
-                        setExpanded(false);
+                        toggleExpanded(false);
                       }
                     }}
                     disabled={isLocked}
