@@ -1,12 +1,18 @@
 import { topics } from "@/data/words";
 import type { GameResult, WordMastery } from "@/types";
 
+export type Rarity = "common" | "rare" | "epic" | "legendary";
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
   emoji: string;
   category: "skill" | "streak" | "collection" | "special";
+  rarity: Rarity;
+  reward: number; // coins
+  maxProgress: number;
+  getProgress: (ctx: AchievementContext) => number;
   check: (ctx: AchievementContext) => boolean;
 }
 
@@ -27,6 +33,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Complete Word Quiz with zero mistakes",
     emoji: "🎯",
     category: "skill",
+    rarity: "rare",
+    reward: 50,
+    maxProgress: 1,
+    getProgress: (ctx) =>
+      ctx.gameResults.some((r) => r.gameType === "word-quiz" && r.mistakes === 0 && r.score > 0) ? 1 : 0,
     check: (ctx) => ctx.gameResults.some(
       (r) => r.gameType === "word-quiz" && r.mistakes === 0 && r.score > 0
     ),
@@ -37,6 +48,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Complete Memory Match with zero mistakes",
     emoji: "🧠",
     category: "skill",
+    rarity: "rare",
+    reward: 50,
+    maxProgress: 1,
+    getProgress: (ctx) =>
+      ctx.gameResults.some((r) => r.gameType === "memory-match" && r.mistakes === 0 && r.score > 0) ? 1 : 0,
     check: (ctx) => ctx.gameResults.some(
       (r) => r.gameType === "memory-match" && r.mistakes === 0 && r.score > 0
     ),
@@ -47,6 +63,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Complete True or False with zero mistakes",
     emoji: "🔍",
     category: "skill",
+    rarity: "rare",
+    reward: 50,
+    maxProgress: 1,
+    getProgress: (ctx) =>
+      ctx.gameResults.some((r) => r.gameType === "true-false" && r.mistakes === 0 && r.score > 0) ? 1 : 0,
     check: (ctx) => ctx.gameResults.some(
       (r) => r.gameType === "true-false" && r.mistakes === 0 && r.score > 0
     ),
@@ -57,6 +78,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Complete Word Scramble with zero mistakes",
     emoji: "🧙",
     category: "skill",
+    rarity: "rare",
+    reward: 50,
+    maxProgress: 1,
+    getProgress: (ctx) =>
+      ctx.gameResults.some((r) => r.gameType === "word-scramble" && r.mistakes === 0 && r.score > 0) ? 1 : 0,
     check: (ctx) => ctx.gameResults.some(
       (r) => r.gameType === "word-scramble" && r.mistakes === 0 && r.score > 0
     ),
@@ -67,6 +93,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Get 3 stars in any game",
     emoji: "🌟",
     category: "skill",
+    rarity: "common",
+    reward: 25,
+    maxProgress: 1,
+    getProgress: (ctx) =>
+      ctx.gameResults.some((r) => r.maxScore > 0 && (r.score / r.maxScore) >= 0.85) ? 1 : 0,
     check: (ctx) => ctx.gameResults.some(
       (r) => r.maxScore > 0 && (r.score / r.maxScore) >= 0.85
     ),
@@ -79,6 +110,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "3-day play streak",
     emoji: "🔥",
     category: "streak",
+    rarity: "common",
+    reward: 25,
+    maxProgress: 3,
+    getProgress: (ctx) => Math.min(ctx.dailyStreak, 3),
     check: (ctx) => ctx.dailyStreak >= 3,
   },
   {
@@ -87,6 +122,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "7-day play streak",
     emoji: "⚡",
     category: "streak",
+    rarity: "rare",
+    reward: 75,
+    maxProgress: 7,
+    getProgress: (ctx) => Math.min(ctx.dailyStreak, 7),
     check: (ctx) => ctx.dailyStreak >= 7,
   },
   {
@@ -95,6 +134,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "30-day play streak",
     emoji: "💎",
     category: "streak",
+    rarity: "legendary",
+    reward: 300,
+    maxProgress: 30,
+    getProgress: (ctx) => Math.min(ctx.dailyStreak, 30),
     check: (ctx) => ctx.dailyStreak >= 30,
   },
 
@@ -105,6 +148,13 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Learn 10 words",
     emoji: "📝",
     category: "collection",
+    rarity: "common",
+    reward: 25,
+    maxProgress: 10,
+    getProgress: (ctx) => {
+      const learned = Object.values(ctx.wordMastery).filter((m) => m.correct >= 1).length;
+      return Math.min(learned, 10);
+    },
     check: (ctx) => {
       const learned = Object.values(ctx.wordMastery).filter((m) => m.correct >= 1).length;
       return learned >= 10;
@@ -116,6 +166,13 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Learn 50 words",
     emoji: "📚",
     category: "collection",
+    rarity: "epic",
+    reward: 150,
+    maxProgress: 50,
+    getProgress: (ctx) => {
+      const learned = Object.values(ctx.wordMastery).filter((m) => m.correct >= 1).length;
+      return Math.min(learned, 50);
+    },
     check: (ctx) => {
       const learned = Object.values(ctx.wordMastery).filter((m) => m.correct >= 1).length;
       return learned >= 50;
@@ -127,6 +184,16 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Master 10 words (5+ correct, 80%+ accuracy)",
     emoji: "👑",
     category: "collection",
+    rarity: "epic",
+    reward: 200,
+    maxProgress: 10,
+    getProgress: (ctx) => {
+      const mastered = Object.values(ctx.wordMastery).filter((m) => {
+        const total = m.correct + m.wrong;
+        return m.correct >= 5 && total > 0 && (m.correct / total) >= 0.8;
+      }).length;
+      return Math.min(mastered, 10);
+    },
     check: (ctx) => {
       const mastered = Object.values(ctx.wordMastery).filter((m) => {
         const total = m.correct + m.wrong;
@@ -143,6 +210,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Unlock 3 islands",
     emoji: "🗺️",
     category: "special",
+    rarity: "common",
+    reward: 30,
+    maxProgress: 3,
+    getProgress: (ctx) => Math.min(ctx.unlockedTopics.length, 3),
     check: (ctx) => ctx.unlockedTopics.length >= 3,
   },
   {
@@ -151,6 +222,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Unlock 6 islands",
     emoji: "🌍",
     category: "special",
+    rarity: "epic",
+    reward: 150,
+    maxProgress: 6,
+    getProgress: (ctx) => Math.min(ctx.unlockedTopics.length, 6),
     check: (ctx) => ctx.unlockedTopics.length >= 6,
   },
   {
@@ -159,6 +234,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Play Say It! 10 times",
     emoji: "🗣️",
     category: "special",
+    rarity: "rare",
+    reward: 75,
+    maxProgress: 10,
+    getProgress: (ctx) => Math.min(ctx.gameResults.filter((r) => r.gameType === "say-it").length, 10),
     check: (ctx) => ctx.gameResults.filter((r) => r.gameType === "say-it").length >= 10,
   },
   {
@@ -167,6 +246,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Collect 500 coins",
     emoji: "💰",
     category: "special",
+    rarity: "legendary",
+    reward: 250,
+    maxProgress: 500,
+    getProgress: (ctx) => Math.min(ctx.coins, 500),
     check: (ctx) => ctx.coins >= 500,
   },
 ];
