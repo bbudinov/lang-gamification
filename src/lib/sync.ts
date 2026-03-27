@@ -20,6 +20,8 @@ export async function syncToCloud(userId: string): Promise<void> {
     last_play_date: state.lastPlayDate,
     today_games_played: state.todayGamesPlayed,
     unlocked_topics: state.unlockedTopics,
+    weekly_xp: state.weeklyXP,
+    weekly_start_date: state.weeklyStartDate,
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });
 
@@ -134,5 +136,7 @@ export async function syncFromCloud(userId: string): Promise<void> {
     unlockedTopics: [...new Set([...state.unlockedTopics, ...(progress.unlocked_topics ?? [])])],
     gameResults: mergedResults,
     wordMastery: mergedMastery,
+    weeklyXP: Math.max(state.weeklyXP, progress.weekly_xp ?? 0),
+    weeklyStartDate: progress.weekly_start_date || state.weeklyStartDate,
   } as any);
 }

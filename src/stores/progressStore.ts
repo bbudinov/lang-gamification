@@ -34,6 +34,10 @@ interface ProgressState {
     gamesPlayed: number; // total games since pet was hatched
   } | null;
 
+  // Weekly tournament
+  weeklyXP: number;
+  weeklyStartDate: string; // ISO date of current week start (Monday)
+
   // Intro cutscenes
   visitedIntros: TopicId[];
 
@@ -126,11 +130,26 @@ export const useProgressStore = create<ProgressState>()(
       // Pet
       pet: null,
 
+      // Weekly tournament
+      weeklyXP: 0,
+      weeklyStartDate: "",
+
       // Intro
       visitedIntros: [],
 
       addPoints: (points) =>
-        set((s) => ({ totalPoints: s.totalPoints + points })),
+        set((s) => {
+          const now = new Date();
+          const monday = new Date(now);
+          monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+          const weekStart = monday.toISOString().split("T")[0];
+          const isNewWeek = s.weeklyStartDate !== weekStart;
+          return {
+            totalPoints: s.totalPoints + points,
+            weeklyXP: (isNewWeek ? 0 : s.weeklyXP) + points,
+            weeklyStartDate: weekStart,
+          };
+        }),
 
       addCoins: (amount) =>
         set((s) => ({ coins: s.coins + amount })),
@@ -192,6 +211,13 @@ export const useProgressStore = create<ProgressState>()(
             updatedPet = { ...s.pet, gamesPlayed: newPetGames, stage: calcPetStage(newPetGames) };
           }
 
+          // Weekly tournament tracking
+          const now = new Date();
+          const monday = new Date(now);
+          monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+          const weekStart = monday.toISOString().split("T")[0];
+          const isNewWeek = s.weeklyStartDate !== weekStart;
+
           return {
             gameResults: [...s.gameResults, result],
             totalPoints: s.totalPoints + xpEarned,
@@ -200,6 +226,8 @@ export const useProgressStore = create<ProgressState>()(
             lastPlayDate: today,
             todayGamesPlayed: newGamesPlayed,
             pet: updatedPet,
+            weeklyXP: (isNewWeek ? 0 : s.weeklyXP) + xpEarned,
+            weeklyStartDate: weekStart,
           };
         }),
 

@@ -150,42 +150,52 @@ export default function MapPage() {
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
 
-      {/* Quick action buttons — top-left, only on land world */}
-      {activeWorld === "land" && (
-        <div
-          className="absolute left-3 flex gap-2 safe-area"
-          style={{ zIndex: 9999, top: "max(52px, calc(env(safe-area-inset-top, 12px) + 48px))" }}
+      {/* Quick action buttons — top-left */}
+      <div
+        className="absolute left-3 flex gap-2 safe-area"
+        style={{ zIndex: 9999, top: "max(52px, calc(env(safe-area-inset-top, 12px) + 48px))" }}
+      >
+        {/* Tournament — always visible */}
+        <button
+          onClick={() => router.push("/tournament")}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 shadow-lg shadow-amber-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-yellow-400/50"
         >
-          {/* Daily Challenge (bottom) */}
-          <DailyChallengeButton />
+          <span className="text-xl">🏆</span>
+        </button>
 
-          {/* Rooms */}
-          <button
-            onClick={() => router.push("/rooms")}
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
-          >
-            <span className="text-xl">🚪</span>
-          </button>
+        {activeWorld === "land" && (
+          <>
+            {/* Daily Challenge */}
+            <DailyChallengeButton />
 
-          {/* Missions */}
-          <button
-            onClick={() => setShowMissions(true)}
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
-          >
-            <span className="text-xl">📋</span>
-          </button>
-
-          {/* Memory Mix */}
-          {mixUnlocked && (
+            {/* Rooms */}
             <button
-              onClick={() => router.push("/game/memory-mix")}
-              className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+              onClick={() => router.push("/rooms")}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-cyan-400/50"
             >
-              <span className="text-xl">🌀</span>
+              <span className="text-xl">🚪</span>
             </button>
-          )}
-        </div>
-      )}
+
+            {/* Missions */}
+            <button
+              onClick={() => setShowMissions(true)}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-amber-400/50"
+            >
+              <span className="text-xl">📋</span>
+            </button>
+
+            {/* Memory Mix */}
+            {mixUnlocked && (
+              <button
+                onClick={() => router.push("/game/memory-mix")}
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform border-2 border-violet-400/50"
+              >
+                <span className="text-xl">🌀</span>
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />
