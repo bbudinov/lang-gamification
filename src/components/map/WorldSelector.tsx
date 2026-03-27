@@ -34,10 +34,10 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
       {/* Expanded: grid of all worlds */}
       {expanded && (
         <>
-          {/* Backdrop — above everything including 3D Html labels */}
+          {/* Backdrop — solid black bottom half to cover 3D labels */}
           <div
-            className="fixed inset-0 bg-black/50"
-            style={{ zIndex: 99999 }}
+            className="fixed inset-0"
+            style={{ zIndex: 99999, background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 50%)" }}
             onClick={() => setExpanded(false)}
           />
 
