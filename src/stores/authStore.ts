@@ -76,11 +76,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return { error: "Server connection unavailable. Try again later." };
     }
 
+    // Sanitize inputs — remove invisible characters that break fetch
+    const cleanEmail = email.replace(/[^\x20-\x7E]/g, "").trim();
+    const cleanPassword = password.trim();
+    const cleanName = displayName.replace(/[^\x20-\x7E\u0400-\u04FF\u0000-\uFFFF]/g, "").trim();
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: displayName } },
+        email: cleanEmail,
+        password: cleanPassword,
+        options: { data: { display_name: cleanName } },
       });
 
       if (error) {
@@ -138,9 +143,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ loading: false });
       return { error: "Server connection unavailable. Try again later." };
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    set({ loading: false });
-    return { error: error?.message ?? null };
+    const cleanEmail = email.replace(/[^\x20-\x7E]/g, "").trim();
+    const cleanPassword = password.trim();
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+      set({ loading: false });
+      return { error: error?.message ?? null };
+    } catch (e: unknown) {
+      set({ loading: false });
+      return { error: e instanceof Error ? e.message : "Login failed" };
+    }
   },
 
   // PIN login — reconstructs deterministic email/password from name+pin
