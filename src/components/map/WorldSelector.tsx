@@ -40,17 +40,16 @@ export function WorldSelector({ activeWorld, onSelectWorld, onExpandChange }: Wo
       {/* Expanded: grid of all worlds */}
       {expanded && (
         <>
-          {/* Backdrop — solid black bottom half to cover 3D labels */}
+          {/* Backdrop */}
           <div
-            className="fixed inset-0"
-            style={{ zIndex: 99999, background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 50%)" }}
+            className="fixed inset-0 z-[100] bg-black/40"
             onClick={() => toggleExpanded(false)}
           />
 
           {/* World grid */}
           <div
             className="fixed left-3 right-3 bg-black/80 backdrop-blur-md rounded-2xl p-4 max-h-[60vh] overflow-y-auto"
-            style={{ zIndex: 100000, bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
+            style={{ zIndex: 101, bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-bold text-sm">Worlds</h3>
