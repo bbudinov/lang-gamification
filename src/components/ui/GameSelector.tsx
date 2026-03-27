@@ -9,6 +9,7 @@ import { useProgressStore } from "@/stores/progressStore";
 import { getTopicPhrases } from "@/data/phrases";
 import { getNPC } from "@/data/npcs";
 import { LEVELS } from "@/lib/levels";
+import { getWorldForTopic, WORLDS } from "@/data/worlds";
 import type { TopicId, GameType, LevelNumber } from "@/types";
 
 const PHRASE_IDS = [
@@ -65,6 +66,8 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
     if (meta.requiresNPC && !hasNPC) return false;
     return true;
   };
+
+  const worldId = getWorldForTopic(topicId);
 
   return (
     <div
@@ -196,6 +199,9 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
           })}
         </div>
 
+        {/* World Exam Section */}
+        <WorldExamBanner topicId={topicId} />
+
         <button
           onClick={onClose}
           className="w-full mt-4 text-slate-400 text-sm py-2 active:text-white transition-colors"
@@ -203,6 +209,67 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
           Cancel
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Shows world progress and exam link when >= 90% games completed */
+function WorldExamBanner({ topicId }: { topicId: TopicId }) {
+  const router = useRouter();
+  const { gameResults } = useProgressStore();
+  const worldId = getWorldForTopic(topicId);
+  const world = WORLDS.find((w) => w.id === worldId);
+  if (!world) return null;
+
+  // All game types from levels (excludes memory-mix, npc-talk counted per-topic only if NPC exists)
+  const allGameTypes: GameType[] = LEVELS.flatMap((l) => l.games);
+
+  // Total possible = topics in world x game types per level
+  const totalPossible = world.topicIds.length * allGameTypes.length;
+
+  // Count unique topic+gameType combos that have at least 1 result
+  const completedSet = new Set<string>();
+  for (const r of gameResults) {
+    if (world.topicIds.includes(r.topicId as TopicId)) {
+      completedSet.add(`${r.topicId}::${r.gameType}`);
+    }
+  }
+  const completedCount = completedSet.size;
+  const completionPercent = totalPossible > 0 ? Math.round((completedCount / totalPossible) * 100) : 0;
+  const examAvailable = completionPercent >= 90;
+
+  return (
+    <div className="mt-4 pt-3 border-t border-white/10">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-slate-400">World Progress</span>
+        <span className="text-xs font-mono text-slate-500">
+          {completedCount}/{totalPossible} games
+        </span>
+      </div>
+      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${Math.min(completionPercent, 100)}%`,
+            background: examAvailable
+              ? "linear-gradient(90deg, #22c55e, #16a34a)"
+              : `linear-gradient(90deg, ${world.themeColor}, ${world.themeColor}aa)`,
+          }}
+        />
+      </div>
+      <p className="text-xs text-slate-500 text-center mb-2">
+        {completionPercent}% completed
+      </p>
+
+      {examAvailable && (
+        <button
+          onClick={() => router.push(`/world-exam?world=${worldId}`)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-yellow-500 to-amber-500 text-white active:opacity-80 transition-opacity"
+        >
+          <span>🎓</span>
+          <span>World Exam Available!</span>
+        </button>
+      )}
     </div>
   );
 }

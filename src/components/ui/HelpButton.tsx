@@ -29,6 +29,7 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-pets-en",
     "rules-achievements-en",
     "rules-worldselector-en",
+    "rules-worldexam-en",
   ],
   bg: [
     "rules-islands-bg",
@@ -48,6 +49,7 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-pets-bg",
     "rules-achievements-bg",
     "rules-worldselector-bg",
+    "rules-worldexam-bg",
   ],
 };
 
@@ -139,7 +141,11 @@ const RULES = {
       },
       {
         title: "🌍 World Selector",
-        text: "Tap the world icon at the bottom to switch between 12 different worlds! Each world has unique locations and vocabulary.",
+        text: "Tap the world icon at the bottom to switch between 16 different worlds! Each world has unique locations and vocabulary.",
+      },
+      {
+        title: "🎓 World Exam",
+        text: "Complete 90% of games in a world to unlock the World Exam! Pass the exam to choose a new world to unlock.",
       },
     ],
   },
@@ -230,7 +236,11 @@ const RULES = {
       },
       {
         title: "🌍 Избор на свят",
-        text: "Натисни иконата на свят долу, за да превключиш между 12 различни свята! Всеки свят има уникални локации и речник.",
+        text: "Натисни иконата на свят долу, за да превключиш между 16 различни свята! Всеки свят има уникални локации и речник.",
+      },
+      {
+        title: "🎓 Световен Изпит",
+        text: "Завърши 90% от игрите в свят, за да отключиш Световен Изпит! Премини изпита, за да избереш нов свят.",
       },
     ],
   },

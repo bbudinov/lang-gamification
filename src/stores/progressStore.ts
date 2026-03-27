@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Language, TopicId, GameResult, WordMastery, GameType, LevelNumber } from "@/types";
+import type { Language, TopicId, GameResult, WordMastery, GameType, LevelNumber, WorldId } from "@/types";
 import { LEVEL_GAMES, LEVEL_UNLOCK } from "@/lib/levels";
 import { getDailyChallenge } from "@/lib/dailyChallenge";
 
@@ -38,6 +38,9 @@ interface ProgressState {
   weeklyXP: number;
   weeklyStartDate: string; // ISO date of current week start (Monday)
 
+  // World unlock system
+  unlockedWorlds: WorldId[];
+
   // Intro cutscenes
   visitedIntros: TopicId[];
 
@@ -58,6 +61,9 @@ interface ProgressState {
 
   // Pet
   hatchPet: () => void;
+
+  // World unlock
+  unlockWorld: (worldId: WorldId) => void;
 
   // Intro
   markIntroSeen: (topicId: TopicId) => void;
@@ -133,6 +139,9 @@ export const useProgressStore = create<ProgressState>()(
       // Weekly tournament
       weeklyXP: 0,
       weeklyStartDate: "",
+
+      // World unlock
+      unlockedWorlds: ["land"] as WorldId[],
 
       // Intro
       visitedIntros: [],
@@ -265,6 +274,11 @@ export const useProgressStore = create<ProgressState>()(
         set({
           pet: { active: true, stage: 0, gamesPlayed: 0 },
         }),
+
+      unlockWorld: (worldId) =>
+        set((s) => ({
+          unlockedWorlds: [...new Set([...s.unlockedWorlds, worldId])],
+        })),
 
       markIntroSeen: (topicId) =>
         set((s) => ({
