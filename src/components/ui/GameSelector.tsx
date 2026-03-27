@@ -236,7 +236,7 @@ function WorldExamBanner({ topicId }: { topicId: TopicId }) {
   }
   const completedCount = completedSet.size;
   const completionPercent = totalPossible > 0 ? Math.round((completedCount / totalPossible) * 100) : 0;
-  const examAvailable = completionPercent >= 90;
+  const examAvailable = completionPercent >= 40; // TODO: restore to 90 for production
 
   return (
     <div className="mt-4 pt-3 border-t border-white/10">
