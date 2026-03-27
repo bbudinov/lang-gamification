@@ -6,7 +6,7 @@ export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "wo
   | "air-flying" | "air-birds" | "air-weather-sky" | "air-airport" | "air-storm-clouds" | "air-mountain" | "air-balloon" | "air-wind"
   | "botanical-garden" | "central-park" | "university" | "art-museum" | "history-museum" | "legendary-places"
   | "space-planets" | "space-rockets" | "space-astronaut" | "space-aliens" | "space-station" | "space-moon" | "space-stars" | "space-galaxy"
-  | "social-cafe" | "social-office" | "social-party" | "social-hotel" | "social-airport-desk" | "social-restaurant" | "social-shopping" | "social-hospital"
+  | "social-cafe" | "social-office" | "social-party" | "social-hotel" | "social-airport-desk" | "social-restaurant" | "social-shopping" | "social-hospital" | "social-church"
   | "fantasy-forest" | "fantasy-dragon" | "fantasy-wizard" | "fantasy-castle" | "fantasy-village" | "fantasy-quest" | "fantasy-potion" | "fantasy-dungeon"
   | "time-ancient" | "time-medieval" | "time-present" | "time-future" | "time-dinosaur" | "time-industrial" | "time-station" | "time-museum"
   | "culture-italian" | "culture-japanese" | "culture-french" | "culture-mexican" | "culture-indian" | "culture-african" | "culture-british" | "culture-brazilian"

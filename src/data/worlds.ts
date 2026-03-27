@@ -60,7 +60,7 @@ export const WORLDS: World[] = [
     requiredXP: 5500,
     themeColor: "#f97316",
     bgColor: "#1a1a2e",
-    topicIds: ["social-cafe", "social-office", "social-party", "social-hotel", "social-airport-desk", "social-restaurant", "social-shopping", "social-hospital"],
+    topicIds: ["social-cafe", "social-office", "social-party", "social-hotel", "social-airport-desk", "social-restaurant", "social-shopping", "social-hospital", "social-church"],
   },
   {
     id: "emotions",
