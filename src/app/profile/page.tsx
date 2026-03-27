@@ -32,10 +32,12 @@ export default function ProfilePage() {
   const wordsLearned = Object.values(wordMastery).filter((m) => m.correct >= 1).length;
 
   const handleSignOut = async () => {
-    // Sync before logout
-    await syncToCloud(user.id).catch(() => {});
+    try {
+      // Sync before logout
+      if (user?.id) await syncToCloud(user.id).catch(() => {});
+    } catch {} // never block sign out
     await signOut();
-    router.replace("/");
+    router.replace("/login");
   };
 
   const handleAvatarChange = (emoji: string) => {
