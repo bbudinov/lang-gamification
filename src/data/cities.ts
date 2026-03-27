@@ -924,8 +924,8 @@ export const CITIES: City[] = [
   },
   {
     id: "african-village",
-    name: { en: "African Village", bg: "Африканско село", es: "Aldea Africana", it: "Villaggio Africano", de: "Afrikanisches Dorf", fr: "Village Africain" },
-    emoji: "🌍",
+    name: { en: "Ethiopian Village", bg: "Етиопско село", es: "Aldea Etíope", it: "Villaggio Etiope", de: "Äthiopisches Dorf", fr: "Village Éthiopien" },
+    emoji: "🇪🇹",
     building: { en: "Village Hall", bg: "Селска зала", es: "Sala del Pueblo", it: "Sala del Villaggio", de: "Dorfhalle", fr: "Salle du Village" },
     topicId: "culture-african",
     requiredXP: 8500,
