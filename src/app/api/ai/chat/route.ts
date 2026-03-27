@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
   // Origin check — only allow requests from our own domain
   const origin = req.headers.get("origin") || "";
   const referer = req.headers.get("referer") || "";
-  const allowedHosts = ["localhost", "langworld.vercel.app"];
-  const isAllowed = allowedHosts.some(
-    (h) => origin.includes(h) || referer.includes(h)
+  const allowedOrigins = ["http://localhost:3002", "https://langworld.vercel.app"];
+  const isAllowed = allowedOrigins.some(
+    (o) => origin === o || referer.startsWith(o)
   );
   if (!isAllowed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
