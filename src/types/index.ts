@@ -15,9 +15,13 @@ export type TopicId = "animals" | "colors" | "food" | "numbers" | "travel" | "wo
   | "culture-norwegian" | "culture-swedish" | "culture-greenlandic" | "culture-icelandic" | "culture-madagascan" | "culture-indonesian" | "culture-newzealand" | "culture-finnish"
   | "emotions-joy" | "emotions-fear" | "emotions-anger" | "emotions-calm" | "emotions-surprise" | "emotions-love" | "emotions-dream" | "emotions-courage"
   | "science-lab" | "science-robot" | "science-space-station" | "science-energy" | "science-nature" | "science-medicine" | "science-computer" | "science-invention"
-  | "meta-ui" | "meta-game" | "meta-code" | "meta-internet" | "meta-social-media" | "meta-ai" | "meta-music-studio" | "meta-movie";
+  | "meta-ui" | "meta-game" | "meta-code" | "meta-internet" | "meta-social-media" | "meta-ai" | "meta-music-studio" | "meta-movie"
+  | "sports-stadium" | "sports-basketball" | "sports-tennis" | "sports-racing" | "sports-boxing"
+  | "history-bg-ancient" | "history-bg-medieval" | "history-bg-monastery" | "history-bg-revival" | "history-bg-modern"
+  | "prof-hub" | "prof-doctor" | "prof-teacher" | "prof-chef" | "prof-pilot" | "prof-engineer"
+  | "body-heart" | "body-brain" | "body-lungs" | "body-bones" | "body-muscles" | "body-lab";
 
-export type WorldId = "land" | "ocean" | "underwater" | "air" | "space" | "social" | "fantasy" | "time" | "culture" | "emotions" | "science" | "meta";
+export type WorldId = "land" | "ocean" | "underwater" | "air" | "space" | "social" | "fantasy" | "time" | "culture" | "emotions" | "science" | "meta" | "sports-world" | "history-bg" | "professions" | "body-health";
 
 export interface WordEntry {
   id: string;
