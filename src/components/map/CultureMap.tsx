@@ -31,37 +31,44 @@ function latLngToPos(lat: number, lng: number, radius: number = 14): [number, nu
   ];
 }
 
+// Game-friendly coordinates — spread wider than real geography for readability
 const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
-  "british-pub":        { lat: 52, lng: -1 },
-  "french-cafe":        { lat: 47, lng: 2 },
-  "italian-plaza":      { lat: 42, lng: 12 },
-  "spanish-plaza":      { lat: 40, lng: -4 },
-  "german-castle":      { lat: 50, lng: 10 },
-  "bulgarian-village":  { lat: 43, lng: 25 },
-  "japanese-street":    { lat: 36, lng: 140 },
-  "chinese-temple":     { lat: 35, lng: 105 },
-  "indian-temple":      { lat: 22, lng: 78 },
-  "egyptian-pyramid":   { lat: 30, lng: 31 },
-  "african-village":    { lat: 9, lng: 38 },
-  "mexican-market":     { lat: 23, lng: -102 },
-  "american-city":      { lat: 41, lng: -74 },
-  "brazilian-beach":    { lat: -23, lng: -43 },
-  "australian-coast":   { lat: -34, lng: 151 },
-  "canadian-lodge":     { lat: 56, lng: -106 },
-  "argentinian-ranch":  { lat: -34, lng: -58 },
-  "moroccan-market":    { lat: 32, lng: -5 },
-  "kenyan-safari":      { lat: -1, lng: 37 },
-  "south-african-coast":{ lat: -34, lng: 18 },
-  "korean-street":      { lat: 37, lng: 127 },
-  "thai-temple":        { lat: 14, lng: 100 },
-  "fjord-village":      { lat: 61, lng: 7 },
-  "nordic-town":        { lat: 59, lng: 18 },
-  "ice-settlement":     { lat: 72, lng: -40 },
-  "volcano-valley":     { lat: 65, lng: -18 },
-  "baobab-grove":       { lat: -19, lng: 47 },
-  "island-market":      { lat: -7, lng: 110 },
-  "green-hills":        { lat: -41, lng: 174 },
-  "lakeside-cabin":     { lat: 62, lng: 26 },
+  // Europe — spread across wider lng range
+  "british-pub":        { lat: 55, lng: -15 },
+  "french-cafe":        { lat: 42, lng: -5 },
+  "spanish-plaza":      { lat: 30, lng: -18 },
+  "italian-plaza":      { lat: 35, lng: 8 },
+  "german-castle":      { lat: 52, lng: 15 },
+  "bulgarian-village":  { lat: 38, lng: 30 },
+  // Nordics — spread north
+  "fjord-village":      { lat: 68, lng: -8 },
+  "nordic-town":        { lat: 65, lng: 20 },
+  "lakeside-cabin":     { lat: 70, lng: 35 },
+  "volcano-valley":     { lat: 72, lng: -30 },
+  "ice-settlement":     { lat: 78, lng: -50 },
+  // Africa — spread south
+  "moroccan-market":    { lat: 25, lng: -10 },
+  "egyptian-pyramid":   { lat: 22, lng: 35 },
+  "african-village":    { lat: 2, lng: 42 },
+  "kenyan-safari":      { lat: -8, lng: 45 },
+  "south-african-coast":{ lat: -38, lng: 25 },
+  "baobab-grove":       { lat: -22, lng: 55 },
+  // Asia — spread east
+  "indian-temple":      { lat: 15, lng: 78 },
+  "thai-temple":        { lat: 8, lng: 100 },
+  "chinese-temple":     { lat: 35, lng: 110 },
+  "korean-street":      { lat: 42, lng: 135 },
+  "japanese-street":    { lat: 38, lng: 155 },
+  "island-market":      { lat: -10, lng: 120 },
+  // Americas — spread west
+  "canadian-lodge":     { lat: 58, lng: -110 },
+  "american-city":      { lat: 40, lng: -80 },
+  "mexican-market":     { lat: 18, lng: -105 },
+  "brazilian-beach":    { lat: -25, lng: -50 },
+  "argentinian-ranch":  { lat: -40, lng: -65 },
+  // Oceania
+  "australian-coast":   { lat: -35, lng: 150 },
+  "green-hills":        { lat: -45, lng: 175 },
 };
 
 // ─── Get position for a city ────────────────────────────────────
