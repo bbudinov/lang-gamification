@@ -23,6 +23,12 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-listenrepeat-en",
     "rules-npctalk-en",
     "rules-lang-en",
+    "rules-xpcoins-en",
+    "rules-mapbuttons-en",
+    "rules-shop-en",
+    "rules-pets-en",
+    "rules-achievements-en",
+    "rules-worldselector-en",
   ],
   bg: [
     "rules-islands-bg",
@@ -36,6 +42,12 @@ const SECTION_AUDIO: Record<RulesLang, string[]> = {
     "rules-listenrepeat-bg",
     "rules-npctalk-bg",
     "rules-lang-bg",
+    "rules-xpcoins-bg",
+    "rules-mapbuttons-bg",
+    "rules-shop-bg",
+    "rules-pets-bg",
+    "rules-achievements-bg",
+    "rules-worldselector-bg",
   ],
 };
 
@@ -97,6 +109,38 @@ const RULES = {
         title: "🌐 Languages",
         text: "Switch between English, Bulgarian, and Spanish using the button in the top right corner.",
       },
+      {
+        title: "⭐ XP & Coins",
+        text: "⭐ XP = your experience points. Earn XP by playing games! 🪙 Coins = currency for the shop. Earn coins from games, achievements, and streaks.",
+        details: ["⭐ XP → leaderboard & progression", "🪙 Coins → spend in the shop"],
+      },
+      {
+        title: "🗺️ Map Buttons",
+        text: "Use the buttons on the left side of the map to access special features!",
+        details: [
+          "🏆 Tournament — Compete with other players every week! Top 3 win bonus XP and coins.",
+          "📋 Missions — Complete daily challenges for extra rewards.",
+          "🚪 Rooms — Story-based conversations with NPCs.",
+          "🌀 Memory Mix — Play memory match with words from multiple topics!",
+        ],
+      },
+      {
+        title: "🛍️ Shop",
+        text: "Visit the shop to spend your coins! Buy avatars, titles, pet eggs, and mystery boxes. Mystery boxes have a chance for rare rewards!",
+      },
+      {
+        title: "🐣 Pets",
+        text: "Buy a pet egg in the shop! Your pet grows as you play: Egg → Baby → Teen → Dragon. Play more games to evolve it!",
+        details: ["🥚 Egg → 🐣 Baby (1 game)", "🐣 Baby → 🐲 Teen (10 games)", "🐲 Teen → 🐉 Dragon (30 games)"],
+      },
+      {
+        title: "🏅 Achievements",
+        text: "Complete challenges to earn coins and badges! Check your progress in Achievements. Some are Common, some are Legendary!",
+      },
+      {
+        title: "🌍 World Selector",
+        text: "Tap the world icon at the bottom to switch between 12 different worlds! Each world has unique locations and vocabulary.",
+      },
     ],
   },
   bg: {
@@ -155,6 +199,38 @@ const RULES = {
       {
         title: "🌐 Езици",
         text: "Превключвай между английски, български и испански с бутона горе вдясно.",
+      },
+      {
+        title: "⭐ XP и монети",
+        text: "⭐ XP = точки опит. Печелиш XP от игри! 🪙 Монети = валута за магазина. Печелиш монети от игри, постижения и поредици.",
+        details: ["⭐ XP → класация и прогрес", "🪙 Монети → харчи в магазина"],
+      },
+      {
+        title: "🗺️ Бутони на картата",
+        text: "Използвай бутоните отляво на картата за специални функции!",
+        details: [
+          "🏆 Турнир — Състезавай се с други играчи всяка седмица! Топ 3 печелят бонус XP и монети.",
+          "📋 Мисии — Изпълни ежедневни предизвикателства за допълнителни награди.",
+          "🚪 Стаи — Разговори с NPC герои по истории.",
+          "🌀 Memory Mix — Играй мемори с думи от различни теми!",
+        ],
+      },
+      {
+        title: "🛍️ Магазин",
+        text: "Посети магазина, за да харчиш монети! Купувай аватари, титли, яйца за домашни любимци и мистериозни кутии. Мистериозните кутии имат шанс за редки награди!",
+      },
+      {
+        title: "🐣 Домашни любимци",
+        text: "Купи яйце от магазина! Домашният ти любимец расте докато играеш: Яйце → Бебе → Тийн → Дракон. Играй повече, за да еволюира!",
+        details: ["🥚 Яйце → 🐣 Бебе (1 игра)", "🐣 Бебе → 🐲 Тийн (10 игри)", "🐲 Тийн → 🐉 Дракон (30 игри)"],
+      },
+      {
+        title: "🏅 Постижения",
+        text: "Изпълнявай предизвикателства, за да печелиш монети и значки! Провери прогреса си в Постижения. Някои са обикновени, други са легендарни!",
+      },
+      {
+        title: "🌍 Избор на свят",
+        text: "Натисни иконата на свят долу, за да превключиш между 12 различни свята! Всеки свят има уникални локации и речник.",
       },
     ],
   },

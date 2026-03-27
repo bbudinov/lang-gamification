@@ -22,6 +22,26 @@ const REWARD_TIERS = [
   { label: "3rd place", xp: 25, coins: 15 },
 ];
 
+const CLAIM_TIERS = [
+  { minXP: 500, label: "🥇 Gold", xp: 100, coins: 50 },
+  { minXP: 200, label: "🥈 Silver", xp: 50, coins: 25 },
+  { minXP: 100, label: "🥉 Bronze", xp: 25, coins: 15 },
+  { minXP: 50, label: "⭐ Top 10", xp: 10, coins: 5 },
+  { minXP: 1, label: "🎮 Participant", xp: 5, coins: 0 },
+];
+
+function getClaimTier(xp: number) {
+  return CLAIM_TIERS.find((t) => xp >= t.minXP) ?? null;
+}
+
+function getPreviousWeekStart(): string {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  monday.setDate(monday.getDate() - 7);
+  return monday.toISOString().split("T")[0];
+}
+
 function getWeekStart(): string {
   const now = new Date();
   const monday = new Date(now);
@@ -44,16 +64,35 @@ function getDaysRemaining(): { days: number; hours: number } {
 export default function TournamentPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { weeklyXP, weeklyStartDate } = useProgressStore();
+  const { weeklyXP, weeklyStartDate, addPoints, addCoins } = useProgressStore();
   const [entries, setEntries] = useState<TournamentEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasServerData, setHasServerData] = useState(false);
+  const [claimedReward, setClaimedReward] = useState<{ label: string; xp: number; coins: number } | null>(null);
 
   const timeLeft = useMemo(() => getDaysRemaining(), []);
 
   // Make sure local weeklyStartDate is current
   const currentWeekStart = getWeekStart();
   const localWeeklyXP = weeklyStartDate === currentWeekStart ? weeklyXP : 0;
+
+  // --- Claim Weekly Reward logic ---
+  const lastClaimedWeek = typeof window !== "undefined" ? localStorage.getItem("tournament_lastClaimedWeek") : null;
+  const previousWeekStart = getPreviousWeekStart();
+
+  // Previous week XP: if weeklyStartDate matches previous week, that XP is from last week
+  const previousWeekXP = weeklyStartDate === previousWeekStart ? weeklyXP : 0;
+
+  const canClaim = previousWeekXP > 0 && lastClaimedWeek !== currentWeekStart;
+  const claimTier = canClaim ? getClaimTier(previousWeekXP) : null;
+
+  const handleClaim = () => {
+    if (!claimTier) return;
+    addPoints(claimTier.xp);
+    if (claimTier.coins > 0) addCoins(claimTier.coins);
+    localStorage.setItem("tournament_lastClaimedWeek", currentWeekStart);
+    setClaimedReward({ label: claimTier.label, xp: claimTier.xp, coins: claimTier.coins });
+  };
 
   useEffect(() => {
     loadTournament();
@@ -120,6 +159,30 @@ export default function TournamentPage() {
             <p className="text-amber-400 font-bold text-lg">{localWeeklyXP}</p>
           </div>
         </div>
+
+        {/* Claim Weekly Reward */}
+        {claimedReward ? (
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-4 text-center">
+            <p className="text-2xl mb-1">🎉</p>
+            <p className="text-white font-bold text-sm">Congratulations!</p>
+            <p className="text-green-400 text-sm mt-1">
+              {claimedReward.label}: +{claimedReward.xp} XP{claimedReward.coins > 0 && ` · +${claimedReward.coins} coins`}
+            </p>
+          </div>
+        ) : canClaim && claimTier ? (
+          <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4">
+            <p className="text-white font-bold text-sm mb-1">📦 Last Week Results</p>
+            <p className="text-slate-400 text-xs mb-2">
+              You earned <span className="text-amber-400 font-bold">{previousWeekXP} XP</span> last week — {claimTier.label}!
+            </p>
+            <button
+              onClick={handleClaim}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 rounded-xl font-bold text-sm active:opacity-80 transition-opacity"
+            >
+              🎁 Claim Your Reward! (+{claimTier.xp} XP{claimTier.coins > 0 ? ` · +${claimTier.coins} coins` : ""})
+            </button>
+          </div>
+        ) : null}
 
         {/* Rewards */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3">
