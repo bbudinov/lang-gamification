@@ -41,6 +41,19 @@ html, body {
   padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 }
 
+/* iOS smooth scrolling for overflow containers */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}
+[style*="overflow: auto"],
+[style*="overflow-y: auto"],
+[style*="overflow-x: auto"],
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Memory card shake on mismatch */
 @keyframes card-shake {
   0%, 100% { transform: rotateY(180deg) translateX(0); }

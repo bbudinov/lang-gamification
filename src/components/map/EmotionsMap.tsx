@@ -10,7 +10,9 @@ import type { Language } from "@/types";
 import * as THREE from "three";
 
 // ─── Constants ───────────────────────────────────────────────────
-const IS_MOBILE = typeof window !== "undefined" && window.innerWidth < 768;
+const IS_MOBILE =
+  typeof window !== "undefined" &&
+  (window.innerWidth < 800 || "ontouchstart" in window);
 
 const emotionsWorld = WORLDS.find((w) => w.id === "emotions")!;
 const EMOTION_CITIES = CITIES.filter((c) =>
@@ -1644,7 +1646,11 @@ export function EmotionsMap({
           "linear-gradient(180deg, #0a2a2a 0%, #0a1628 50%, #0d0015 100%)",
       }}
     >
-      <Canvas dpr={dpr} camera={{ position: [0, 30, 50], fov: 50 }}>
+      <Canvas
+        dpr={dpr}
+        camera={{ position: [0, 30, 50], fov: 50 }}
+        gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
+      >
         <PerformanceMonitor
           onDecline={() => setDpr(IS_MOBILE ? 0.75 : 1)}
           onIncline={() => setDpr(IS_MOBILE ? 1 : 1.5)}

@@ -34,6 +34,8 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stoppedManuallyRef = useRef(false);
   const accumulatedTranscriptRef = useRef("");
+  const restartCountRef = useRef(0);
+  const MAX_RESTARTS = 5;
   const [isSupported, setIsSupported] = useState(false);
 
   // Detect support on client only (SSR has no window)
@@ -67,6 +69,7 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
     setConfidence(0);
     stoppedManuallyRef.current = false;
     accumulatedTranscriptRef.current = "";
+    restartCountRef.current = 0;
 
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
@@ -105,8 +108,9 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
       if (event.error !== "no-speech" && event.error !== "aborted") {
         console.warn("Speech recognition error:", event.error);
       }
-      // In continuous mode, auto-restart on error (unless manually stopped)
-      if (continuousMode && !stoppedManuallyRef.current) {
+      // In continuous mode, auto-restart on error (unless manually stopped or max restarts reached)
+      if (continuousMode && !stoppedManuallyRef.current && restartCountRef.current < MAX_RESTARTS) {
+        restartCountRef.current++;
         accumulatedTranscriptRef.current = accumulatedTranscriptRef.current || "";
         setTimeout(() => {
           if (!stoppedManuallyRef.current) {
@@ -121,8 +125,9 @@ export function useSpeechRecognition(language: string = "en", opts?: { continuou
     recognition.onend = () => {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
-      // In continuous mode, auto-restart if not manually stopped
-      if (continuousMode && !stoppedManuallyRef.current) {
+      // In continuous mode, auto-restart if not manually stopped (max 5 restarts)
+      if (continuousMode && !stoppedManuallyRef.current && restartCountRef.current < MAX_RESTARTS) {
+        restartCountRef.current++;
         // accumulatedTranscriptRef already has all final parts — just restart
         setTimeout(() => {
           if (!stoppedManuallyRef.current && recognitionRef.current) {

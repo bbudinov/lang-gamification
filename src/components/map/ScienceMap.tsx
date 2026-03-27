@@ -1159,7 +1159,11 @@ export function ScienceMap({
           "linear-gradient(180deg, #0b1220 0%, #0a0e1a 50%, #060a12 100%)",
       }}
     >
-      <Canvas dpr={dpr} camera={{ position: [0, 35, 45], fov: 50 }}>
+      <Canvas
+        dpr={dpr}
+        camera={{ position: [0, 35, 45], fov: 50 }}
+        gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
+      >
         <PerformanceMonitor
           onDecline={() => setDpr(IS_MOBILE ? 0.75 : 1)}
           onIncline={() => setDpr(IS_MOBILE ? 1 : 1.5)}
