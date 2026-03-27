@@ -151,7 +151,7 @@ function SceneContent({
       <Ground />
 
       {SPORTS_CITIES.map((city) => {
-        const unlocked = totalPoints >= city.requiredXP;
+        const unlocked = true; // TODO: restore: totalPoints >= city.requiredXP
         return (
           <CityPlatform
             key={city.id}
