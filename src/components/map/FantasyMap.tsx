@@ -558,12 +558,12 @@ function WizardTowerZone({ position }: { position: [number, number, number] }) {
       <group rotation={[0, 0, 0.05]}>
         <mesh position={[0, 7, 0]}>
           <cylinderGeometry args={[1.2, 1.5, 14, 8]} />
-          <meshStandardMaterial color="#4a5a8a" roughness={0.7} /> {/* light blue-gray tower */}
+          <meshStandardMaterial color="#5a4bff" emissive="#1a1aff" emissiveIntensity={0.2} roughness={0.6} />
         </mesh>
         {/* Cone hat roof */}
         <mesh position={[0, 14.5, 0]}>
           <coneGeometry args={[1.8, 3, 8]} />
-          <meshStandardMaterial color="#7722cc" emissive="#5511aa" emissiveIntensity={0.3} />
+          <meshStandardMaterial color="#9b5cff" emissive="#6a00ff" emissiveIntensity={0.4} />
         </mesh>
       </group>
       {/* Orbiting orbs */}
@@ -690,16 +690,16 @@ function VillageTavernZone({ position }: { position: [number, number, number] })
       {/* House body */}
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[3, 3, 3]} />
-        <meshStandardMaterial color="#3a2818" roughness={0.8} />
+        <meshStandardMaterial color="#5c3a22" emissive="#2a1a0a" emissiveIntensity={0.15} roughness={0.8} />
       </mesh>
       {/* Pitched roof — two planes forming A-frame */}
       <mesh position={[-0.05, 3.6, 0]} rotation={[0, 0, 0.55]}>
         <planeGeometry args={[2, 3.2]} />
-        <meshStandardMaterial color="#6b3a1e" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#5c2e1f" side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0.05, 3.6, 0]} rotation={[0, 0, -0.55]}>
         <planeGeometry args={[2, 3.2]} />
-        <meshStandardMaterial color="#6b3a1e" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#5c2e1f" side={THREE.DoubleSide} />
       </mesh>
       {/* Chimney */}
       <mesh position={[0.8, 4.2, 0.5]}>
@@ -750,13 +750,18 @@ function QuestBoardZone({ position }: { position: [number, number, number] }) {
         <cylinderGeometry args={[0.08, 0.1, 3, 5]} />
         <meshStandardMaterial color="#5c3a1e" />
       </mesh>
-      {/* Papers/scrolls on board */}
+      {/* Papers/scrolls on board — parchment glow */}
       {[[-0.3, 2.5, 0.11], [0.2, 2, 0.11], [-0.1, 1.6, 0.11]].map((pp, i) => (
         <mesh key={i} position={pp as [number, number, number]}>
           <planeGeometry args={[0.5, 0.4]} />
-          <meshStandardMaterial color="#f0e8d0" side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#f5e6c8" emissive="#ffddaa" emissiveIntensity={0.2} side={THREE.DoubleSide} />
         </mesh>
       ))}
+      {/* Cyan magical glow around board */}
+      <mesh position={[0, 2, -0.2]}>
+        <boxGeometry args={[2.6, 3.6, 0.05]} />
+        <meshBasicMaterial color="#00ffd5" transparent opacity={0.06} side={THREE.DoubleSide} />
+      </mesh>
       {/* Compass on ground */}
       <group position={[1.5, 0.12, 1]}>
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
