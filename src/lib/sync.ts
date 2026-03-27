@@ -11,8 +11,8 @@ import type { GameResult, WordMastery } from "@/types";
 export async function syncToCloud(userId: string): Promise<void> {
   const state = useProgressStore.getState();
 
-  // 1. Upsert progress
-  await supabase.from("progress").upsert({
+  // 1. Upsert progress (core fields only — weekly columns may not exist yet)
+  const progressData: Record<string, unknown> = {
     user_id: userId,
     total_points: state.totalPoints,
     coins: state.coins,
@@ -20,10 +20,19 @@ export async function syncToCloud(userId: string): Promise<void> {
     last_play_date: state.lastPlayDate,
     today_games_played: state.todayGamesPlayed,
     unlocked_topics: state.unlockedTopics,
-    weekly_xp: state.weeklyXP,
-    weekly_start_date: state.weeklyStartDate,
     updated_at: new Date().toISOString(),
-  }, { onConflict: "user_id" });
+  };
+  const { error: progressError } = await supabase.from("progress").upsert(progressData, { onConflict: "user_id" });
+  if (progressError) {
+    console.error("Progress sync error:", progressError.message);
+  }
+  // Try weekly columns separately (may not exist in DB yet)
+  try {
+    await supabase.from("progress").update({
+      weekly_xp: state.weeklyXP,
+      weekly_start_date: state.weeklyStartDate,
+    }).eq("user_id", userId);
+  } catch {} // silently ignore if columns don't exist
 
   // 2. Sync game results — only push new ones (by completedAt timestamp)
   const { data: existing } = await supabase
