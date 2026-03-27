@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { initSpeech, playPhraseAudioAndWait, stopAudio } from "@/lib/speech";
 import { ProfessorGlobe } from "@/components/character/ProfessorGlobe";
+import { useAuthStore } from "@/stores/authStore";
 
 const STORY_PARTS = [
   "A long, long time ago, in the middle of an endless ocean, there was a magical world — LangWorld.",
@@ -16,12 +17,24 @@ const STORY_PARTS = [
 
 export default function Home() {
   const router = useRouter();
+  const { user, initialized, initialize } = useAuthStore();
   const [ready, setReady] = useState(false);
   const [narrating, setNarrating] = useState(false);
   const [storyLine, setStoryLine] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [globeEmotion, setGlobeEmotion] = useState<"idle" | "happy" | "thinking" | "surprised">("idle");
   const skippedRef = useRef(false);
+
+  // Check auth — redirect to login if not authenticated
+  useEffect(() => {
+    if (!initialized) {
+      initialize();
+      return;
+    }
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [initialized, user, router, initialize]);
 
   useEffect(() => {
     initSpeech();

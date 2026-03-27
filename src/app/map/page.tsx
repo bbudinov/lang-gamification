@@ -8,6 +8,7 @@ import { HelpButton } from "@/components/ui/HelpButton";
 import { MissionBoard } from "@/components/missions/MissionBoard";
 import { DailyChallengeButton } from "@/components/ui/DailyChallenge";
 import { PetWidget } from "@/components/ui/PetWidget";
+import { useAuthStore } from "@/stores/authStore";
 import dynamic from "next/dynamic";
 import { useProgressStore } from "@/stores/progressStore";
 import { topics } from "@/data/words";
@@ -79,6 +80,14 @@ function SearchParamReader({ onTopic, onWorld }: { onTopic: (id: string) => void
 
 export default function MapPage() {
   const router = useRouter();
+  const { user, initialized, initialize } = useAuthStore();
+
+  // Auth guard — redirect to login if not authenticated
+  useEffect(() => {
+    if (!initialized) { initialize(); return; }
+    if (!user) router.replace("/login");
+  }, [initialized, user, router, initialize]);
+
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [showMissions, setShowMissions] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
