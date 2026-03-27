@@ -219,6 +219,11 @@ export function HelpButton({ onOpen, onClose }: HelpButtonProps) {
           className="fixed inset-0 z-50 flex flex-col bg-[#0a1628]"
           onClick={handleClose}
         >
+          {/* Close button */}
+          <button onClick={handleClose} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 active:bg-white/20 z-20 safe-area">
+            <span className="text-xl">✕</span>
+          </button>
+
           {/* 3D Avatar — top portion */}
           <div className="relative" style={{ height: "40vh", minHeight: 240 }}>
             <AvatarCanvas isSpeaking={globeSpeaking} />

@@ -72,9 +72,14 @@ export function GameSelector({ topicId, topicName, topicEmoji, onClose }: GameSe
       onClick={onClose}
     >
       <div
-        className="bg-[#1a2744]/95 rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 max-h-[85vh] overflow-y-auto"
+        className="relative bg-[#1a2744]/95 rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close button */}
+        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 active:bg-white/20 z-10">
+          <span className="text-lg">✕</span>
+        </button>
+
         <div className="text-center mb-4">
           <div className="flex flex-col items-center mb-1">
             <ProfessorGlobe size={72} expandOnSpeak speaking={globeSpeaking} emotion={navigating ? "happy" : "idle"} />

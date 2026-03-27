@@ -150,9 +150,10 @@ export default function MapPage() {
       <HelpButton onOpen={() => setHelpOpen(true)} onClose={() => setHelpOpen(false)} />
       <PetWidget />
 
-      {/* Quick action buttons — top-left */}
+      {/* Quick action buttons — left side, vertical, hide when modal open */}
+      {!selectedTopicId && (
       <div
-        className="absolute left-3 flex gap-2 safe-area"
+        className="absolute left-3 flex flex-col gap-2"
         style={{ zIndex: 9999, top: "max(52px, calc(env(safe-area-inset-top, 12px) + 48px))" }}
       >
         {/* Tournament — always visible */}
@@ -196,6 +197,7 @@ export default function MapPage() {
           </>
         )}
       </div>
+      )}
 
       {showMissions && (
         <MissionBoard onClose={() => setShowMissions(false)} />
