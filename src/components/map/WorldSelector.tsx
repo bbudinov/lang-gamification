@@ -44,8 +44,7 @@ export function WorldSelector({ activeWorld, onSelectWorld }: WorldSelectorProps
           {/* World grid */}
           <div
             className="fixed left-3 right-3 bg-black/80 backdrop-blur-md rounded-2xl p-4 max-h-[60vh] overflow-y-auto"
-            style={{ zIndex: 100000 }}
-            style={{ bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
+            style={{ zIndex: 100000, bottom: "max(14px, env(safe-area-inset-bottom, 14px))" }}
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-bold text-sm">Worlds</h3>
