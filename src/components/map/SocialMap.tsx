@@ -31,7 +31,8 @@ const CITY_POSITIONS: Record<string, [number, number, number]> = {
   "airport-desk":  [0, 0, -30],
   "fine-dining":   [-25, 0, 15],
   "shopping-mall": [25, 0, 15],
-  "city-hospital": [0, 0, 25],
+  "fitness-gym":      [0, 0, 25],
+  "orthodox-church":  [0, 0, 0],   // center of the city
 };
 
 function cityTo3D(city: City): [number, number, number] {
@@ -566,69 +567,103 @@ function ShoppingMallZone() {
   );
 }
 
-// ─── Hospital Zone ─────────────────────────────────────────────
-function HospitalZone() {
+// ─── Fitness Gym Zone ──────────────────────────────────────────
+function GymZone() {
   return (
     <group position={[0, 0, 25]}>
-      {/* Main white building */}
-      <mesh position={[0, 2.5, 0]}>
-        <boxGeometry args={[5, 5, 4]} />
-        <meshStandardMaterial color="#e8e8e8" roughness={0.6} />
+      {/* Main building — modern gray */}
+      <mesh position={[0, 2, 0]}>
+        <boxGeometry args={[5, 4, 4]} />
+        <meshStandardMaterial color="#3a3a4a" roughness={0.5} />
       </mesh>
-      {/* Red cross — horizontal bar */}
-      <mesh position={[0, 3.5, 2.01]}>
-        <boxGeometry args={[1.5, 0.4, 0.05]} />
-        <meshStandardMaterial color="#cc2222" roughness={0.5} />
+      {/* Glass front */}
+      <mesh position={[0, 2, 2.01]}>
+        <boxGeometry args={[4.5, 3.5, 0.05]} />
+        <meshStandardMaterial color="#4a8aaa" roughness={0.2} metalness={0.4} transparent opacity={0.7} />
       </mesh>
-      {/* Red cross — vertical bar */}
-      <mesh position={[0, 3.5, 2.02]}>
-        <boxGeometry args={[0.4, 1.5, 0.05]} />
-        <meshStandardMaterial color="#cc2222" roughness={0.5} />
+      {/* Sign — "GYM" glow */}
+      <mesh position={[0, 3.8, 2.02]}>
+        <boxGeometry args={[2, 0.5, 0.05]} />
+        <meshStandardMaterial color="#ff6600" emissive="#ff4400" emissiveIntensity={0.6} />
       </mesh>
-      {/* Entrance */}
-      <mesh position={[0, 0.7, 2.01]}>
-        <boxGeometry args={[1.2, 1.4, 0.05]} />
-        <meshStandardMaterial color="#bbddee" roughness={0.3} metalness={0.3} />
-      </mesh>
-      {/* Windows */}
-      {[[-1.5, 3], [1.5, 3], [-1.5, 1.5], [1.5, 1.5]].map(([x, y], i) => (
-        <mesh key={`hospw${i}`} position={[x, y, 2.01]}>
-          <boxGeometry args={[0.5, 0.6, 0.05]} />
-          <meshStandardMaterial color="#aaccdd" roughness={0.3} metalness={0.3} />
-        </mesh>
-      ))}
-
-      {/* Ambulance (parked) */}
-      <group position={[4, 0, 1.5]}>
-        {/* Body */}
-        <mesh position={[0, 0.5, 0]}>
-          <boxGeometry args={[1.5, 0.8, 3]} />
-          <meshStandardMaterial color="#f0f0f0" roughness={0.5} />
-        </mesh>
-        {/* Red stripe */}
-        <mesh position={[0.76, 0.5, 0]}>
-          <boxGeometry args={[0.05, 0.3, 2.5]} />
-          <meshStandardMaterial color="#cc2222" roughness={0.5} />
-        </mesh>
-        {/* Wheels */}
-        {[[-0.6, 0.15, -0.9], [-0.6, 0.15, 0.9], [0.6, 0.15, -0.9], [0.6, 0.15, 0.9]].map(([wx, wy, wz], i) => (
-          <mesh key={`ambw${i}`} position={[wx, wy, wz]}>
-            <cylinderGeometry args={[0.15, 0.15, 0.1, 8]} />
-            <meshStandardMaterial color="#222222" roughness={0.9} />
+      {/* Dumbbells outside */}
+      {[[-2.5, 0.3, 2.5], [2.5, 0.3, 2.5]].map(([x, y, z], i) => (
+        <group key={`dumb${i}`} position={[x, y, z]}>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.08, 0.08, 1, 6]} />
+            <meshStandardMaterial color="#555" />
           </mesh>
-        ))}
-        {/* Light on top */}
-        <mesh position={[0, 1, -0.8]}>
-          <boxGeometry args={[0.3, 0.15, 0.15]} />
-          <meshStandardMaterial color="#ff4444" emissive="#ff2222" emissiveIntensity={0.4} />
+          <mesh position={[-0.5, 0, 0]}>
+            <cylinderGeometry args={[0.2, 0.2, 0.15, 8]} />
+            <meshStandardMaterial color="#333" />
+          </mesh>
+          <mesh position={[0.5, 0, 0]}>
+            <cylinderGeometry args={[0.2, 0.2, 0.15, 8]} />
+            <meshStandardMaterial color="#333" />
+          </mesh>
+        </group>
+      ))}
+      <pointLight position={[0, 5, 2]} color="#ff8844" intensity={0.8} distance={12} />
+    </group>
+  );
+}
+
+// ─── Orthodox Church Zone (center) ────────────────────────────
+function ChurchZone() {
+  return (
+    <group position={[0, 0, 0]}>
+      {/* Main building — white/cream */}
+      <mesh position={[0, 2.5, 0]}>
+        <boxGeometry args={[4, 5, 5]} />
+        <meshStandardMaterial color="#e8e0d0" roughness={0.7} />
+      </mesh>
+      {/* Main dome — gold */}
+      <mesh position={[0, 5.8, 0]}>
+        <sphereGeometry args={[1.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#c8a832" emissive="#8a7020" emissiveIntensity={0.3} metalness={0.4} />
+      </mesh>
+      {/* Cross on top */}
+      <group position={[0, 7.5, 0]}>
+        <mesh>
+          <cylinderGeometry args={[0.05, 0.05, 1.2, 4]} />
+          <meshStandardMaterial color="#c8a832" emissive="#8a7020" emissiveIntensity={0.4} />
+        </mesh>
+        <mesh position={[0, 0.2, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.7, 4]} />
+          <meshStandardMaterial color="#c8a832" emissive="#8a7020" emissiveIntensity={0.4} />
         </mesh>
       </group>
-
-      {/* Side wing */}
-      <mesh position={[-3.5, 1.5, 0]}>
-        <boxGeometry args={[2, 3, 3]} />
-        <meshStandardMaterial color="#dde0e0" roughness={0.6} />
+      {/* Side domes (smaller) */}
+      {[[-1.5, 4.5, -1.5], [1.5, 4.5, -1.5]].map(([x, y, z], i) => (
+        <group key={`dome${i}`} position={[x, y, z]}>
+          <mesh>
+            <sphereGeometry args={[0.7, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial color="#c8a832" emissive="#8a7020" emissiveIntensity={0.2} metalness={0.4} />
+          </mesh>
+          <mesh position={[0, 0.9, 0]}>
+            <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
+            <meshStandardMaterial color="#c8a832" />
+          </mesh>
+        </group>
+      ))}
+      {/* Arched entrance */}
+      <mesh position={[0, 1.2, 2.51]}>
+        <boxGeometry args={[1.2, 2.4, 0.05]} />
+        <meshStandardMaterial color="#5a3a2a" />
       </mesh>
+      {/* Windows — arched (emissive warm) */}
+      {[[-1.3, 3, 2.51], [1.3, 3, 2.51]].map(([x, y, z], i) => (
+        <mesh key={`chw${i}`} position={[x, y, z]}>
+          <boxGeometry args={[0.5, 0.8, 0.05]} />
+          <meshStandardMaterial color="#ffcc66" emissive="#ffaa44" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+      {/* Steps */}
+      <mesh position={[0, 0.1, 3]}>
+        <boxGeometry args={[2, 0.2, 1]} />
+        <meshStandardMaterial color="#aaa8a0" />
+      </mesh>
+      <pointLight position={[0, 6, 0]} color="#ffdd88" intensity={1.2} distance={15} />
     </group>
   );
 }
@@ -1362,7 +1397,8 @@ export function SocialMap({ onSelectCity }: { onSelectCity: (city: City) => void
           <AirportZone />
           <RestaurantZone />
           <ShoppingMallZone />
-          <HospitalZone />
+          <GymZone />
+          <ChurchZone />
 
           {/* Street props */}
           <StreetLamps />
