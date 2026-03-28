@@ -43,11 +43,11 @@ function terrainHeight(x: number, z: number): number {
   h += Math.exp(-((x - 15) ** 2 / 10 + (z - 1) ** 2 / 6)) * 0.8;
 
   // River cuts
-  h -= Math.exp(-((z + 8) ** 2 / 2)) * 0.4; // Danube depression
+  h -= Math.exp(-((z + 10) ** 2 / 2)) * 0.4; // Danube depression
   h -= Math.exp(-((x - 6) ** 2 / 15 + (z - 4) ** 2 / 2)) * 0.3; // Maritsa
 
-  // Edge falloff
-  const ex = Math.abs(x) / 21, ez = Math.abs(z) / 13;
+  // Edge falloff (bigger terrain: 56x34)
+  const ex = Math.abs(x) / 28, ez = Math.abs(z) / 17;
   const edge = Math.max(ex, ez);
   if (edge > 0.82) {
     const f = (edge - 0.82) / 0.18;
@@ -59,11 +59,11 @@ function terrainHeight(x: number, z: number): number {
 
 // ─── CITY POSITIONS (spread around, some on back side) ───────────
 const CITY_POSITIONS: Record<string, [number, number, number]> = {
-  "ancient-capital": [-12, 0, 1],
-  "medieval-fortress": [-2, 0, -2],
-  "rila-monastery": [3, 0, 5],
-  "revival-town": [9, 0, 4],
-  "modern-sofia": [15, 0, 1],
+  "ancient-capital": [-16, 0, 2],
+  "medieval-fortress": [-3, 0, -3],
+  "rila-monastery": [4, 0, 7],
+  "revival-town": [12, 0, 5],
+  "modern-sofia": [20, 0, 2],
 };
 // Set Y from terrain
 Object.entries(CITY_POSITIONS).forEach(([, pos]) => { pos[1] = terrainHeight(pos[0], pos[2]) + 0.1; });
@@ -76,36 +76,36 @@ const TIMELINE_ORDER = ["ancient-capital", "medieval-fortress", "rila-monastery"
 
 // ─── ALL POIs — spread around terrain, FRONT and BACK ────────────
 const ALL_POIS: { pos: [number, number, number]; label: string; type: string; major?: boolean }[] = [
-  // FRONT side
-  { pos: [-16, 0, 3], label: "681 Аспарух", type: "camp", major: true },
-  { pos: [-14, 0, 2], label: "705 Тервел", type: "rider" },
-  { pos: [-12, 0, 1], label: "Pliska", type: "fortress", major: true },
-  { pos: [-10, 0, 3], label: "864", type: "faith" },
+  // FRONT side — spread wide
+  { pos: [-22, 0, 4], label: "681 Аспарух", type: "camp", major: true },
+  { pos: [-19, 0, 3], label: "705 Тервел", type: "rider" },
+  { pos: [-16, 0, 2], label: "Pliska", type: "fortress", major: true },
+  { pos: [-13, 0, 5], label: "864", type: "faith" },
   // BACK side dates
-  { pos: [-8, 0, -3], label: "Preslav", type: "culture", major: true },
-  { pos: [-6, 0, -4], label: "917 Ахелой", type: "battle" },
-  { pos: [-4, 0, 2], label: "1018", type: "fall" },
+  { pos: [-11, 0, -5], label: "Preslav", type: "culture", major: true },
+  { pos: [-8, 0, -7], label: "917 Ахелой", type: "battle" },
+  { pos: [-5, 0, 4], label: "1018", type: "fall" },
   // Center
-  { pos: [-2, 0, -2], label: "Tarnovo", type: "castle", major: true },
-  { pos: [0, 0, -5], label: "1205 Одрин", type: "battle" },
-  { pos: [3, 0, 5], label: "Rila", type: "monastery", major: true },
-  { pos: [5, 0, -3], label: "1396", type: "fall" },
-  // Right side front + back
-  { pos: [7, 0, 3], label: "1762 Паисий", type: "book" },
-  { pos: [9, 0, 4], label: "Възраждане", type: "revival", major: true },
-  { pos: [9, 0, -4], label: "1876", type: "uprising" },
-  { pos: [11, 0, -1], label: "Shipka 1877", type: "monument", major: true },
-  { pos: [12, 0, 3], label: "1878", type: "freedom" },
-  { pos: [13, 0, -3], label: "1885", type: "union" },
-  { pos: [15, 0, 1], label: "София", type: "modern", major: true },
-  { pos: [16, 0, -2], label: "1908", type: "state" },
-  { pos: [17, 0, 2], label: "1989", type: "modern" },
-  // Extra back-side dates
-  { pos: [-15, 0, -3], label: "Мадара", type: "rider" },
-  { pos: [-7, 0, 4], label: "893 Симеон", type: "culture" },
-  { pos: [2, 0, -6], label: "1230 Иван Асен II", type: "battle" },
-  { pos: [6, 0, -6], label: "1444 Варна", type: "battle" },
-  { pos: [14, 0, -5], label: "1912", type: "battle" },
+  { pos: [-3, 0, -3], label: "Tarnovo", type: "castle", major: true },
+  { pos: [0, 0, -8], label: "1205 Одрин", type: "battle" },
+  { pos: [4, 0, 7], label: "Rila", type: "monastery", major: true },
+  { pos: [7, 0, -5], label: "1396", type: "fall" },
+  // Right side — spread wide
+  { pos: [10, 0, 5], label: "1762 Паисий", type: "book" },
+  { pos: [12, 0, 5], label: "Възраждане", type: "revival", major: true },
+  { pos: [12, 0, -6], label: "1876", type: "uprising" },
+  { pos: [15, 0, -3], label: "Shipka 1877", type: "monument", major: true },
+  { pos: [16, 0, 5], label: "1878", type: "freedom" },
+  { pos: [18, 0, -5], label: "1885", type: "union" },
+  { pos: [20, 0, 2], label: "София", type: "modern", major: true },
+  { pos: [22, 0, -3], label: "1908", type: "state" },
+  { pos: [23, 0, 3], label: "1989", type: "modern" },
+  // Back-side dates
+  { pos: [-20, 0, -5], label: "Мадара", type: "rider" },
+  { pos: [-9, 0, 6], label: "893 Симеон", type: "culture" },
+  { pos: [3, 0, -9], label: "1230 Иван Асен II", type: "battle" },
+  { pos: [8, 0, -9], label: "1444 Варна", type: "battle" },
+  { pos: [19, 0, -8], label: "1912", type: "battle" },
 ];
 // Set Y from terrain height
 ALL_POIS.forEach((p) => { p.pos[1] = terrainHeight(p.pos[0], p.pos[2]) + 0.1; });
@@ -155,9 +155,9 @@ function SeaLabels() {
   return (
     <group>
       {[
-        { p: [25, -0.2, -3] as [number, number, number], t: "Black Sea" },
-        { p: [3, -0.2, 16] as [number, number, number], t: "Aegean Sea" },
-        { p: [-20, -0.2, 12] as [number, number, number], t: "Adriatic Sea" },
+        { p: [35, -0.2, -2] as [number, number, number], t: "Black Sea" },
+        { p: [3, -0.2, 22] as [number, number, number], t: "Aegean Sea" },
+        { p: [-35, -0.2, 5] as [number, number, number], t: "Adriatic Sea" },
       ].map((l, i) => (
         <Html key={i} position={l.p} center distanceFactor={65} style={{ pointerEvents: "none" }}>
           <span style={{ color: "#6aaddb", fontSize: "14px", fontWeight: 300, fontStyle: "italic", textShadow: "0 0 12px rgba(10,40,80,0.9)", whiteSpace: "nowrap", letterSpacing: "3px", opacity: 0.6 }}>{l.t}</span>
@@ -173,7 +173,7 @@ function SeaLabels() {
 
 function ReliefTerrain() {
   const { topGeo, topMat, cliffGeo } = useMemo(() => {
-    const W = 42, D = 26, segX = IS_MOBILE ? 80 : 120, segZ = IS_MOBILE ? 50 : 80;
+    const W = 56, D = 34, segX = IS_MOBILE ? 80 : 140, segZ = IS_MOBILE ? 50 : 90;
     const geo = new THREE.PlaneGeometry(W, D, segX, segZ);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
@@ -230,7 +230,7 @@ function ReliefTerrain() {
     <group>
       <mesh geometry={topGeo} material={topMat} />
       <mesh geometry={cliffGeo}><meshStandardMaterial color="#5a4a38" roughness={0.9} /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}><planeGeometry args={[40, 24]} /><meshStandardMaterial color="#3a2a1a" roughness={1} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}><planeGeometry args={[54, 32]} /><meshStandardMaterial color="#3a2a1a" roughness={1} /></mesh>
     </group>
   );
 }
@@ -244,10 +244,10 @@ function Rivers() {
       return new THREE.TubeGeometry(curve, 60, radius, 6, false);
     };
     return {
-      danube: makeRiver([[-20, 0, -8.5], [-14, 0, -8], [-8, 0, -7.5], [-2, 0, -7], [4, 0, -6.5], [10, 0, -6], [16, 0, -5.5], [20, 0, -5]], 0.18),
-      maritsa: makeRiver([[3, 0, 4], [5, 0, 5], [8, 0, 6], [12, 0, 7.5], [15, 0, 9]], 0.13),
-      iskar: makeRiver([[0, 0, 1], [0.5, 0, -1], [1, 0, -3], [1.5, 0, -5.5], [2, 0, -7]], 0.10),
-      struma: makeRiver([[2, 0, 4.5], [1.5, 0, 6.5], [1, 0, 8.5], [0.5, 0, 10.5]], 0.09),
+      danube: makeRiver([[-26, 0, -11], [-20, 0, -10.5], [-14, 0, -10], [-8, 0, -9.5], [-2, 0, -9], [4, 0, -8.5], [10, 0, -8], [16, 0, -7.5], [22, 0, -7], [26, 0, -6.5]], 0.2),
+      maritsa: makeRiver([[4, 0, 6], [7, 0, 7], [10, 0, 8], [14, 0, 9.5], [18, 0, 11]], 0.15),
+      iskar: makeRiver([[0, 0, 1], [0.5, 0, -2], [1, 0, -5], [1.5, 0, -7.5], [2, 0, -9]], 0.12),
+      struma: makeRiver([[3, 0, 6], [2.5, 0, 8.5], [2, 0, 10.5], [1.5, 0, 12.5]], 0.10),
     };
   }, []);
 
@@ -265,7 +265,7 @@ function Rivers() {
 // ═══════════════════════════════════════════════════════════════════
 
 function ScatteredTrees() {
-  const count = IS_MOBILE ? 40 : 80;
+  const count = IS_MOBILE ? 80 : 160;
   const trunkRef = useRef<THREE.InstancedMesh>(null);
   const leavesRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -277,10 +277,10 @@ function ScatteredTrees() {
     };
     const r = rng(42);
     for (let i = 0; i < count; i++) {
-      const x = (r() - 0.5) * 38;
-      const z = (r() - 0.5) * 22;
+      const x = (r() - 0.5) * 50;
+      const z = (r() - 0.5) * 30;
       const h = terrainHeight(x, z);
-      if (h < 0.3 || h > 2.5) continue; // no trees in water or on peaks
+      if (h < 0.3 || h > 2.5) continue;
       const scale = 0.6 + r() * 0.8;
       // Trunk
       dummy.position.set(x, h + 0.2 * scale, z);
@@ -310,7 +310,7 @@ function ScatteredTrees() {
 }
 
 function ScatteredRocks() {
-  const count = IS_MOBILE ? 25 : 50;
+  const count = IS_MOBILE ? 50 : 100;
   const ref = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
@@ -318,8 +318,8 @@ function ScatteredRocks() {
     const rng = (seed: number) => { let s = seed; return () => { s = (s * 48271 + 0) % 2147483647; return (s - 1) / 2147483646; }; };
     const r = rng(123);
     for (let i = 0; i < count; i++) {
-      const x = (r() - 0.5) * 38;
-      const z = (r() - 0.5) * 22;
+      const x = (r() - 0.5) * 50;
+      const z = (r() - 0.5) * 30;
       const h = terrainHeight(x, z);
       if (h < 0.1) continue;
       const scale = 0.15 + r() * 0.35;
@@ -341,7 +341,7 @@ function ScatteredRocks() {
 
 // ─── Animated soldiers (instanced, with idle sway) ──────────────
 function ScatteredSoldiers() {
-  const count = IS_MOBILE ? 20 : 40;
+  const count = IS_MOBILE ? 40 : 80;
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -351,16 +351,20 @@ function ScatteredSoldiers() {
     const r = rng(777);
     // Cluster near battle zones + spread some everywhere
     const clusters: [number, number, number, number][] = [
-      [-6, -4, 3, 8], // Aheloy area
-      [-2, -2, 2, 6], // Tarnovo
-      [0, -5, 2, 5],  // Adrianople
-      [9, -4, 3, 6],  // Uprising
-      [11, -1, 2, 8], // Shipka
-      [12, 3, 2, 5],  // Liberation
-      [-15, 3, 2, 4], // Foundation
-      [-12, 1, 2, 4], // Pliska
-      [5, -3, 2, 4],  // 1396
-      [6, -6, 2, 3],  // 1444
+      [-8, -7, 3, 8],  // Aheloy
+      [-3, -3, 2, 6],  // Tarnovo
+      [0, -8, 2, 5],   // Adrianople
+      [12, -6, 3, 6],  // Uprising
+      [15, -3, 2, 8],  // Shipka
+      [16, 5, 2, 5],   // Liberation
+      [-22, 4, 3, 4],  // Foundation
+      [-16, 2, 2, 4],  // Pliska
+      [7, -5, 2, 4],   // 1396
+      [8, -9, 2, 3],   // 1444
+      [19, -8, 2, 4],  // 1912
+      [-20, -5, 2, 3], // Madara
+      [3, -9, 2, 3],   // Ivan Asen
+      [20, 2, 2, 3],   // Sofia
     ];
     const pts: { x: number; z: number; h: number }[] = [];
     for (let i = 0; i < count; i++) {
@@ -408,7 +412,7 @@ function ScatteredSoldiers() {
 
 // ─── Animated horse riders (instanced) ──────────────────────────
 function ScatteredRiders() {
-  const count = IS_MOBILE ? 8 : 18;
+  const count = IS_MOBILE ? 16 : 36;
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const riderRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -417,8 +421,9 @@ function ScatteredRiders() {
     const rng = (seed: number) => { let s = seed; return () => { s = (s * 48271 + 0) % 2147483647; return (s - 1) / 2147483646; }; };
     const r = rng(555);
     const clusters: [number, number, number][] = [
-      [-16, 3, 3], [-14, 2, 2], [-12, -2, 2], [-6, -4, 2],
-      [0, -5, 2], [7, 3, 2], [11, -1, 2], [13, 0, 2], [15, -3, 2],
+      [-22, 4, 3], [-19, 3, 2], [-16, -3, 3], [-11, -5, 2],
+      [-8, -7, 2], [0, -8, 2], [4, 6, 2], [10, 5, 2],
+      [12, -6, 2], [15, -3, 3], [18, 4, 2], [20, -5, 2], [22, 2, 2],
     ];
     return Array.from({ length: count }, (_, i) => {
       const cl = clusters[i % clusters.length];
@@ -463,7 +468,7 @@ function ScatteredRiders() {
 
 // ─── Scattered flags (instanced, animated sway) ─────────────────
 function ScatteredFlags() {
-  const count = IS_MOBILE ? 12 : 20;
+  const count = IS_MOBILE ? 20 : 40;
   const poleRef = useRef<THREE.InstancedMesh>(null);
   const flagRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -472,8 +477,8 @@ function ScatteredFlags() {
     const rng = (seed: number) => { let s = seed; return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; }; };
     const r = rng(333);
     return Array.from({ length: count }, () => {
-      const x = (r() - 0.5) * 36;
-      const z = (r() - 0.5) * 22;
+      const x = (r() - 0.5) * 50;
+      const z = (r() - 0.5) * 30;
       const h = terrainHeight(x, z);
       return { x, z, h };
     }).filter(p => p.h > 0.2);
@@ -513,14 +518,16 @@ function ScatteredFlags() {
 
 // ─── Cannons (instanced) ────────────────────────────────────────
 function ScatteredCannons() {
-  const count = IS_MOBILE ? 6 : 12;
+  const count = IS_MOBILE ? 12 : 24;
   const ref = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useMemo(() => {
     const spots: [number, number][] = [
-      [10, -2], [11, -1], [11.5, -0.5], [12, 0], [10.5, -1.5], [9.5, -1],
-      [0.5, -5.5], [-5.5, -4], [13, -3], [14, -4.5], [9, -4.5], [6, -6.5],
+      [14, -3], [15, -2], [15.5, -1], [16, 0], [14.5, -2.5], [13.5, -2],
+      [0.5, -8], [-7.5, -7], [17, -4], [18, -6], [12, -6], [8, -9],
+      [-8, -6], [-6, -5], [3, -8.5], [19, -7], [11, -5], [20, -4],
+      [13, -7], [7, -8], [-3, -4], [-19, -4], [-15, -3], [22, -3],
     ];
     spots.slice(0, count).forEach(([x, z], i) => {
       const h = terrainHeight(x, z);
@@ -563,9 +570,10 @@ function Cart({ position, rotationY = 0 }: { position: [number, number, number];
 function AllCarts() {
   const carts = useMemo(() => {
     const spots: [number, number, number][] = [
-      [-14, 0, 1], [-10, 0, 2.5], [-7, 0, -2], [-3, 0, 1.5],
-      [2, 0, -3], [6, 0, 2], [8, 0, -2], [10, 0, 3],
-      [13, 0, -1], [16, 0, 0],
+      [-20, 0, 2], [-17, 0, -3], [-14, 0, 4], [-10, 0, -4], [-7, 0, 5],
+      [-4, 0, -2], [-1, 0, 3], [2, 0, -5], [5, 0, 4], [8, 0, -3],
+      [10, 0, 5], [13, 0, -2], [15, 0, 4], [18, 0, -4], [20, 0, 3],
+      [22, 0, -1], [-12, 0, -6], [7, 0, 7], [16, 0, -7], [-5, 0, 7],
     ];
     return spots.map(([x, , z]) => ({ x, z, h: terrainHeight(x, z), rot: Math.random() * Math.PI * 2 })).filter(c => c.h > 0.1);
   }, []);
@@ -605,7 +613,8 @@ function MilitaryCamp({ position }: { position: [number, number, number] }) {
 function AllCamps() {
   const spots = useMemo(() => {
     const s: [number, number][] = [
-      [-16, 2.5], [-13, -2], [-5, -3.5], [0, -4.5], [8, -3.5], [10, 2.5], [14, -4],
+      [-22, 3], [-18, -4], [-13, -6], [-8, 5], [-5, -6], [0, -7], [4, 6],
+      [8, -6], [10, 5], [14, -6], [18, 4], [20, -5], [22, 2], [-15, 5],
     ];
     return s.map(([x, z]) => ({ x, z, h: terrainHeight(x, z) })).filter(c => c.h > 0.1);
   }, []);
@@ -735,7 +744,7 @@ function ModernSofia() {
 
 // ─── Shipka monument (decorative major) ─────────────────────────
 function ShipkaLandmark() {
-  const x = 11, z = -1;
+  const x = 15, z = -3;
   const h = terrainHeight(x, z);
   return (
     <group position={[x, h, z]}>
@@ -789,13 +798,13 @@ function POILabels() {
       {ALL_POIS.map((poi, i) => {
         const isMajor = poi.major;
         const side = i % 2 === 0 ? 0.8 : -0.8;
-        const yOff = isMajor ? 2.5 : 1.2;
+        const yOff = isMajor ? 3 : 1.5;
         const xOff = isMajor ? 0 : side;
         return (
-          <Html key={i} position={[poi.pos[0] + xOff, poi.pos[1] + yOff, poi.pos[2]]} center distanceFactor={isMajor ? 45 : 55} style={{ pointerEvents: "none" }}>
+          <Html key={i} position={[poi.pos[0] + xOff, poi.pos[1] + yOff, poi.pos[2]]} center distanceFactor={isMajor ? 55 : 70} style={{ pointerEvents: "none" }}>
             <span style={{
               color: isMajor ? "#c8a832" : "#b0a878",
-              fontSize: isMajor ? "12px" : "9px",
+              fontSize: isMajor ? "11px" : "8px",
               fontWeight: isMajor ? 700 : 600,
               textShadow: `0 0 6px rgba(200,168,50,${isMajor ? 0.6 : 0.3})`,
               whiteSpace: "nowrap",
@@ -813,7 +822,7 @@ function GoldenDust() {
   const ref = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const data = useMemo(() => Array.from({ length: count }, () => ({
-    x: (Math.random() - 0.5) * 45, y: Math.random() * 10 + 2, z: (Math.random() - 0.5) * 30,
+    x: (Math.random() - 0.5) * 55, y: Math.random() * 10 + 2, z: (Math.random() - 0.5) * 35,
     speed: 0.03 + Math.random() * 0.05, phase: Math.random() * Math.PI * 2,
   })), [count]);
 
@@ -840,9 +849,9 @@ function CityLabel({ city, lang, unlocked, completedLevels, onClick }: {
   city: City; lang: Language; unlocked: boolean; completedLevels: number; onClick: () => void;
 }) {
   const pos = getCityPos(city);
-  const yOff = city.id === "medieval-fortress" ? 5 : 3.5;
+  const yOff = city.id === "medieval-fortress" ? 5.5 : 4;
   return (
-    <Html position={[pos[0], pos[1] + yOff, pos[2]]} center distanceFactor={38} style={{ pointerEvents: "auto" }}>
+    <Html position={[pos[0], pos[1] + yOff, pos[2]]} center distanceFactor={48} style={{ pointerEvents: "auto" }}>
       <button onClick={onClick} className="flex flex-col items-center gap-0.5 select-none" style={{ cursor: unlocked ? "pointer" : "default" }}>
         <span className="text-2xl">{unlocked ? city.emoji : "🔒"}</span>
         <span className="text-[11px] font-bold px-2 py-0.5 rounded whitespace-nowrap" style={{
@@ -860,7 +869,7 @@ function CityLabel({ city, lang, unlocked, completedLevels, onClick }: {
 function BattleSmoke() {
   if (IS_MOBILE) return null;
   const spots = useMemo(() => {
-    return [[-6, -4], [0, -5], [9, -4], [11, -1], [14, -5], [-5, -3.5]].map(([x, z]) => {
+    return [[-8, -7], [0, -8], [12, -6], [15, -3], [19, -7], [-5, -6], [-18, -4], [8, -9], [3, -8], [22, -3], [7, -8], [-13, -5]].map(([x, z]) => {
       const h = terrainHeight(x, z);
       return [x, h + 0.5, z] as [number, number, number];
     });
@@ -928,7 +937,7 @@ export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => v
     <div className="w-full h-full absolute inset-0">
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 24, 38], fov: 45 }}
+        camera={{ position: [0, 30, 48], fov: 45 }}
         gl={{ antialias: !IS_MOBILE, powerPreference: "high-performance" }}
         style={{ background: "#06192e" }}
       >
@@ -936,18 +945,18 @@ export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => v
           onDecline={() => setDpr([0.6, 0.8])}
           onIncline={() => setDpr(IS_MOBILE ? [0.8, 1] : [1, 1.5])}
         />
-        <fog attach="fog" args={["#5a8ab0", 45, 130]} />
+        <fog attach="fog" args={["#5a8ab0", 55, 160]} />
         <OrbitControls
           enablePan enableZoom enableRotate
           minPolarAngle={0.2}
           maxPolarAngle={Math.PI - 0.2}
           minAzimuthAngle={-Infinity}
           maxAzimuthAngle={Infinity}
-          minDistance={8}
-          maxDistance={60}
+          minDistance={10}
+          maxDistance={80}
           enableDamping
-          mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }}
-          touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }}
+          mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }}
+          touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
         />
         <SceneContent onSelectCity={onSelectCity} lang={lang} />
       </Canvas>
