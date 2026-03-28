@@ -878,6 +878,353 @@ function BattleSmoke() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// VILLAGES, BOATS, RUINS, BATTLE SCENES
+// ═══════════════════════════════════════════════════════════════════
+
+function SmallVillage({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* 3 houses */}
+      {[[-0.6, 0, -0.3], [0.5, 0, 0.2], [-0.1, 0, 0.7]].map(([x, y, z], i) => {
+        const w = 0.4 + i * 0.05;
+        return (
+          <group key={i} position={[x, y, z]}>
+            <mesh position={[0, w / 2, 0]}><boxGeometry args={[w, w, w * 0.7]} /><meshStandardMaterial color={["#c8a050", "#b06030", "#a08848"][i]} roughness={0.7} /></mesh>
+            <mesh position={[0, w + 0.1, 0]}><coneGeometry args={[w * 0.55, 0.25, 4]} /><meshStandardMaterial color="#7a4520" /></mesh>
+            <mesh position={[0, w * 0.35, w * 0.36]}><boxGeometry args={[0.08, 0.08, 0.01]} /><meshStandardMaterial emissive="#ffc040" emissiveIntensity={2} color="#ffc040" /></mesh>
+          </group>
+        );
+      })}
+      {/* Well */}
+      <mesh position={[0.5, 0.15, 0.8]}><cylinderGeometry args={[0.12, 0.12, 0.3, 6]} /><meshStandardMaterial color="#8a8a8a" roughness={0.9} /></mesh>
+      {/* Fence */}
+      {[0, 0.3, 0.6, 0.9].map((x, i) => (
+        <mesh key={`f${i}`} position={[-0.9 + x, 0.1, -0.6]}><boxGeometry args={[0.02, 0.2, 0.02]} /><meshStandardMaterial color="#6a5020" /></mesh>
+      ))}
+    </group>
+  );
+}
+
+function AllVillages() {
+  const spots = useMemo(() => [
+    [-18, 6], [-10, 8], [6, 8], [14, 7], [20, 6],
+    [-5, 9], [18, -9], [-22, -6], [8, 10], [-14, -8],
+  ].map(([x, z]) => ({ x, z, h: terrainHeight(x, z) })).filter(v => v.h > 0.2), []);
+  return <group>{spots.map((v, i) => <SmallVillage key={i} position={[v.x, v.h, v.z]} />)}</group>;
+}
+
+function BattleScene({ position }: { position: [number, number, number] }) {
+  const fireRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (fireRef.current) fireRef.current.scale.setScalar(0.8 + Math.sin(clock.getElapsedTime() * 6 + position[0]) * 0.2);
+  });
+  return (
+    <group position={position}>
+      {/* Soldiers in circle */}
+      {Array.from({ length: 8 }, (_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        const r = 0.8 + Math.random() * 0.3;
+        return (
+          <group key={i} position={[Math.cos(a) * r, 0, Math.sin(a) * r]}>
+            <mesh position={[0, 0.2, 0]}><cylinderGeometry args={[0.06, 0.07, 0.4, 5]} /><meshStandardMaterial color="#4a4a5a" /></mesh>
+            <mesh position={[0, 0.45, 0]}><sphereGeometry args={[0.06, 5, 5]} /><meshStandardMaterial color="#d4a574" /></mesh>
+          </group>
+        );
+      })}
+      {/* Central fire */}
+      <mesh ref={fireRef} position={[0, 0.1, 0]}>
+        <sphereGeometry args={[0.15, 6, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial emissive="#ff5500" emissiveIntensity={2} color="#ff7730" />
+      </mesh>
+      {/* Flag */}
+      <mesh position={[0.5, 0.5, 0]}><cylinderGeometry args={[0.02, 0.02, 1, 4]} /><meshStandardMaterial color="#777" /></mesh>
+      <mesh position={[0.7, 0.9, 0]}><boxGeometry args={[0.3, 0.15, 0.01]} /><meshStandardMaterial color="#d62612" /></mesh>
+      {/* Crossed spears */}
+      <mesh position={[-0.5, 0.3, -0.3]} rotation={[0.2, 0, 0.8]}><cylinderGeometry args={[0.01, 0.01, 0.7, 4]} /><meshStandardMaterial color="#8a7a5a" /></mesh>
+      <mesh position={[-0.5, 0.3, -0.3]} rotation={[0.2, 0, -0.8]}><cylinderGeometry args={[0.01, 0.01, 0.7, 4]} /><meshStandardMaterial color="#8a7a5a" /></mesh>
+      <pointLight position={[0, 0.6, 0]} color="#ff8030" intensity={1.5} distance={5} />
+    </group>
+  );
+}
+
+function AllBattleScenes() {
+  const spots = useMemo(() => [
+    [-20, -3], [-8, -8], [0, -6], [7, -7], [12, -8], [18, -6], [-14, 5], [3, -10],
+  ].map(([x, z]) => ({ x, z, h: terrainHeight(x, z) })).filter(b => b.h > 0.1), []);
+  return <group>{spots.map((b, i) => <BattleScene key={i} position={[b.x, b.h, b.z]} />)}</group>;
+}
+
+function Boat({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 0.8 + position[0]) * 0.08;
+      ref.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.6 + position[0]) * 0.03;
+    }
+  });
+  return (
+    <group ref={ref} position={position} rotation={[0, rotationY, 0]}>
+      {/* Hull */}
+      <mesh position={[0, 0, 0]}><boxGeometry args={[0.8, 0.15, 0.3]} /><meshStandardMaterial color="#6a4a20" roughness={0.8} /></mesh>
+      {/* Bow */}
+      <mesh position={[0.45, 0.05, 0]} rotation={[0, 0, -0.3]}><boxGeometry args={[0.2, 0.1, 0.2]} /><meshStandardMaterial color="#7a5a30" /></mesh>
+      {/* Mast */}
+      <mesh position={[0, 0.35, 0]}><cylinderGeometry args={[0.015, 0.015, 0.6, 4]} /><meshStandardMaterial color="#8a7a5a" /></mesh>
+      {/* Sail */}
+      <mesh position={[0.08, 0.4, 0]}><boxGeometry args={[0.25, 0.3, 0.01]} /><meshStandardMaterial color="#e8e0d0" transparent opacity={0.9} /></mesh>
+    </group>
+  );
+}
+
+function AllBoats() {
+  const boats = useMemo(() => [
+    { p: [26, -0.5, -4] as [number, number, number], r: 0.3 },
+    { p: [28, -0.5, 2] as [number, number, number], r: -0.5 },
+    { p: [24, -0.5, -8] as [number, number, number], r: 0.8 },
+    { p: [-28, -0.5, 3] as [number, number, number], r: 1.2 },
+    { p: [-26, -0.5, 8] as [number, number, number], r: -0.3 },
+    { p: [8, -0.5, 16] as [number, number, number], r: 0.6 },
+    { p: [3, -0.5, 18] as [number, number, number], r: -0.7 },
+    { p: [-5, -0.5, 17] as [number, number, number], r: 0.2 },
+    { p: [30, -0.5, 5] as [number, number, number], r: -1 },
+    { p: [20, -0.5, 14] as [number, number, number], r: 0.4 },
+  ], []);
+  return <group>{boats.map((b, i) => <Boat key={i} position={b.p} rotationY={b.r} />)}</group>;
+}
+
+// Thracian ruins (backside content)
+function ThracianRuins({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Broken columns */}
+      {[[-0.4, 0], [0.4, 0], [0, -0.5], [-0.3, 0.5]].map(([x, z], i) => (
+        <mesh key={i} position={[x, 0.2 + Math.random() * 0.15, z]} rotation={[(Math.random() - 0.5) * 0.2, 0, (Math.random() - 0.5) * 0.15]}>
+          <cylinderGeometry args={[0.08, 0.1, 0.4 + Math.random() * 0.2, 6]} />
+          <meshStandardMaterial color="#b8b0a0" roughness={0.8} />
+        </mesh>
+      ))}
+      {/* Fallen stone blocks */}
+      <mesh position={[0.2, 0.08, 0.3]} rotation={[0.1, 0.3, 0]}><boxGeometry args={[0.25, 0.12, 0.18]} /><meshStandardMaterial color="#a8a098" roughness={0.9} /></mesh>
+      <mesh position={[-0.3, 0.06, -0.2]} rotation={[0, 0.6, 0.05]}><boxGeometry args={[0.2, 0.1, 0.15]} /><meshStandardMaterial color="#9a9288" roughness={0.9} /></mesh>
+      {/* Mysterious glow */}
+      <pointLight position={[0, 0.5, 0]} color="#a0c0ff" intensity={0.5} distance={3} />
+    </group>
+  );
+}
+
+function AllRuins() {
+  const spots = useMemo(() => [
+    [-18, -8], [-5, -10], [5, -11], [15, -10], [-12, -10], [22, -8],
+  ].map(([x, z]) => ({ x, z, h: terrainHeight(x, z) })).filter(r => r.h > 0), []);
+  return <group>{spots.map((r, i) => <ThracianRuins key={i} position={[r.x, r.h, r.z]} />)}</group>;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GAME OBJECTS (visual landmarks for future mini-games)
+// ═══════════════════════════════════════════════════════════════════
+
+function ArcheryRange({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Target stands */}
+      {[0, 1, 2].map((i) => (
+        <group key={i} position={[i * 0.8 - 0.8, 0, 0]}>
+          <mesh position={[0, 0.3, 0]}><cylinderGeometry args={[0.04, 0.04, 0.6, 4]} /><meshStandardMaterial color="#6a4a20" /></mesh>
+          {/* Target circles */}
+          <mesh position={[0, 0.55, 0.02]}><circleGeometry args={[0.15, 12]} /><meshStandardMaterial color="#cc2222" /></mesh>
+          <mesh position={[0, 0.55, 0.025]}><circleGeometry args={[0.1, 12]} /><meshStandardMaterial color="#ffffff" /></mesh>
+          <mesh position={[0, 0.55, 0.03]}><circleGeometry args={[0.05, 12]} /><meshStandardMaterial color="#cc2222" /></mesh>
+        </group>
+      ))}
+      {/* Bow rack */}
+      <mesh position={[-1.5, 0.25, 0]}><boxGeometry args={[0.1, 0.5, 0.1]} /><meshStandardMaterial color="#5a3a1a" /></mesh>
+      {/* Arrow quiver */}
+      <mesh position={[-1.3, 0.2, 0]}><cylinderGeometry args={[0.05, 0.04, 0.35, 5]} /><meshStandardMaterial color="#7a5a2a" /></mesh>
+      {/* Label */}
+      <Html position={[0, 1.2, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#ff6644", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #ff440040" }}>🏹 Archery</span>
+      </Html>
+    </group>
+  );
+}
+
+function WordForge({ position }: { position: [number, number, number] }) {
+  const fireRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (fireRef.current) fireRef.current.scale.y = 0.8 + Math.sin(clock.getElapsedTime() * 5 + position[0]) * 0.2;
+  });
+  return (
+    <group position={position}>
+      {/* Anvil */}
+      <mesh position={[0, 0.15, 0]}><boxGeometry args={[0.3, 0.15, 0.2]} /><meshStandardMaterial color="#4a4a4a" metalness={0.7} roughness={0.3} /></mesh>
+      <mesh position={[0, 0.25, 0]}><boxGeometry args={[0.35, 0.05, 0.25]} /><meshStandardMaterial color="#5a5a5a" metalness={0.7} roughness={0.3} /></mesh>
+      {/* Forge fire */}
+      <mesh position={[0.5, 0.2, 0]}><boxGeometry args={[0.4, 0.25, 0.3]} /><meshStandardMaterial color="#4a2a1a" roughness={0.9} /></mesh>
+      <mesh ref={fireRef} position={[0.5, 0.4, 0]}>
+        <coneGeometry args={[0.12, 0.3, 6]} />
+        <meshStandardMaterial emissive="#ff4400" emissiveIntensity={2} color="#ff6620" />
+      </mesh>
+      {/* Hammer */}
+      <mesh position={[-0.3, 0.2, 0.1]} rotation={[0, 0, 0.5]}>
+        <cylinderGeometry args={[0.02, 0.02, 0.25, 4]} /><meshStandardMaterial color="#6a5a3a" />
+      </mesh>
+      <pointLight position={[0.5, 0.6, 0]} color="#ff6620" intensity={1.5} distance={4} />
+      <Html position={[0, 1.2, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#ff8844", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #ff660040" }}>🔥 Word Forge</span>
+      </Html>
+    </group>
+  );
+}
+
+function ScrollStation({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Podium */}
+      <mesh position={[0, 0.2, 0]}><cylinderGeometry args={[0.2, 0.25, 0.4, 6]} /><meshStandardMaterial color="#8a7a5a" roughness={0.7} /></mesh>
+      {/* Scroll */}
+      <mesh position={[0, 0.45, 0]} rotation={[0.1, 0.3, 0]}><cylinderGeometry args={[0.06, 0.06, 0.3, 6]} /><meshStandardMaterial color="#e8d8a0" /></mesh>
+      {/* Unrolled parchment */}
+      <mesh position={[0.12, 0.42, 0]} rotation={[0.1, 0.3, 0]}><boxGeometry args={[0.2, 0.01, 0.15]} /><meshStandardMaterial color="#f0e8c0" /></mesh>
+      {/* Ink pot */}
+      <mesh position={[-0.15, 0.42, 0.08]}><cylinderGeometry args={[0.03, 0.03, 0.05, 5]} /><meshStandardMaterial color="#2a2a3a" /></mesh>
+      <Html position={[0, 1, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#c8a832", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #c8a83240" }}>📜 Scroll Puzzle</span>
+      </Html>
+    </group>
+  );
+}
+
+function CampfireStory({ position }: { position: [number, number, number] }) {
+  const fireRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (fireRef.current) {
+      const s = 0.8 + Math.sin(clock.getElapsedTime() * 4 + position[0]) * 0.15;
+      fireRef.current.scale.set(s, s * 1.2, s);
+    }
+  });
+  return (
+    <group position={position}>
+      {/* Log seats in circle */}
+      {[0, 1, 2, 3, 4].map((i) => {
+        const a = (i / 5) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.6, 0.08, Math.sin(a) * 0.6]} rotation={[0, a + Math.PI / 2, Math.PI / 2]}>
+            <cylinderGeometry args={[0.06, 0.06, 0.25, 5]} />
+            <meshStandardMaterial color="#5a3a1a" roughness={0.9} />
+          </mesh>
+        );
+      })}
+      {/* Central fire */}
+      <mesh ref={fireRef} position={[0, 0.15, 0]}>
+        <coneGeometry args={[0.1, 0.25, 6]} />
+        <meshStandardMaterial emissive="#ff5500" emissiveIntensity={2} color="#ff7730" />
+      </mesh>
+      {/* Storyteller NPC */}
+      <group position={[0.6, 0, 0.1]}>
+        <mesh position={[0, 0.2, 0]}><cylinderGeometry args={[0.06, 0.07, 0.35, 5]} /><meshStandardMaterial color="#6a3a5a" /></mesh>
+        <mesh position={[0, 0.42, 0]}><sphereGeometry args={[0.06, 5, 5]} /><meshStandardMaterial color="#d4a574" /></mesh>
+      </group>
+      <pointLight position={[0, 0.5, 0]} color="#ff7730" intensity={1.2} distance={4} />
+      <Html position={[0, 1, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#ff9955", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #ff663340" }}>🔥 Story</span>
+      </Html>
+    </group>
+  );
+}
+
+function WizardTower({ position }: { position: [number, number, number] }) {
+  const glowRef = useRef<THREE.PointLight>(null);
+  useFrame(({ clock }) => {
+    if (glowRef.current) glowRef.current.intensity = 1 + Math.sin(clock.getElapsedTime() * 2 + position[0]) * 0.5;
+  });
+  return (
+    <group position={position}>
+      {/* Tower base */}
+      <mesh position={[0, 0.4, 0]}><cylinderGeometry args={[0.25, 0.3, 0.8, 6]} /><meshStandardMaterial color="#5a4a6a" roughness={0.7} /></mesh>
+      {/* Tower top */}
+      <mesh position={[0, 0.9, 0]}><coneGeometry args={[0.3, 0.4, 6]} /><meshStandardMaterial color="#3a2a5a" /></mesh>
+      {/* Magic orb */}
+      <mesh position={[0, 1.2, 0]}><sphereGeometry args={[0.08, 8, 8]} /><meshStandardMaterial emissive="#6a6aff" emissiveIntensity={2} color="#8a8aff" transparent opacity={0.8} /></mesh>
+      <pointLight ref={glowRef} position={[0, 1.3, 0]} color="#6a6aff" intensity={1} distance={5} />
+      <Html position={[0, 1.8, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#8a8aff", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #6a6aff40" }}>🧙 Quiz</span>
+      </Html>
+    </group>
+  );
+}
+
+function BoatDock({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Dock planks */}
+      <mesh position={[0, 0.05, 0]}><boxGeometry args={[1.2, 0.06, 0.4]} /><meshStandardMaterial color="#7a5a2a" roughness={0.8} /></mesh>
+      {/* Posts */}
+      {[-0.5, 0.5].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, 0.18]}><cylinderGeometry args={[0.04, 0.04, 0.4, 5]} /><meshStandardMaterial color="#5a3a1a" /></mesh>
+      ))}
+      {/* Rope */}
+      <mesh position={[0.5, 0.15, 0.25]} rotation={[0.5, 0, 0]}><cylinderGeometry args={[0.01, 0.01, 0.3, 4]} /><meshStandardMaterial color="#a89060" /></mesh>
+      {/* Crates */}
+      <mesh position={[-0.3, 0.12, -0.1]}><boxGeometry args={[0.15, 0.12, 0.12]} /><meshStandardMaterial color="#8a6a30" /></mesh>
+      <mesh position={[-0.1, 0.12, -0.1]}><boxGeometry args={[0.12, 0.1, 0.1]} /><meshStandardMaterial color="#9a7a40" /></mesh>
+      <Html position={[0, 0.8, 0]} center distanceFactor={55} style={{ pointerEvents: "none" }}>
+        <span style={{ color: "#6ab0d0", fontSize: "9px", fontWeight: 700, textShadow: "0 0 4px #4a90b040" }}>⚓ Port</span>
+      </Html>
+    </group>
+  );
+}
+
+function AllGameObjects() {
+  const objects = useMemo(() => {
+    const th = (x: number, z: number) => terrainHeight(x, z);
+    return {
+      archery: [
+        [(-17), th(-17, -6), -6] as [number, number, number],
+        [10, th(10, -7), -7] as [number, number, number],
+        [22, th(22, 5), 5] as [number, number, number],
+      ],
+      forges: [
+        [-13, th(-13, 3), 3] as [number, number, number],
+        [6, th(6, -4), -4] as [number, number, number],
+        [18, th(18, 3), 3] as [number, number, number],
+      ],
+      scrolls: [
+        [-9, th(-9, -5), -5] as [number, number, number],
+        [2, th(2, 6), 6] as [number, number, number],
+        [16, th(16, -8), -8] as [number, number, number],
+      ],
+      campfires: [
+        [-20, th(-20, -7), -7] as [number, number, number],
+        [-3, th(-3, 7), 7] as [number, number, number],
+        [8, th(8, -10), -10] as [number, number, number],
+        [21, th(21, -6), -6] as [number, number, number],
+      ],
+      wizards: [
+        [-15, th(-15, -9), -9] as [number, number, number],
+        [5, th(5, 9), 9] as [number, number, number],
+        [17, th(17, -10), -10] as [number, number, number],
+      ],
+      docks: [
+        [24, th(24, 0) - 0.3, 0] as [number, number, number],
+        [-24, th(-24, 2) - 0.3, 2] as [number, number, number],
+        [12, th(12, 12) - 0.3, 12] as [number, number, number],
+      ],
+    };
+  }, []);
+
+  return (
+    <group>
+      {objects.archery.map((p, i) => <ArcheryRange key={`ar${i}`} position={p} />)}
+      {objects.forges.map((p, i) => <WordForge key={`wf${i}`} position={p} />)}
+      {objects.scrolls.map((p, i) => <ScrollStation key={`ss${i}`} position={p} />)}
+      {objects.campfires.map((p, i) => <CampfireStory key={`cf${i}`} position={p} />)}
+      {objects.wizards.map((p, i) => <WizardTower key={`wt${i}`} position={p} />)}
+      {objects.docks.map((p, i) => <BoatDock key={`bd${i}`} position={p} />)}
+    </group>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // SCENE + EXPORT
 // ═══════════════════════════════════════════════════════════════════
 
@@ -913,6 +1260,15 @@ function SceneContent({ onSelectCity, lang }: { onSelectCity: (city: City) => vo
       <AllCarts />
       <AllCamps />
       <BattleSmoke />
+
+      {/* Villages, battles, boats, ruins */}
+      <AllVillages />
+      <AllBattleScenes />
+      <AllBoats />
+      <AllRuins />
+
+      {/* Game objects */}
+      <AllGameObjects />
 
       {/* Timeline + labels */}
       <TimelinePath />
