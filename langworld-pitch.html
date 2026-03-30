@@ -49,553 +49,682 @@
   }
 
   h1 {
-    font-size: 72px;
+    font-size: clamp(42px, 6vw, 72px);
     font-weight: 900;
-    background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+    background: linear-gradient(135deg, #38bdf8, #a78bfa, #f472b6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    line-height: 1.1;
     margin-bottom: 16px;
+    line-height: 1.1;
   }
 
   h2 {
-    font-size: 42px;
+    font-size: clamp(28px, 4vw, 44px);
     font-weight: 800;
     color: #f1f5f9;
-    line-height: 1.2;
     margin-bottom: 24px;
+    line-height: 1.2;
   }
 
   h3 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #38bdf8;
+    margin-bottom: 12px;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 16px;
+    letter-spacing: 1px;
   }
 
   .subtitle {
-    font-size: 22px;
+    font-size: clamp(18px, 2.5vw, 26px);
     color: #94a3b8;
-    font-weight: 400;
+    font-weight: 300;
+    max-width: 700px;
     line-height: 1.6;
-    max-width: 700px;
+    margin-bottom: 32px;
   }
 
-  .tagline {
-    font-size: 28px;
-    color: #cbd5e1;
-    font-weight: 300;
-    font-style: italic;
-    margin-bottom: 20px;
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 4px;
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.2);
   }
 
-  .big-quote {
-    font-size: 36px;
-    font-weight: 300;
-    color: #e2e8f0;
-    line-height: 1.5;
-    border-left: 4px solid #38bdf8;
-    padding-left: 24px;
-    margin: 30px 0;
-    max-width: 700px;
-  }
+  .tag.green { background: rgba(74,222,128,0.1); color: #4ade80; border-color: rgba(74,222,128,0.2); }
+  .tag.purple { background: rgba(167,139,250,0.1); color: #a78bfa; border-color: rgba(167,139,250,0.2); }
+  .tag.pink { background: rgba(244,114,182,0.1); color: #f472b6; border-color: rgba(244,114,182,0.2); }
+  .tag.amber { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2); }
 
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  ul li {
-    padding: 8px 0;
-    padding-left: 28px;
-    position: relative;
+  .problem-list { list-style: none; padding: 0; }
+  .problem-list li {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     font-size: 18px;
     color: #cbd5e1;
     line-height: 1.6;
+    padding-left: 30px;
+    position: relative;
   }
-
-  ul li::before {
-    content: '\2192';
+  .problem-list li::before {
+    content: '×';
     position: absolute;
     left: 0;
-    color: #38bdf8;
+    color: #f87171;
     font-weight: 700;
+    font-size: 22px;
   }
 
-  .problem li::before { content: '\2717'; color: #f87171; }
-  .check li::before { content: '\2713'; color: #4ade80; }
-
-  .grid-2 {
+  .solution-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-top: 24px;
-  }
-
-  .card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 24px;
-  }
-
-  .card h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #38bdf8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-  }
-
-  .card p, .card li {
-    font-size: 15px;
-    color: #94a3b8;
-    line-height: 1.6;
-  }
-
-  .highlight-box {
-    background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.08));
-    border: 1px solid rgba(56,189,248,0.15);
-    border-radius: 16px;
-    padding: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
     margin: 24px 0;
   }
 
-  .highlight-box p {
-    font-size: 17px;
+  .solution-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .solution-card h4 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+  .solution-card ul { list-style: none; padding: 0; }
+  .solution-card li {
+    padding: 6px 0;
+    font-size: 15px;
     color: #cbd5e1;
-    line-height: 1.7;
+  }
+  .solution-card li::before { content: '→ '; color: #38bdf8; }
+
+  .flow-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .flow-step {
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.15);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 15px;
+    color: #cbd5e1;
+    flex: 1;
+    min-width: 180px;
+  }
+  .flow-step .num {
+    color: #38bdf8;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-card .label {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 8px 0;
+    font-size: 16px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .check-list li::before { content: '✅ '; }
+
+  .world-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 24px 0;
+  }
+  .world-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #cbd5e1;
+  }
+  .world-item .emoji { font-size: 20px; margin-right: 8px; }
+  .world-item .count { color: #64748b; font-size: 12px; float: right; margin-top: 2px; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .compare-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .compare-card h4 {
+    font-size: 16px;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .compare-card p { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+
+  .roadmap-phase {
+    margin: 20px 0;
+    padding: 24px;
+    border-left: 3px solid #38bdf8;
+    background: rgba(56,189,248,0.03);
+    border-radius: 0 12px 12px 0;
+  }
+  .roadmap-phase.done { border-left-color: #4ade80; background: rgba(74,222,128,0.03); }
+  .roadmap-phase h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+  }
+  .roadmap-phase ul { list-style: none; padding: 0; }
+  .roadmap-phase li {
+    padding: 4px 0;
+    font-size: 14px;
+    color: #94a3b8;
   }
 
   .tech-grid {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 8px 20px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px;
+    margin: 24px 0;
   }
-
-  .tech-label {
-    font-weight: 600;
-    color: #38bdf8;
-    font-size: 14px;
-    text-align: right;
-    padding-top: 2px;
-  }
-
-  .tech-value {
-    color: #94a3b8;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .vs-block {
-    margin-bottom: 20px;
-  }
-
-  .vs-block h4 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #f87171;
-    margin-bottom: 6px;
-  }
-
-  .vs-block p {
-    font-size: 15px;
-    color: #94a3b8;
-    line-height: 1.6;
-  }
-
-  .phase {
-    margin-bottom: 28px;
-  }
-
-  .phase-label {
-    display: inline-block;
-    font-size: 13px;
-    font-weight: 700;
-    color: #0a1628;
-    background: #38bdf8;
-    padding: 4px 12px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-  }
-
-  .phase-label.done { background: #4ade80; }
-  .phase-label.next { background: #fbbf24; color: #1a1a1a; }
-
-  .flow-steps {
+  .tech-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 20px 0;
-  }
-
-  .flow-step {
-    background: rgba(56,189,248,0.1);
-    border: 1px solid rgba(56,189,248,0.2);
-    border-radius: 12px;
-    padding: 12px 18px;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
     font-size: 14px;
+  }
+  .tech-row .key { color: #64748b; font-weight: 600; }
+  .tech-row .val { color: #cbd5e1; }
+
+  .quote {
+    font-size: clamp(24px, 3.5vw, 40px);
+    font-weight: 300;
+    font-style: italic;
+    color: #94a3b8;
+    line-height: 1.5;
+    max-width: 800px;
+    margin: 24px 0;
+  }
+
+  .cta-box {
+    background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(167,139,250,0.1));
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 24px 0;
+  }
+  .cta-box ul { list-style: none; padding: 0; }
+  .cta-box li {
+    padding: 8px 0;
+    font-size: 17px;
     color: #e2e8f0;
-    font-weight: 500;
   }
+  .cta-box li::before { content: '→ '; color: #38bdf8; font-weight: 700; }
 
-  .flow-arrow {
-    color: #38bdf8;
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .cta {
-    text-align: center;
-    padding: 40px;
-  }
-
-  .cta a {
+  .demo-link {
     display: inline-block;
-    background: linear-gradient(135deg, #3b82f6, #7c3aed);
-    color: white;
-    text-decoration: none;
-    padding: 16px 40px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 18px;
     margin-top: 20px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    color: #0a1628;
+    font-weight: 700;
+    font-size: 16px;
+    border-radius: 10px;
+    text-decoration: none;
     transition: transform 0.2s;
   }
+  .demo-link:hover { transform: translateY(-2px); }
 
-  .cta a:hover { transform: scale(1.05); }
-
-  .emphasis { color: #38bdf8; font-weight: 600; }
-  .dim { color: #64748b; }
+  .npc-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0;
+    align-items: center;
+  }
+  .npc-flow .step {
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #a78bfa;
+  }
+  .npc-flow .arrow { color: #475569; font-size: 20px; }
 
   @media (max-width: 768px) {
-    .slide { padding: 40px 24px; }
-    h1 { font-size: 42px; }
-    h2 { font-size: 28px; }
-    .subtitle { font-size: 17px; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .tech-grid { grid-template-columns: 100px 1fr; }
-    .big-quote { font-size: 24px; }
+    .slide { padding: 40px 20px; }
+    .solution-grid, .stat-grid, .compare-grid, .world-grid { grid-template-columns: 1fr; }
+    .flow-steps { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
 <!-- SLIDE 1: Title -->
-<section class="slide" style="justify-content: center; align-items: center; text-align: center;">
-  <span class="slide-number">01 / 14</span>
+<div class="slide">
+  <div class="slide-number">01 / 15</div>
   <h1>LangWorld</h1>
-  <p class="tagline">Learn languages by living in them.</p>
-  <p class="subtitle" style="max-width: 600px;">A game world where kids practice speaking, listening, reading and writing in a new language — through immersive scenarios, not textbooks.</p>
-</section>
+  <p class="subtitle">Learn languages by living in them.</p>
+  <p style="font-size:18px; color:#94a3b8; max-width:600px; line-height:1.6;">
+    A game world where kids practice speaking, listening, reading and writing in a new language — through immersive 3D scenarios, not textbooks.
+  </p>
+  <div style="margin-top:32px;">
+    <span class="tag green">16 Worlds</span>
+    <span class="tag">153 Locations</span>
+    <span class="tag purple">2,290+ Words</span>
+    <span class="tag pink">154 AI NPCs</span>
+    <span class="tag amber">6 Languages</span>
+  </div>
+  <a href="https://langworld.vercel.app" target="_blank" class="demo-link" style="margin-top:32px;">Try Live Demo →</a>
+</div>
 
-<!-- SLIDE 2: The Problem -->
-<section class="slide">
-  <span class="slide-number">02 / 14</span>
+<!-- SLIDE 2: Problem -->
+<div class="slide">
+  <div class="slide-number">02 / 15</div>
   <h3>The Problem</h3>
   <h2>Language apps teach words.<br>Not language.</h2>
-  <ul class="problem">
-    <li>Kids memorize "apple = manzana" but can't say "Can I have an apple?"</li>
+  <ul class="problem-list">
+    <li>Kids memorize "apple = ябълка" but can't say "Can I have an apple?"</li>
     <li>Most apps are multiple choice quizzes — no speaking, no listening, no real practice</li>
     <li>The #1 complaint worldwide: "I understand but I'm afraid to speak"</li>
-    <li>Age 7-14 is almost completely ignored — apps are either for toddlers or adults</li>
+    <li>Age 7–14 is almost completely ignored — apps are either for toddlers or adults</li>
+    <li>Existing tools don't make kids WANT to practice — they feel like homework</li>
   </ul>
-  <div class="highlight-box" style="margin-top: 32px;">
-    <p>There's no product that makes kids actually <span class="emphasis">PRACTICE using a language</span> in real, meaningful scenarios.</p>
-  </div>
-</section>
+  <p style="margin-top:24px; font-size:18px; color:#f472b6; font-weight:600;">
+    There's no product that makes kids actually PRACTICE using a language in real, meaningful scenarios.
+  </p>
+</div>
 
-<!-- SLIDE 3: The Solution -->
-<section class="slide">
-  <span class="slide-number">03 / 14</span>
+<!-- SLIDE 3: Solution -->
+<div class="slide">
+  <div class="slide-number">03 / 15</div>
   <h3>The Solution</h3>
   <h2>9 exercise types.<br>Every language skill. Through play.</h2>
-  <div class="grid-2">
-    <div class="card">
+  <div class="solution-grid">
+    <div class="solution-card">
       <h4>Listening</h4>
       <ul>
-        <li>Listen & Repeat — hear a phrase, say it back</li>
+        <li>Listen & Repeat — hear, say it back, get scored</li>
         <li>Word Quiz — hear a word, pick the translation</li>
       </ul>
     </div>
-    <div class="card">
+    <div class="solution-card">
       <h4>Speaking & Pronunciation</h4>
       <ul>
-        <li>Say It! — syllable-by-syllable feedback</li>
-        <li>NPC Talk — AI conversation with 3D avatar</li>
+        <li>Say It! — syllable-by-syllable pronunciation feedback</li>
+        <li>NPC Talk — real AI conversation with 3D avatar</li>
       </ul>
     </div>
-    <div class="card">
+    <div class="solution-card">
       <h4>Reading</h4>
       <ul>
-        <li>Fill the Scene — complete sentences</li>
-        <li>True or False — judge translations</li>
+        <li>Fill the Scene — read and pick the missing word</li>
+        <li>True or False — judge word-translation pairs</li>
       </ul>
     </div>
-    <div class="card">
+    <div class="solution-card">
       <h4>Writing / Spelling</h4>
       <ul>
-        <li>Word Scramble — arrange letters</li>
-        <li>Memory Match — find word pairs</li>
-        <li>Memory Mix — cross-topic challenge</li>
+        <li>Word Scramble — arrange letters to spell words</li>
+        <li>Memory Match — find matching word pairs</li>
+        <li>Memory Mix — cross-topic card challenge</li>
       </ul>
     </div>
   </div>
-</section>
+</div>
 
 <!-- SLIDE 4: How It Works -->
-<section class="slide">
-  <span class="slide-number">04 / 14</span>
+<div class="slide">
+  <div class="slide-number">04 / 15</div>
   <h3>How It Works</h3>
-  <h2>From map to mastery in 3 taps.</h2>
+  <h2>Open. Play. Learn.</h2>
   <div class="flow-steps">
-    <div class="flow-step">Open app</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Tap a location</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Pick a game</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Earn XP</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Unlock new worlds</div>
+    <div class="flow-step"><span class="num">1.</span> Choose from 16 themed 3D worlds</div>
+    <div class="flow-step"><span class="num">2.</span> Each world has its own custom 3D map</div>
+    <div class="flow-step"><span class="num">3.</span> Tap a location → pick a game → play</div>
+    <div class="flow-step"><span class="num">4.</span> Earn XP → pass World Exams → unlock worlds</div>
+    <div class="flow-step"><span class="num">5.</span> 3 levels: Discover → Use → Survive</div>
+    <div class="flow-step"><span class="num">6.</span> Professor Globe guides with lip-synced speech</div>
   </div>
-  <ul style="margin-top: 28px;">
-    <li>Optimized 3D city map with 12 themed locations</li>
-    <li>3 levels per location: <span class="emphasis">Discover &rarr; Use &rarr; Survive</span></li>
-    <li>Professor Globe — 3D talking avatar — guides with lip-synced speech</li>
-    <li>No accounts required. No setup. Just play.</li>
-  </ul>
-</section>
+  <p style="font-size:16px; color:#64748b; margin-top:16px;">No accounts required. No setup. Just play.<br>Optional: kid-friendly PIN login for cloud sync.</p>
+</div>
 
 <!-- SLIDE 5: 3D Avatar -->
-<section class="slide">
-  <span class="slide-number">05 / 14</span>
+<div class="slide">
+  <div class="slide-number">05 / 15</div>
   <h3>The AI Teacher</h3>
-  <h2>A 3D character you talk to.<br>Not a chatbot.</h2>
-  <div class="grid-2">
-    <div>
-      <ul>
-        <li>Real-time lip sync matched to speech</li>
-        <li>Eye blinking and natural idle pose</li>
-        <li>Head tracking — follows the camera</li>
-        <li>Zoom-in effect when speaking</li>
-        <li>AI-powered conversations — not scripted</li>
-        <li>Never punishes — always encourages</li>
-        <li><span class="emphasis">Encyclopedia mode</span>: ask about ANYTHING</li>
-      </ul>
-    </div>
-    <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
-      <p style="font-size: 14px; color: #64748b; margin-bottom: 8px;">Built with:</p>
-      <p style="font-size: 15px; color: #cbd5e1; line-height: 1.8;">
-        React Three Fiber<br>
-        Rhubarb Lip Sync (168 data files)<br>
-        WebAudio realtime analyser<br>
-        Claude API conversations
-      </p>
-    </div>
-  </div>
-</section>
+  <h2>Professor Globe</h2>
+  <p class="subtitle">A full 3D character — not a chatbot.</p>
+  <ul class="check-list">
+    <li>Real-time lip sync matched to speech output</li>
+    <li>Eye blinking and natural idle animations</li>
+    <li>Head tracking (follows the camera)</li>
+    <li>AI-powered conversations (Claude API) — not scripted</li>
+    <li>Never punishes mistakes — always encourages</li>
+    <li>Encyclopedia mode: ask about ANYTHING</li>
+  </ul>
+  <p style="font-size:14px; color:#64748b; margin-top:16px;">Built with React Three Fiber + Rhubarb Lip Sync. 168 pre-generated lip sync data files for word-level accuracy.</p>
+</div>
 
-<!-- SLIDE 6: Who Is It For -->
-<section class="slide">
-  <span class="slide-number">06 / 14</span>
-  <h3>Target Audience</h3>
-  <h2>Kids 7-14. The ignored market.</h2>
-  <div class="grid-2">
-    <div class="card">
-      <h4>Primary</h4>
+<!-- SLIDE 6: Target Audience -->
+<div class="slide">
+  <div class="slide-number">06 / 15</div>
+  <h3>Who Is It For</h3>
+  <h2>Primary: Kids 7–14</h2>
+  <div class="solution-grid">
+    <div class="solution-card">
+      <h4>Primary Audience</h4>
       <ul>
-        <li>Kids 7-14 learning a new language</li>
+        <li>Kids 7–14 learning a new language</li>
+        <li>Through a game they actually WANT to play</li>
+        <li>Safe: no ads, no social, no in-app purchases</li>
         <li>6 languages: EN, BG, ES, IT, DE, FR</li>
-        <li>Safe: no ads, no social, no purchases</li>
       </ul>
     </div>
-    <div class="card">
+    <div class="solution-card">
       <h4>Also Works For</h4>
       <ul>
-        <li>Beginners who know words but can't speak</li>
-        <li>People with speaking anxiety</li>
-        <li>Anyone who wants immersive practice</li>
+        <li>Anyone who wants to practice speaking</li>
+        <li>Beginners who know words but can't use them</li>
+        <li>People with speaking anxiety — safe space</li>
+        <li>AI conversations scale to any level</li>
       </ul>
     </div>
   </div>
-</section>
+</div>
 
 <!-- SLIDE 7: What's Built -->
-<section class="slide">
-  <span class="slide-number">07 / 14</span>
+<div class="slide">
+  <div class="slide-number">07 / 15</div>
   <h3>Current State</h3>
-  <h2>This is not a mockup.<br>It's live.</h2>
-  <ul class="check">
-    <li>Fully working PWA — install on any phone</li>
-    <li>12 themed locations with 170+ words x 6 languages</li>
-    <li>9 game types covering all language skills</li>
-    <li>AI conversations with 3D talking avatar + lip sync</li>
+  <h2>What's already built</h2>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="number">16</div><div class="label">3D Worlds</div></div>
+    <div class="stat-card"><div class="number">153</div><div class="label">Locations</div></div>
+    <div class="stat-card"><div class="number">2,290+</div><div class="label">Words</div></div>
+    <div class="stat-card"><div class="number">154</div><div class="label">AI NPCs</div></div>
+    <div class="stat-card"><div class="number">9</div><div class="label">Game Types</div></div>
+    <div class="stat-card"><div class="number">6</div><div class="label">Languages</div></div>
+    <div class="stat-card"><div class="number">17</div><div class="label">Custom 3D Maps</div></div>
+    <div class="stat-card"><div class="number">34</div><div class="label">Achievements</div></div>
+  </div>
+  <ul class="check-list" style="margin-top:16px;">
+    <li>Fully working PWA — install on any phone, works offline</li>
+    <li>AI conversations with 3D talking avatar (Claude API)</li>
     <li>Syllable-by-syllable pronunciation feedback</li>
-    <li>Speech recognition with fuzzy word matching</li>
-    <li>Optimized 3D map (~1K draw calls, InstancedMesh)</li>
-    <li>XP, coins, streaks, achievements, pet system, shop</li>
-    <li>NPC memory — characters remember past conversations</li>
-    <li>Offline support + cloud sync</li>
+    <li>World Exam system — pass exams to unlock new worlds</li>
+    <li>XP, coins, daily challenges, streaks, pet system, shop, leaderboard</li>
+    <li>Cloud sync (Supabase) + offline-first architecture</li>
   </ul>
-  <div class="cta" style="margin-top: 24px; text-align: left;">
-    <a href="https://langworld.vercel.app" target="_blank">Try it live &rarr;</a>
-  </div>
-</section>
+  <a href="https://langworld.vercel.app" target="_blank" class="demo-link" style="margin-top:24px;">Try It Now →</a>
+</div>
 
-<!-- SLIDE 8: NPC Talk -->
-<section class="slide">
-  <span class="slide-number">08 / 14</span>
-  <h3>Key Differentiator</h3>
-  <h2>The NPC Talk experience.</h2>
-  <div class="flow-steps">
-    <div class="flow-step">Tap mic</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Speak freely</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Press Done</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">AI responds</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">Avatar lip syncs</div>
+<!-- SLIDE 8: The Worlds -->
+<div class="slide">
+  <div class="slide-number">08 / 15</div>
+  <h3>The Universe</h3>
+  <h2>16 unique 3D worlds</h2>
+  <p style="font-size:16px; color:#94a3b8; margin-bottom:16px;">Each world has its own custom 3D map — not a reskin, but a completely different landscape, theme, and vocabulary domain.</p>
+  <div class="world-grid">
+    <div class="world-item"><span class="emoji">🏙️</span> Land <span class="count">19 locations</span></div>
+    <div class="world-item"><span class="emoji">🌊</span> Ocean <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🐙</span> Underwater <span class="count">9 locations</span></div>
+    <div class="world-item"><span class="emoji">✈️</span> Air <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🏪</span> Social <span class="count">9 locations</span></div>
+    <div class="world-item"><span class="emoji">🧠</span> Emotions <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🌍</span> Culture <span class="count">30 locations</span></div>
+    <div class="world-item"><span class="emoji">🧙</span> Fantasy <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🧪</span> Science <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🚀</span> Cosmos <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">⏳</span> Time <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🎭</span> Meta <span class="count">8 locations</span></div>
+    <div class="world-item"><span class="emoji">🏟️</span> Sports <span class="count">5 locations</span></div>
+    <div class="world-item"><span class="emoji">🇧🇬</span> Bulgarian History <span class="count">5 locations</span></div>
+    <div class="world-item"><span class="emoji">👨‍⚕️</span> Professions <span class="count">6 locations</span></div>
+    <div class="world-item"><span class="emoji">🧬</span> Body & Health <span class="count">6 locations</span></div>
   </div>
-  <div class="highlight-box">
+  <p style="font-size:14px; color:#64748b; margin-top:16px;">
+    <strong>Showcase:</strong> Bulgarian History features a full 3D relief map with ocean, mountains, rivers, 160+ trees, 80 soldiers, cavalry, cannons, villages, boats, battle scenes, and 25 historical landmarks from 681 to 1989.
+  </p>
+</div>
+
+<!-- SLIDE 9: NPC Talk -->
+<div class="slide">
+  <div class="slide-number">09 / 15</div>
+  <h3>Key Differentiator</h3>
+  <h2>NPC Talk — AI Conversations</h2>
+  <div class="npc-flow">
+    <div class="step">Child taps mic</div>
+    <span class="arrow">→</span>
+    <div class="step">Speaks freely</div>
+    <span class="arrow">→</span>
+    <div class="step">AI responds in character</div>
+    <span class="arrow">→</span>
+    <div class="step">3D avatar lip syncs</div>
+    <span class="arrow">→</span>
+    <div class="step">Child responds again</div>
+  </div>
+  <ul class="check-list" style="margin-top:24px;">
+    <li>154 unique NPCs — each with different personality and expertise</li>
+    <li>Contextual conversations (at the zoo, restaurant, hospital...)</li>
+    <li>AI corrects mistakes naturally ("Oh, you mean THE CAT? Great!")</li>
+    <li>NPC remembers previous conversations</li>
+    <li>Child can ask about ANYTHING — encyclopedia knowledge</li>
+    <li>Fuzzy matching fixes speech recognition errors (bigs → pigs)</li>
+    <li>Full immersion in the target language</li>
+  </ul>
+</div>
+
+<!-- SLIDE 10: Tech Stack -->
+<div class="slide">
+  <div class="slide-number">10 / 15</div>
+  <h3>Under The Hood</h3>
+  <h2>Tech Stack</h2>
+  <div class="tech-grid">
+    <div class="tech-row"><span class="key">Frontend</span><span class="val">Next.js 16 + React 19 + TypeScript</span></div>
+    <div class="tech-row"><span class="key">3D World</span><span class="val">Three.js + React Three Fiber (17 custom maps)</span></div>
+    <div class="tech-row"><span class="key">Avatar</span><span class="val">GLB model + Rhubarb Lip Sync + WebAudio</span></div>
+    <div class="tech-row"><span class="key">Styling</span><span class="val">Tailwind CSS v4</span></div>
+    <div class="tech-row"><span class="key">State</span><span class="val">Zustand (offline-first, syncs to Supabase)</span></div>
+    <div class="tech-row"><span class="key">AI</span><span class="val">Claude API (Anthropic) — NPC conversations</span></div>
+    <div class="tech-row"><span class="key">Audio</span><span class="val">Google Cloud TTS (pre-generated MP3s)</span></div>
+    <div class="tech-row"><span class="key">Speech</span><span class="val">Web Speech API (browser-native, free)</span></div>
+    <div class="tech-row"><span class="key">Auth</span><span class="val">Supabase (email + kid PIN login)</span></div>
+    <div class="tech-row"><span class="key">Deploy</span><span class="val">Vercel (serverless)</span></div>
+    <div class="tech-row"><span class="key">PWA</span><span class="val">Service Worker + Web App Manifest</span></div>
+  </div>
+  <p style="font-size:14px; color:#64748b; margin-top:16px;">Zero backend infrastructure. Everything client-side except AI conversations. One developer + AI = full engineering output.</p>
+</div>
+
+<!-- SLIDE 11: Roadmap -->
+<div class="slide">
+  <div class="slide-number">11 / 15</div>
+  <h3>Where We're Going</h3>
+  <h2>Roadmap</h2>
+  <div class="roadmap-phase done">
+    <h4>Phase 1 — DONE ✅</h4>
     <ul>
-      <li>Avatar is a <span class="emphasis">real 3D character</span>, not a flat chatbot</li>
-      <li>Conversations are contextual — at the zoo, restaurant, hospital</li>
-      <li>AI corrects mistakes naturally: "Oh, you mean THE CAT? Great!"</li>
-      <li>Ask about <span class="emphasis">anything</span> — AI has encyclopedia knowledge</li>
-      <li>Fuzzy matching fixes speech errors (bigs &rarr; pigs)</li>
-      <li>Full immersion in the target language</li>
+      <li>16 worlds, 153 locations, 2,290+ words, 6 languages</li>
+      <li>17 custom 3D maps (each world unique)</li>
+      <li>154 AI NPCs with personality and memory</li>
+      <li>9 game types, World Exams, 34 achievements, shop, pets</li>
+      <li>3D talking avatar with lip sync + pronunciation feedback</li>
+      <li>Cloud sync, offline support, PWA</li>
     </ul>
   </div>
-</section>
+  <div class="roadmap-phase">
+    <h4>Phase 2 — Content Depth & Polish</h4>
+    <ul>
+      <li>Expand vocabulary from 2,290 to 10,000+ words</li>
+      <li>Music and sound effects per world</li>
+      <li>Native mobile app (React Native or Expo)</li>
+      <li>More languages: Japanese, Chinese, Arabic, Portuguese</li>
+    </ul>
+  </div>
+  <div class="roadmap-phase">
+    <h4>Phase 3 — Social & Classroom</h4>
+    <ul>
+      <li>Multiplayer: async challenges, class leaderboards</li>
+      <li>Classroom mode: teacher assigns topics, tracks progress</li>
+      <li>Parent report: performance analytics per child</li>
+      <li>Tournaments and seasonal events</li>
+    </ul>
+  </div>
+  <div class="roadmap-phase">
+    <h4>Phase 4 — Platform</h4>
+    <ul>
+      <li>Content SDK: anyone can create new worlds</li>
+      <li>AI-generated scenarios from templates</li>
+      <li>Enterprise/school licensing</li>
+    </ul>
+  </div>
+</div>
 
-<!-- SLIDE 9: Tech Stack -->
-<section class="slide">
-  <span class="slide-number">09 / 14</span>
-  <h3>Tech Stack</h3>
-  <h2>Modern. Lean. No backend needed.</h2>
-  <div class="tech-grid">
-    <span class="tech-label">Frontend</span><span class="tech-value">Next.js 16 + React 19 + TypeScript</span>
-    <span class="tech-label">3D World</span><span class="tech-value">Three.js + React Three Fiber (InstancedMesh, ~1K calls)</span>
-    <span class="tech-label">Avatar</span><span class="tech-value">3D GLB + Rhubarb Lip Sync + WebAudio analyser</span>
-    <span class="tech-label">Styling</span><span class="tech-value">Tailwind CSS v4</span>
-    <span class="tech-label">State</span><span class="tech-value">Zustand (offline-first, syncs to Supabase)</span>
-    <span class="tech-label">AI</span><span class="tech-value">Claude API (Anthropic) — NPC conversations</span>
-    <span class="tech-label">Audio</span><span class="tech-value">Google Cloud TTS (233 pre-generated MP3s)</span>
-    <span class="tech-label">Speech</span><span class="tech-value">Web Speech API (browser-native, free)</span>
-    <span class="tech-label">Auth</span><span class="tech-value">Supabase (email + kid PIN login)</span>
-    <span class="tech-label">Deploy</span><span class="tech-value">Vercel (serverless) + PWA</span>
+<!-- SLIDE 12: Development -->
+<div class="slide">
+  <div class="slide-number">12 / 15</div>
+  <h3>Development Approach</h3>
+  <h2>One person + AI<br>= full engineering team</h2>
+  <div class="solution-grid">
+    <div class="solution-card">
+      <h4>How</h4>
+      <ul>
+        <li>Human: product vision, UX, testing</li>
+        <li>AI (Claude Code): all code, architecture, deployment</li>
+        <li>16 worlds, 17 3D maps, 154 NPCs — built in weeks</li>
+        <li>Features: idea → production in hours</li>
+      </ul>
+    </div>
+    <div class="solution-card">
+      <h4>Why It Matters</h4>
+      <ul>
+        <li>Extremely fast iteration cycles</li>
+        <li>Product decisions drive development, not team size</li>
+        <li>Cost-efficient: minimal burn rate</li>
+        <li>Can pivot at startup speed</li>
+      </ul>
+    </div>
   </div>
-  <p style="margin-top: 28px; color: #64748b; font-size: 14px;">Zero backend infrastructure. Everything client-side except AI conversations.</p>
-</section>
+</div>
 
-<!-- SLIDE 10: Roadmap -->
-<section class="slide">
-  <span class="slide-number">10 / 14</span>
-  <h3>Roadmap</h3>
-  <h2>From 12 locations to an entire planet.</h2>
-  <div class="phase">
-    <span class="phase-label done">Phase 1 — Done</span>
-    <p style="color: #cbd5e1; margin-top: 8px;">Surface World: 12 locations, 9 games, 170+ words, 6 languages<br>3D avatar + lip sync + AI conversations + pronunciation feedback</p>
+<!-- SLIDE 13: Differentiators -->
+<div class="slide">
+  <div class="slide-number">13 / 15</div>
+  <h3>Why LangWorld Wins</h3>
+  <h2>Key Differentiators</h2>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <h4>vs Duolingo</h4>
+      <p>Duolingo = multiple choice quiz app. No real speaking. No contextual learning. LangWorld has syllable-level pronunciation + free-form AI conversations in 3D worlds.</p>
+    </div>
+    <div class="compare-card">
+      <h4>vs Lingokids</h4>
+      <p>Lingokids targets ages 3–6. LangWorld targets 7–14 — an underserved market with real AI conversations, not pre-scripted animations.</p>
+    </div>
+    <div class="compare-card">
+      <h4>vs ChatGPT / AI Tutors</h4>
+      <p>Chat interfaces, not games. Kids don't want to "chat with AI" — they want to PLAY. No pronunciation feedback, no game mechanics, no 3D worlds.</p>
+    </div>
+    <div class="compare-card">
+      <h4>vs Praktika.ai</h4>
+      <p>Adult-focused, subscription-heavy. LangWorld is kid-first, game-first, with 16 worlds + 9 exercise types — not just conversation practice.</p>
+    </div>
   </div>
-  <div class="phase">
-    <span class="phase-label next">Phase 2 — Content Expansion</span>
-    <p style="color: #94a3b8; margin-top: 8px;">
-      Underwater World — marine life (+150 words)<br>
-      Land World — biomes, geography (+200 words)<br>
-      Sky World — weather, flight, space (+150 words)<br>
-      City expansion — more shops, services, professions<br>
-      <span class="emphasis">Total: 700+ words</span>
-    </p>
-  </div>
-  <div class="phase">
-    <span class="phase-label">Phase 3 — Social & Classroom</span>
-    <p style="color: #64748b; margin-top: 8px;">Multiplayer challenges &middot; Classroom mode &middot; Parent reports &middot; Custom avatars</p>
-  </div>
-  <div class="phase">
-    <span class="phase-label">Phase 4 — Platform</span>
-    <p style="color: #64748b; margin-top: 8px;">Content SDK &middot; AI-generated scenarios &middot; More languages &middot; Enterprise licensing</p>
-  </div>
-</section>
-
-<!-- SLIDE 11: Dev Approach -->
-<section class="slide">
-  <span class="slide-number">11 / 14</span>
-  <h3>Development</h3>
-  <h2>One person + AI.<br>Full engineering team output.</h2>
-  <ul>
-    <li>Human provides product vision, UX direction, testing</li>
-    <li>AI writes all code, architecture, deploys autonomously</li>
-    <li>3D avatar, lip sync, map optimization — all AI-built</li>
-    <li>Features go from idea to production in <span class="emphasis">hours, not weeks</span></li>
-  </ul>
-  <div class="highlight-box" style="margin-top: 24px;">
-    <p><span class="emphasis">Cost-efficient:</span> No salaries. No hiring delays. No team management overhead. Product decisions drive development, not team size.</p>
-  </div>
-</section>
-
-<!-- SLIDE 12: Differentiators -->
-<section class="slide">
-  <span class="slide-number">12 / 14</span>
-  <h3>Competition</h3>
-  <h2>What exists vs what we built.</h2>
-  <div class="vs-block">
-    <h4>vs Duolingo</h4>
-    <p>Multiple choice quiz app. No real speaking practice. LangWorld has syllable-level pronunciation + free-form AI conversation.</p>
-  </div>
-  <div class="vs-block">
-    <h4>vs Lingokids / Khan Academy Kids</h4>
-    <p>Ages 3-6 (preschool). LangWorld targets 7-14 — an underserved market worth billions.</p>
-  </div>
-  <div class="vs-block">
-    <h4>vs ChatGPT / AI Tutors</h4>
-    <p>Chat interfaces, not games. Kids don't want to "chat with AI" — they want to PLAY.</p>
-  </div>
-  <div class="vs-block">
-    <h4>vs Praktika.ai</h4>
-    <p>Adult-focused, subscription-heavy. LangWorld is kid-first, game-first, scenario-based. Both have 3D avatars — we add the game world.</p>
-  </div>
-</section>
-
-<!-- SLIDE 13: Vision -->
-<section class="slide" style="align-items: center; text-align: center;">
-  <span class="slide-number">13 / 14</span>
-  <h3>Vision</h3>
-  <div class="big-quote" style="border: none; text-align: center; padding: 0;">
-    "You don't learn a language —<br>you <span class="emphasis">live</span> in a world through it."
-  </div>
-  <p class="subtitle" style="margin-top: 32px; max-width: 600px; text-align: center;">
-    Ask a zookeeper about opossums.<br>
-    Order pizza in Spanish.<br>
-    Describe your symptoms to a doctor in German.<br>
-    Negotiate prices at a market in French.
+  <p style="font-size:16px; color:#38bdf8; margin-top:16px; font-weight:600;">
+    LangWorld = 16 3D worlds + 9 exercises + 154 AI NPCs + pronunciation feedback + 2,290+ words. In one product, for an underserved age group.
   </p>
-  <p style="margin-top: 32px; font-size: 22px; font-weight: 600; color: #38bdf8;">LangWorld is building that world.</p>
-</section>
+</div>
 
-<!-- SLIDE 14: Ask -->
-<section class="slide" style="align-items: center; text-align: center;">
-  <span class="slide-number">14 / 14</span>
-  <h3>Let's Talk</h3>
-  <h2>We're looking for partners.</h2>
-  <div style="margin-top: 24px;">
-    <ul style="text-align: left; display: inline-block;">
-      <li>Seed funding to scale content (more worlds, more languages)</li>
+<!-- SLIDE 14: Vision -->
+<div class="slide">
+  <div class="slide-number">14 / 15</div>
+  <h3>Vision</h3>
+  <p class="quote">
+    "You don't learn a language —<br>you live in a world through it."
+  </p>
+  <p style="font-size:18px; color:#94a3b8; line-height:1.7; max-width:700px;">
+    Ask a zookeeper about opossums. Order pizza in Spanish.
+    Describe your symptoms to a doctor in German.
+    Negotiate prices at a market in French.
+    Explore Bulgarian history through its landmarks.
+    Travel through space and learn about planets in English.
+  </p>
+  <p style="font-size:18px; color:#e2e8f0; margin-top:24px; font-weight:600;">
+    LangWorld is building that world.<br>One world at a time. One conversation at a time.
+  </p>
+</div>
+
+<!-- SLIDE 15: Ask -->
+<div class="slide">
+  <div class="slide-number">15 / 15</div>
+  <h3>The Ask</h3>
+  <h2>Let's build the future<br>of language learning</h2>
+  <div class="cta-box">
+    <ul>
+      <li>Seed funding to scale content (more worlds, more languages, native app)</li>
       <li>Partnerships with schools for classroom pilot programs</li>
       <li>Distribution partnerships (app stores, education platforms)</li>
     </ul>
   </div>
-  <div class="cta">
-    <a href="https://langworld.vercel.app" target="_blank">Try the live demo &rarr;</a>
+  <div class="solution-card" style="margin-top:20px;">
+    <h4>What Funding Enables</h4>
+    <ul>
+      <li>Expand vocabulary from 2,290 to 10,000+ words</li>
+      <li>Native mobile app for iOS and Android</li>
+      <li>Classroom mode with teacher dashboard</li>
+      <li>5+ additional languages</li>
+      <li>Sound design and visual polish</li>
+    </ul>
   </div>
-</section>
+  <a href="https://langworld.vercel.app" target="_blank" class="demo-link" style="margin-top:32px;">Try the Live Demo →</a>
+</div>
 
 </body>
 </html>

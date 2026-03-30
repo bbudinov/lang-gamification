@@ -1,4 +1,4 @@
-LANGWORLD — Pitch Deck Content (Updated March 2026)
+LANGWORLD — Pitch Deck Content (Updated March 30, 2026)
 =====================================================
 
 ============================================================
@@ -9,7 +9,10 @@ LangWorld
 Learn languages by living in them.
 
 A game world where kids practice speaking, listening, reading
-and writing in a new language — through immersive scenarios, not textbooks.
+and writing in a new language — through immersive 3D scenarios,
+not textbooks.
+
+Live: langworld.vercel.app
 
 ============================================================
 SLIDE 2: The Problem
@@ -21,6 +24,7 @@ Language apps today teach words. Not language.
 - Most apps are multiple choice quizzes — no speaking, no listening, no real practice
 - The #1 complaint worldwide: "I understand but I'm afraid to speak"
 - Age 7–14 is almost completely ignored — apps are either for toddlers or adults
+- Existing tools don't make kids WANT to practice — they feel like homework
 
 There's no product that makes kids actually PRACTICE using a language
 in real, meaningful scenarios.
@@ -29,7 +33,7 @@ in real, meaningful scenarios.
 SLIDE 3: The Solution
 ============================================================
 
-LangWorld is an interactive language world with 9 exercise types
+LangWorld is an interactive language universe with 9 exercise types
 that train every language skill:
 
 LISTENING
@@ -56,13 +60,14 @@ Every skill. Every session. Through play.
 SLIDE 4: How It Works
 ============================================================
 
-1. Open the app → optimized 3D city map with 12 themed locations
-2. Tap a location (Zoo, Restaurant, Hospital, Bank...)
-3. Pick a game type → play 5-8 rounds
-4. Earn XP → unlock new locations
+1. Open the app → choose from 16 themed 3D worlds
+2. Each world has its own custom 3D map (cities, oceans, mountains, space...)
+3. Tap a location → pick a game type → play 5-8 rounds
+4. Earn XP → pass World Exams → unlock new worlds
 5. 3 levels per location: Discover → Use → Survive
 6. Professor Globe — a 3D talking avatar — guides you with
    real-time lip-synced speech, expressions, and conversation
+7. Each location has its own AI NPC with unique personality
 
 No accounts required. No setup. Just play.
 (Optional: kid-friendly PIN login for cloud sync)
@@ -91,7 +96,7 @@ SLIDE 6: Who Is It For
 ============================================================
 
 PRIMARY: Kids 7–14 years old
-- Learning English, Bulgarian, Spanish (+ Italian, German, French)
+- Learning English, Bulgarian, Spanish, Italian, German, French
 - Through a game they actually WANT to play
 - Safe, no ads, no social features, no in-app purchases
 
@@ -108,26 +113,57 @@ The AI conversations scale to any level.
 SLIDE 7: What's Built (Current State)
 ============================================================
 
-✅ Fully working PWA — install on any phone
-✅ 12 themed locations with 170+ words × 6 languages
-✅ 9 game types covering all language skills
+✅ Fully working PWA — install on any phone, works offline
+✅ 16 themed worlds, each with a unique custom 3D map
+✅ 153 interactive locations with 2,290+ words × 6 languages
+✅ 154 AI-powered NPCs — each with unique personality and memory
+✅ 9 game types covering all 4 language skills
 ✅ 6 languages: English, Bulgarian, Spanish, Italian, German, French
-✅ 233 pre-generated audio files (Google Cloud TTS, natural voices)
+✅ 233+ pre-generated audio files (Google Cloud TTS, natural voices)
 ✅ 168 lip sync data files (Rhubarb, per-word phoneme timing)
-✅ AI-powered conversations with 3D talking avatar (Claude API)
-✅ Syllable-by-syllable pronunciation feedback (Fluently-style)
+✅ AI conversations with 3D talking avatar (Claude API)
+✅ Syllable-by-syllable pronunciation feedback
 ✅ Speech recognition with fuzzy word matching
-✅ Optimized 3D city map (~1K draw calls, InstancedMesh, LOD)
-✅ XP progression, coins, daily challenges, streaks, achievements
-✅ Pet system, shop, leaderboard, word collection
-✅ NPC memory — characters remember past conversations
-✅ Offline support via Service Worker
+✅ 17 custom 3D maps (InstancedMesh, optimized draw calls)
+✅ World Exam system — pass exams to unlock new worlds
+✅ XP progression, coins, daily challenges, streaks
+✅ 34 achievements with rarity system (common/rare/epic/legendary)
+✅ Pet system, shop with mystery box, leaderboard, word collection
+✅ Cloud sync (Supabase) + offline-first architecture
 ✅ Works on desktop, Android, iOS (PWA)
 
 Live: langworld.vercel.app
 
 ============================================================
-SLIDE 8: The NPC Talk Experience
+SLIDE 8: The Worlds
+============================================================
+
+Each world is a unique 3D environment — not a reskin, but a
+completely different landscape, theme, and vocabulary domain:
+
+🏙️  LAND — city life: shops, restaurants, professions (19 locations)
+🌊  OCEAN — marine life, sea creatures, boats (8 locations)
+🐙  UNDERWATER — coral reefs, deep sea, submarines (9 locations)
+✈️  AIR — weather, flight, airports, clouds (8 locations)
+🏪  SOCIAL — social situations, greetings, family (9 locations)
+🧠  EMOTIONS — feelings, mental health, self-expression (8 locations)
+🌍  CULTURE — traditions, food, holidays worldwide (30 locations)
+🧙  FANTASY — magic, mythical creatures, adventures (8 locations)
+🧪  SCIENCE — experiments, elements, inventions (8 locations)
+🚀  COSMOS — planets, space travel, astronomy (8 locations)
+⏳  TIME — historical periods, time concepts (8 locations)
+🎭  META — language about language, meta-skills (8 locations)
+🏟️  SPORTS — athletic activities, competition, rules (5 locations)
+🇧🇬  BULGARIAN HISTORY — 3D diorama with historical locations (5 locations)
+👨‍⚕️  PROFESSIONS — careers, workplaces, tools (6 locations)
+🧬  BODY & HEALTH — anatomy, medical, fitness (6 locations)
+
+Bulgarian History is a showcase world: a full 3D relief map of
+Bulgaria with ocean, mountains, rivers, armies, villages, boats,
+battle scenes, and 25 historical landmarks from 681 to 1989.
+
+============================================================
+SLIDE 9: The NPC Talk Experience
 ============================================================
 
 This is our key differentiator.
@@ -144,13 +180,14 @@ What makes it special:
 - Child can ask about ANYTHING — AI has encyclopedia knowledge
 - Fuzzy matching fixes speech recognition errors (bigs → pigs)
 - All in the target language — full immersion
+- 154 unique NPCs, each with different personality and expertise
 
 ============================================================
-SLIDE 9: Tech Stack
+SLIDE 10: Tech Stack
 ============================================================
 
 Frontend:  Next.js 16 + React 19 + TypeScript
-3D World:  Three.js + React Three Fiber (optimized: InstancedMesh, 1K draw calls)
+3D World:  Three.js + React Three Fiber (17 custom maps, InstancedMesh)
 Avatar:    3D GLB model + Rhubarb Lip Sync + WebAudio analyser
 Styling:   Tailwind CSS v4
 State:     Zustand (offline-first, syncs to Supabase)
@@ -163,85 +200,95 @@ PWA:       Service Worker + Web App Manifest
 
 Zero backend infrastructure needed.
 Everything runs client-side except AI conversations.
+One developer + AI pair programmer = full engineering output.
 
 ============================================================
-SLIDE 10: Roadmap
+SLIDE 11: Roadmap
 ============================================================
 
 PHASE 1 — DONE ✅
-  Surface World: 12 locations, 9 games, 170+ words, 6 languages
+  16 worlds, 153 locations, 2,290+ words, 6 languages
+  17 custom 3D maps (each world unique)
+  154 AI NPCs with personality and memory
+  9 game types covering all language skills
   3D talking avatar with lip sync
-  AI conversations with memory
   Syllable pronunciation feedback
+  World Exam system, 34 achievements, shop, pets
+  Cloud sync, offline support, PWA
 
-PHASE 2 — Content & World Expansion
-  🌊 Underwater World — marine life, ocean science (+150 words)
-  🌍 Land World — biomes, geography, nature (+200 words)
-  ☁️ Sky World — weather, flight, space (+150 words)
-  🏙️ City expansion — more shops, services, professions
-  Total: 700+ words across all worlds
-  Same 9 game types, themed per world
+PHASE 2 — Content Depth & Polish
+  📚 More words per location (target: 5,000+ total vocabulary)
+  🎵 Music and sound effects per world
+  🎨 Visual polish: particle effects, transitions, animations
+  📱 Native mobile app (React Native or Expo)
+  🌐 More languages: Japanese, Chinese, Arabic, Portuguese
 
 PHASE 3 — Social & Classroom
-  - Multiplayer: async challenges, class leaderboards
-  - Classroom mode: teacher assigns topics, tracks progress
-  - Parent report: performance analytics per child
-  - Custom avatar creator for kids
+  👥 Multiplayer: async challenges, class leaderboards
+  🏫 Classroom mode: teacher assigns topics, tracks progress
+  👪 Parent report: performance analytics per child
+  🎨 Custom avatar creator for kids
+  🏆 Tournaments and seasonal events
 
 PHASE 4 — Platform
-  - Content SDK: anyone can create new worlds/scenarios
-  - AI-generated scenarios from templates
-  - More languages (Japanese, Chinese, Arabic)
-  - Enterprise/school licensing
+  🔧 Content SDK: anyone can create new worlds/scenarios
+  🤖 AI-generated scenarios from templates
+  🏢 Enterprise/school licensing
+  🌍 Localization of UI into more languages
 
 ============================================================
-SLIDE 11: Development Approach
+SLIDE 12: Development Approach
 ============================================================
 
 Built by one person + Claude Code (AI pair programmer).
 
 - Human provides product vision, UX direction, and testing
 - AI writes all code, handles architecture, deploys autonomously
-- 3D avatar, lip sync, map optimization — all AI-implemented
+- 16 worlds, 17 custom 3D maps, 154 NPCs — built in weeks, not months
 - Iteration speed: features go from idea to production in hours
+- Bulgarian History world: full 3D diorama in one session
 
 This means:
 - One person = one full engineering team
 - Extremely fast iteration cycles
 - Product decisions drive development, not team size
 - Cost-efficient: no salaries, no hiring delays
+- Can pivot and experiment at startup speed
 
 ============================================================
-SLIDE 12: Key Differentiators
+SLIDE 13: Key Differentiators
 ============================================================
 
 vs Duolingo:
   - Duolingo = multiple choice quiz app, gamified drill
-  - LangWorld = immersive world with AI conversations + 9 exercise types
-  - Duolingo has NO real speaking practice
-  - LangWorld has syllable-level pronunciation feedback + free-form AI chat
+  - LangWorld = immersive 3D worlds with AI conversations + 9 exercise types
+  - Duolingo has NO real speaking practice and NO contextual learning
+  - LangWorld has syllable-level pronunciation + free-form AI chat in context
 
 vs Lingokids / Khan Academy Kids:
   - Those are for ages 3–6 (preschool)
   - LangWorld targets 7–14 (underserved market)
+  - LangWorld has real AI conversations, not pre-scripted animations
 
 vs ChatGPT / AI tutors:
   - Those are chat interfaces, not games
   - Kids don't want to "chat with AI" — they want to PLAY
   - No pronunciation feedback, no game mechanics, no motivation loop
+  - No 3D worlds, no contextual scenarios
 
 vs Praktika.ai:
   - Praktika = adult-focused, subscription-heavy
   - LangWorld = kid-first, game-first, scenario-based
-  - Both have 3D avatars, but LangWorld adds game world + exercises
+  - Both have 3D avatars, but LangWorld adds 16 game worlds + exercises
 
 LangWorld combines:
-  3D game world + Real exercises + AI avatar conversations +
-  Pronunciation feedback + Encyclopedia knowledge
+  16 3D game worlds + 9 real exercises + 154 AI NPCs +
+  Pronunciation feedback + Encyclopedia knowledge +
+  2,290+ words across 6 languages
   ...in one product, for an underserved age group.
 
 ============================================================
-SLIDE 13: Vision
+SLIDE 14: Vision
 ============================================================
 
 "You don't learn a language — you live in a world through it."
@@ -252,17 +299,27 @@ It's AI worlds where language is the key to everything.
 Ask a zookeeper about opossums. Order pizza in Spanish.
 Describe your symptoms to a doctor in German.
 Negotiate prices at a market in French.
+Explore Bulgarian history through its landmarks.
+Travel through space and learn about planets in English.
 
 LangWorld is building that world.
+One world at a time. One conversation at a time.
 
 ============================================================
-SLIDE 14: Ask
+SLIDE 15: Ask
 ============================================================
 
 We are looking for:
-- Seed funding to scale content (more worlds, more languages)
+- Seed funding to scale content (more worlds, more languages, native app)
 - Partnerships with schools for classroom pilot programs
 - Distribution partnerships (app stores, education platforms)
+
+What funding enables:
+- Expand vocabulary from 2,290 to 10,000+ words
+- Native mobile app for iOS and Android
+- Classroom mode with teacher dashboard
+- 5+ additional languages
+- Sound design and visual polish
 
 Contact: [your email]
 Live demo: langworld.vercel.app
