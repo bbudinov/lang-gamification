@@ -134,7 +134,7 @@ export default function LandingPage() {
             <a href="#compare" className="hover:text-white transition-colors">Why Us</a>
           </div>
           <a
-            href="https://langworld.vercel.app"
+            href="https://langworld.vercel.app/map"
             target="_blank"
             className="px-5 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all hover:shadow-lg hover:shadow-purple-500/25 active:scale-95"
           >
@@ -177,7 +177,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
             <a
-              href="https://langworld.vercel.app"
+              href="https://langworld.vercel.app/map"
               target="_blank"
               className="group px-8 py-3.5 rounded-full text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all hover:shadow-xl hover:shadow-purple-500/25 active:scale-95"
             >
@@ -455,7 +455,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to explore?</h2>
             <p className="text-slate-400 mb-8">Free. No account needed. Works on any device.</p>
             <a
-              href="https://langworld.vercel.app"
+              href="https://langworld.vercel.app/map"
               target="_blank"
               className="inline-block px-10 py-4 rounded-full text-lg font-semibold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-400 hover:via-purple-400 hover:to-pink-400 transition-all hover:shadow-xl hover:shadow-purple-500/25 active:scale-95"
             >
