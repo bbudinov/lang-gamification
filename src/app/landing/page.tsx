@@ -123,7 +123,7 @@ export default function LandingPage() {
       {/* ═══ NAV ═══ */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#060c18]/70 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="#worlds" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
             <span className="text-2xl">🌍</span>
             <span className="text-lg font-bold">LangWorld</span>
           </a>
