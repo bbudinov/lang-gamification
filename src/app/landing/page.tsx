@@ -123,10 +123,10 @@ export default function LandingPage() {
       {/* ═══ NAV ═══ */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#060c18]/70 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <a href="#worlds" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <span className="text-2xl">🌍</span>
             <span className="text-lg font-bold">LangWorld</span>
-          </div>
+          </a>
           <div className="hidden md:flex items-center gap-8 text-sm text-slate-400">
             <a href="#worlds" className="hover:text-white transition-colors">Worlds</a>
             <a href="#games" className="hover:text-white transition-colors">Games</a>
