@@ -480,13 +480,18 @@ export function SayIt({ topic }: SayItProps) {
         {/* Emoji */}
         <span className="text-5xl">{word.emoji}</span>
 
+        {/* Target language label */}
+        <span className="text-[10px] uppercase tracking-wider text-blue-400/60 font-semibold">
+          Say in {targetLanguage === "en" ? "English" : targetLanguage === "bg" ? "Bulgarian" : targetLanguage === "es" ? "Spanish" : targetLanguage === "it" ? "Italian" : targetLanguage === "de" ? "German" : "French"}
+        </span>
+
         {/* Syllable display with coloring */}
         <SyllableDisplay syllables={syllables} scores={attemptResult?.scores || null} />
 
-        {/* Hint */}
+        {/* Native language hint — small and secondary */}
         {hintVisible && (
-          <p className="text-slate-400 text-sm">
-            {word[useProgressStore.getState().nativeLanguage]}
+          <p className="text-slate-500 text-xs italic opacity-70">
+            ({word[useProgressStore.getState().nativeLanguage]})
           </p>
         )}
 

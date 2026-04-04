@@ -41,6 +41,7 @@ export function TopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [langMode, setLangMode] = useState<"target" | "native">("target");
+  const [streakOpen, setStreakOpen] = useState(false);
 
   useEffect(() => {
     checkAndUpdateStreak();
@@ -84,10 +85,13 @@ export function TopBar() {
         {/* Right: Streak + Language + Menu */}
         <div className="flex items-center gap-1.5">
           {dailyStreak > 0 && (
-            <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5">
+            <button
+              onClick={() => setStreakOpen(!streakOpen)}
+              className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 active:bg-white/20 transition-colors"
+            >
               <span className="text-xs" style={{ animation: "flame-flicker 1s ease-in-out infinite" }}>🔥</span>
               <span className="text-white text-[10px] font-bold">{dailyStreak}</span>
-            </div>
+            </button>
           )}
 
           <button
@@ -108,6 +112,20 @@ export function TopBar() {
           </button>
         </div>
       </div>
+
+      {streakOpen && (
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setStreakOpen(false)} />
+          <div className="absolute right-14 top-14 bg-[#0f1d32] border border-white/10 rounded-2xl shadow-2xl z-[9999] px-4 py-3 min-w-[200px] animate-in zoom-in-95 duration-200">
+            <p className="text-white text-sm font-semibold text-center">
+              🔥 {dailyStreak} {nativeLanguage === "bg" ? "дни поредни!" : nativeLanguage === "es" ? "dias seguidos!" : "day streak!"}
+            </p>
+            <p className="text-slate-400 text-xs text-center mt-1">
+              {nativeLanguage === "bg" ? "Играй всеки ден!" : nativeLanguage === "es" ? "Juega cada dia!" : "Keep playing daily!"}
+            </p>
+          </div>
+        </>
+      )}
 
       {langOpen && (
         <>
