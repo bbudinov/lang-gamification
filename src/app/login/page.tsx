@@ -24,6 +24,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
 
+  // Terms
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState<"privacy" | "terms" | null>(null);
+
   const handleKidLogin = async () => {
     setError("");
     if (!kidName.trim() || pin.length !== 4) {
@@ -46,6 +50,10 @@ export default function LoginPage() {
     }
     if (pin.length !== 4) {
       setError("PIN must be exactly 4 digits");
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Please accept the Privacy Policy & Terms");
       return;
     }
     // Deterministic email/password so login can reconstruct them from name+pin
@@ -80,6 +88,10 @@ export default function LoginPage() {
     setError("");
     if (!email || !password || !displayName.trim()) {
       setError("Fill in all fields");
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Please accept the Privacy Policy & Terms");
       return;
     }
     const result = await signUpWithEmail(email, password, displayName.trim());
@@ -183,6 +195,24 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Terms checkbox — signup only */}
+          {isSignup && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded accent-emerald-500"
+              />
+              <span className="text-slate-400 text-xs leading-relaxed">
+                I agree to the{" "}
+                <button type="button" onClick={() => setShowTermsModal("privacy")} className="text-blue-400 underline">Privacy Policy</button>
+                {" & "}
+                <button type="button" onClick={() => setShowTermsModal("terms")} className="text-blue-400 underline">Terms</button>
+              </span>
+            </label>
+          )}
+
           {error && (
             <p className="text-red-400 text-sm text-center">{error}</p>
           )}
@@ -246,6 +276,24 @@ export default function LoginPage() {
           className="w-full bg-white/10 text-white rounded-xl px-4 py-3 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500/50"
         />
 
+        {/* Terms checkbox — signup only */}
+        {isSignup && (
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded accent-blue-500"
+            />
+            <span className="text-slate-400 text-xs leading-relaxed">
+              I agree to the{" "}
+              <button type="button" onClick={() => setShowTermsModal("privacy")} className="text-blue-400 underline">Privacy Policy</button>
+              {" & "}
+              <button type="button" onClick={() => setShowTermsModal("terms")} className="text-blue-400 underline">Terms</button>
+            </span>
+          </label>
+        )}
+
         {error && (
           <p className="text-red-400 text-sm text-center">{error}</p>
         )}
@@ -265,6 +313,31 @@ export default function LoginPage() {
           {isSignup ? "Already have an account? Log in" : "New here? Create account"}
         </button>
       </div>
+
+      {/* Privacy / Terms Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={() => setShowTermsModal(null)}>
+          <div className="bg-[#0f1d32] border border-white/10 rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">
+                {showTermsModal === "privacy" ? "Privacy Policy" : "Terms & Conditions"}
+              </h3>
+              <button onClick={() => setShowTermsModal(null)} className="text-slate-400 text-xl hover:text-white">✕</button>
+            </div>
+            <iframe
+              src={showTermsModal === "privacy" ? "/privacy" : "/terms"}
+              className="w-full h-[60vh] rounded-lg border border-white/5"
+              title={showTermsModal === "privacy" ? "Privacy Policy" : "Terms & Conditions"}
+            />
+            <button
+              onClick={() => setShowTermsModal(null)}
+              className="w-full mt-4 py-3 bg-white/10 rounded-xl text-white font-medium active:bg-white/20 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
