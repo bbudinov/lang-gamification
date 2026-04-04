@@ -196,7 +196,8 @@ export function ProfessorOverlay3D({ speaking = false, emotion = "idle" }: Profe
         }}
       />
       <HologramParticles count={25} />
-      <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
+      {/* 3D model temporarily disabled — Meshy GLB has no skeleton, causes render issues */}
+      {/* <ProfessorGlobe3D speaking={speaking} emotion={emotion} /> */}
     </div>
   );
 }
