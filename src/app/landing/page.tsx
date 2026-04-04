@@ -172,11 +172,11 @@ export default function LandingPage() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Kids explore 16 AI-powered 3D worlds, talk to characters, and start speaking a new language — no flashcards, no homework, just play.
+            Explore 16 AI-powered 3D worlds, talk to characters, and start speaking a new language — in English, Bulgarian, Spanish, Italian, German or French.
           </p>
 
           <p className="mt-3 text-sm text-slate-500 font-medium tracking-wide">
-            No homework. No pressure. Just progress.
+            Built for kids 7-15. Works for everyone. No homework. No pressure. Just progress.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
@@ -257,7 +257,7 @@ export default function LandingPage() {
             <FadeIn delay={150}>
               <div className="p-8 rounded-2xl bg-gradient-to-br from-blue-500/5 to-emerald-500/5 border border-blue-500/10">
                 <div className="text-3xl mb-3">👨‍👩‍👧</div>
-                <h3 className="text-xl font-bold text-white mb-4">Why parents trust it</h3>
+                <h3 className="text-xl font-bold text-white mb-4">Why everyone trusts it</h3>
                 <ul className="space-y-3 text-slate-300 text-sm">
                   <li className="flex gap-3 items-start">
                     <span className="text-emerald-400 text-lg leading-none">&#9679;</span>
@@ -274,6 +274,10 @@ export default function LandingPage() {
                   <li className="flex gap-3 items-start">
                     <span className="text-emerald-400 text-lg leading-none">&#9679;</span>
                     <span>Works offline — no constant internet needed</span>
+                  </li>
+                  <li className="flex gap-3 items-start">
+                    <span className="text-emerald-400 text-lg leading-none">&#9679;</span>
+                    <span>6 languages — learn any of them from any of them</span>
                   </li>
                   <li className="flex gap-3 items-start">
                     <span className="text-emerald-400 text-lg leading-none">&#9679;</span>
@@ -520,7 +524,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-purple-500/5" />
         <div className="max-w-2xl mx-auto text-center relative z-10">
           <FadeIn>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Your child&apos;s next language starts here</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Your next language starts here</h2>
             <p className="text-slate-400 mb-2">Free. No account needed. Works on any device.</p>
             <p className="text-slate-500 text-sm mb-8">No homework. No pressure. Just progress.</p>
             <a
