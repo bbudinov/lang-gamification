@@ -70,7 +70,7 @@ export function TalkingAvatar({
   const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
 
   // Load GLB model
-  const { scene } = useGLTF("/models/professor-avatar.glb");
+  const { scene } = useGLTF("/models/professor-new.glb");
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as any;
 
@@ -276,4 +276,4 @@ export function TalkingAvatar({
   );
 }
 
-useGLTF.preload("/models/professor-avatar.glb");
+useGLTF.preload("/models/professor-new.glb");
