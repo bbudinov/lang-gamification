@@ -40,6 +40,7 @@ export function TopBar() {
   const { user, profile } = useAuthStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [langMode, setLangMode] = useState<"target" | "native">("target");
 
   useEffect(() => {
     checkAndUpdateStreak();
@@ -47,6 +48,16 @@ export function TopBar() {
 
   const selectTarget = (lang: Language) => {
     setLanguages(nativeLanguage, lang);
+    setLangOpen(false);
+  };
+
+  const selectNative = (lang: Language) => {
+    // If native becomes same as target, swap them
+    if (lang === targetLanguage) {
+      setLanguages(lang, nativeLanguage);
+    } else {
+      setLanguages(lang, targetLanguage);
+    }
     setLangOpen(false);
   };
 
@@ -80,11 +91,12 @@ export function TopBar() {
           )}
 
           <button
-            onClick={() => setLangOpen(!langOpen)}
+            onClick={() => { setLangMode("target"); setLangOpen(!langOpen); }}
             className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 active:bg-white/20 transition-colors"
           >
+            <span className="text-xs">{LANG_FLAGS[nativeLanguage]}</span>
+            <span className="text-[8px] text-slate-400">→</span>
             <span className="text-xs">{LANG_FLAGS[targetLanguage]}</span>
-            <span className="text-xs text-white font-semibold">{LANG_LABELS[targetLanguage]}</span>
             <span className="text-[8px] text-slate-400">▼</span>
           </button>
 
@@ -100,21 +112,47 @@ export function TopBar() {
       {langOpen && (
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setLangOpen(false)} />
-          <div className="absolute right-14 top-14 bg-[#0f1d32] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[9999] min-w-[150px]">
-            <p className="px-4 pt-3 pb-1 text-[10px] text-slate-500 uppercase tracking-wider">Learn</p>
-            {LANGUAGES.filter((l) => l !== nativeLanguage).map((lang) => (
+          <div className="absolute right-14 top-14 bg-[#0f1d32] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[9999] min-w-[180px]">
+            {/* Tab switcher */}
+            <div className="flex border-b border-white/10">
               <button
-                key={lang}
-                onClick={() => selectTarget(lang)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left active:bg-white/10 transition-colors ${
-                  lang === targetLanguage ? "bg-white/10" : ""
-                }`}
+                onClick={() => setLangMode("native")}
+                className={`flex-1 px-3 py-2 text-[10px] uppercase tracking-wider font-semibold transition-colors ${langMode === "native" ? "text-blue-400 bg-blue-500/10" : "text-slate-500"}`}
               >
-                <span className="text-lg">{LANG_FLAGS[lang]}</span>
-                <span className="text-white text-sm font-medium">{LANG_LABELS[lang]}</span>
-                {lang === targetLanguage && <span className="text-green-400 text-xs ml-auto">✓</span>}
+                I speak
               </button>
-            ))}
+              <button
+                onClick={() => setLangMode("target")}
+                className={`flex-1 px-3 py-2 text-[10px] uppercase tracking-wider font-semibold transition-colors ${langMode === "target" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-500"}`}
+              >
+                I learn
+              </button>
+            </div>
+            {langMode === "target" ? (
+              LANGUAGES.filter((l) => l !== nativeLanguage).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => selectTarget(lang)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left active:bg-white/10 transition-colors ${lang === targetLanguage ? "bg-white/10" : ""}`}
+                >
+                  <span className="text-lg">{LANG_FLAGS[lang]}</span>
+                  <span className="text-white text-sm font-medium">{LANG_LABELS[lang]}</span>
+                  {lang === targetLanguage && <span className="text-green-400 text-xs ml-auto">✓</span>}
+                </button>
+              ))
+            ) : (
+              LANGUAGES.map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => selectNative(lang)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left active:bg-white/10 transition-colors ${lang === nativeLanguage ? "bg-white/10" : ""}`}
+                >
+                  <span className="text-lg">{LANG_FLAGS[lang]}</span>
+                  <span className="text-white text-sm font-medium">{LANG_LABELS[lang]}</span>
+                  {lang === nativeLanguage && <span className="text-blue-400 text-xs ml-auto">✓</span>}
+                </button>
+              ))
+            )}
           </div>
         </>
       )}
