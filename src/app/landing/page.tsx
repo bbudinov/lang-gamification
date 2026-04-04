@@ -552,7 +552,10 @@ export default function LandingPage() {
             <span className="text-lg">🌍</span>
             <span>LangWorld</span>
           </div>
-          <div>Built with AI. For the future of language learning.</div>
+          <div className="flex items-center gap-4">
+            <a href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</a>
+            <span>Built with AI. For the future of language learning.</span>
+          </div>
         </div>
       </footer>
     </div>
