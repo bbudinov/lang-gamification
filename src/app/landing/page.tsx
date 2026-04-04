@@ -453,8 +453,8 @@ export default function LandingPage() {
               { num: "05", title: "Talk to NPCs", desc: "Real AI conversations with 154 characters. They remember you." },
             ].map((step, i) => (
               <FadeIn key={i} delay={i * 80}>
-                <div className="flex gap-6 py-6 border-b border-white/5 group">
-                  <div className="text-3xl font-black text-white/10 group-hover:text-blue-500/30 transition-colors w-12 shrink-0">{step.num}</div>
+                <div className="flex gap-6 py-8 border-b border-white/5 group">
+                  <div className="text-5xl sm:text-6xl font-black bg-gradient-to-b from-blue-400/30 to-purple-400/10 bg-clip-text text-transparent group-hover:from-blue-400/60 group-hover:to-purple-400/30 transition-all w-16 shrink-0">{step.num}</div>
                   <div>
                     <div className="text-lg font-semibold text-white">{step.title}</div>
                     <div className="text-sm text-slate-400 mt-1">{step.desc}</div>
