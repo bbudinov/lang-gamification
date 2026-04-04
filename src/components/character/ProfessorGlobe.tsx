@@ -15,7 +15,7 @@ const ProfessorGlobe3D = dynamic(
 
 // Preload GLB models on page load
 if (typeof window !== "undefined") {
-  ["/models/professor-new.glb"].forEach((url) => {
+  ["/models/professor-globe.glb", "/models/animations.glb"].forEach((url) => {
     const link = document.createElement("link");
     link.rel = "preload";
     link.as = "fetch";
@@ -196,8 +196,7 @@ export function ProfessorOverlay3D({ speaking = false, emotion = "idle" }: Profe
         }}
       />
       <HologramParticles count={25} />
-      {/* 3D model temporarily disabled — Meshy GLB has no skeleton, causes render issues */}
-      {/* <ProfessorGlobe3D speaking={speaking} emotion={emotion} /> */}
+      <ProfessorGlobe3D speaking={speaking} emotion={emotion} />
     </div>
   );
 }

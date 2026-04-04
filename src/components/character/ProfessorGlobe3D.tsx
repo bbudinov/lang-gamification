@@ -3,7 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { Suspense } from "react";
-import { AvatarModelNew } from "./AvatarModelNew";
+import { AvatarModel } from "./AvatarModel";
 
 interface ProfessorGlobe3DProps {
   speaking?: boolean;
@@ -14,7 +14,7 @@ interface ProfessorGlobe3DProps {
 export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
   return (
     <Canvas
-      camera={{ position: [0, 0.3, 1.5], fov: 22 }}
+      camera={{ position: [0, 0.77, 0.3], fov: 22 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         width: size,
@@ -29,7 +29,7 @@ export function ProfessorGlobeHeadshot({ size = 80 }: { size?: number }) {
         <directionalLight position={[0, 0, 3]} intensity={1.5} />
         <directionalLight position={[1, 1, 2]} intensity={1.0} color="#38bdf8" />
         <Environment preset="studio" />
-        <AvatarModelNew speaking={false} emotion="idle" />
+        <AvatarModel speaking={false} emotion="idle" />
       </Suspense>
     </Canvas>
   );
@@ -41,7 +41,7 @@ export function ProfessorGlobe3D({
 }: ProfessorGlobe3DProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0.2, 2.2], fov: 35 }}
+      camera={{ position: [0, 0.35, 2.8], fov: 35 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       style={{
         position: "absolute",
@@ -60,7 +60,7 @@ export function ProfessorGlobe3D({
         <directionalLight position={[-1, 1, -1]} intensity={0.8} color="#7dd3fc" />
         <directionalLight position={[0, -1, 2]} intensity={0.3} />
         <Environment preset="studio" />
-        <AvatarModelNew speaking={speaking} emotion={emotion} />
+        <AvatarModel speaking={speaking} emotion={emotion} />
       </Suspense>
     </Canvas>
   );
