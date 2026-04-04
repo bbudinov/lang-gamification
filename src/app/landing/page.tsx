@@ -554,6 +554,8 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <a href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</a>
+            <span>|</span>
+            <a href="/terms" className="hover:text-slate-400 transition-colors">Terms</a>
             <span>Built with AI. For the future of language learning.</span>
           </div>
         </div>
