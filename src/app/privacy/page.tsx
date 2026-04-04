@@ -148,15 +148,17 @@ export default function PrivacyPolicyPage() {
           {/* 6 */}
           <section>
             <h2 className="text-lg font-semibold text-white mb-3">6. 3D Assets and Intellectual Property</h2>
-            <p>LangWorld uses 3D models, character avatars, and visual assets in the game experience:</p>
+            <p>LangWorld uses 3D models, character avatars, and visual assets in the game experience. Here is a full disclosure of asset origins:</p>
             <ul className="list-disc list-inside space-y-1 text-slate-400 mt-2">
-              <li>3D character models (Professor Globe avatar) are used under appropriate licensing terms.</li>
-              <li>All 17 custom 3D world maps are original creations built with Three.js and React Three Fiber.</li>
-              <li>Audio files are generated using Google Cloud Text-to-Speech API with appropriate commercial licensing.</li>
-              <li>The Inter font is served locally via Next.js (no external font requests).</li>
-              <li>Emoji graphics are Unicode standard characters rendered by your device&apos;s operating system.</li>
+              <li><strong>All 17 custom 3D world maps</strong> — original creations, built programmatically with Three.js and React Three Fiber. No third-party 3D assets used.</li>
+              <li><strong>Professor Globe 3D avatar</strong> — generated via Ready Player Me (free tier). Ready Player Me permits use of generated avatars in applications. We plan to transition to a fully custom avatar in future versions.</li>
+              <li><strong>Audio files</strong> — generated using Google Cloud Text-to-Speech API under their standard commercial terms.</li>
+              <li><strong>Intro visuals</strong> (currently unused in production) — generated using Midjourney (paid plan, commercial license included) and Kling AI (paid plan, commercial license included).</li>
+              <li><strong>NPC characters</strong> — represented via emoji (Unicode standard, rendered by your OS) and AI-generated dialogue. No third-party character art.</li>
+              <li><strong>Inter font</strong> — open source (SIL Open Font License), served locally via Next.js with no external requests.</li>
+              <li><strong>All game code, architecture, world designs, NPC personalities, educational content, and game mechanics</strong> — original works created by the LangWorld team with AI-assisted development (Claude Code by Anthropic).</li>
             </ul>
-            <p className="mt-2">All game mechanics, code architecture, world designs, NPC personalities, and educational content are original works.</p>
+            <p className="mt-2"><strong>AI-assisted development disclosure:</strong> LangWorld&apos;s codebase is developed using Claude Code (Anthropic) as an AI pair programmer. The product vision, UX design, testing, and creative direction are human-led. All generated code is owned by LangWorld per Anthropic&apos;s terms of service, which grant full ownership of AI-generated outputs to the user.</p>
           </section>
 
           {/* 7 */}
