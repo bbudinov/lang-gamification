@@ -145,7 +145,8 @@ const RULES = {
       },
       {
         title: "🎓 World Exam",
-        text: "Complete 90% of games in a world to unlock the World Exam! Pass the exam to choose a new world to unlock.",
+        text: "Complete 90% of games in a world to unlock the World Exam. The exam tests all the words you've learned in that world. Score at least 85% to pass! When you pass, you get to choose which new world to unlock next.",
+        details: ["🎮 Play 90% of games in a world to unlock the exam", "📝 Answer questions about all words in the world", "🎯 Score 85% or higher to pass", "🌍 Choose your next world to unlock", "🏆 Earn +200 XP and +100 Coins for passing"],
       },
     ],
   },
@@ -240,7 +241,8 @@ const RULES = {
       },
       {
         title: "🎓 Световен Изпит",
-        text: "Завърши 90% от игрите в свят, за да отключиш Световен Изпит! Премини изпита, за да избереш нов свят.",
+        text: "Завърши 90% от игрите в един свят, за да отключиш Световния Изпит. Изпитът тества всички думи, които си научил в този свят. Трябва да вземеш поне 85%, за да минеш! Когато минеш, избираш кой нов свят да отключиш.",
+        details: ["🎮 Играй 90% от игрите в свят, за да отключиш изпита", "📝 Отговори на въпроси за всички думи в света", "🎯 Вземи 85% или повече, за да минеш", "🌍 Избери следващия си свят", "🏆 Получи +200 XP и +100 Монети при успех"],
       },
     ],
   },
