@@ -15,7 +15,7 @@ const ProfessorGlobe3D = dynamic(
 
 // Preload GLB models on page load
 if (typeof window !== "undefined") {
-  ["/models/professor-globe.glb", "/models/animations.glb"].forEach((url) => {
+  ["/models/professor-new.glb"].forEach((url) => {
     const link = document.createElement("link");
     link.rel = "preload";
     link.as = "fetch";
