@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, Environment } from "@react-three/drei";
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useMemo } from "react";
 import * as THREE from "three";
 
 const MODEL_PATH = "/models/professor-new.glb";
@@ -15,6 +15,8 @@ interface Props {
 // Simple avatar — no skeleton, no morph targets, just transforms
 function SimpleAvatar({ speaking = false, emotion = "idle" }: Props) {
   const { scene } = useGLTF(MODEL_PATH);
+  // Clone so multiple instances don't fight over the same Three.js object
+  const cloned = useMemo(() => scene.clone(true), [scene]);
   const group = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
@@ -53,7 +55,7 @@ function SimpleAvatar({ speaking = false, emotion = "idle" }: Props) {
 
   return (
     <group ref={group} position={[0, -0.85, 0]} scale={0.09}>
-      <primitive object={scene} />
+      <primitive object={cloned} />
     </group>
   );
 }
