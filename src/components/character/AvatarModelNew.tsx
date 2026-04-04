@@ -13,7 +13,21 @@ interface AvatarModelNewProps {
 }
 
 export function AvatarModelNew({ speaking = false, emotion = "idle" }: AvatarModelNewProps) {
-  const { scene } = useGLTF(MODEL_PATH);
+  let scene: THREE.Group;
+  try {
+    const gltf = useGLTF(MODEL_PATH);
+    scene = gltf.scene;
+  } catch {
+    // Model still loading or failed — render nothing
+    return null;
+  }
+
+  if (!scene) return null;
+
+  return <AvatarInner scene={scene} speaking={speaking} emotion={emotion} />;
+}
+
+function AvatarInner({ scene, speaking, emotion }: { scene: THREE.Group; speaking: boolean; emotion: string }) {
   const group = useRef<THREE.Group>(null);
   const speakingRef = useRef(speaking);
   speakingRef.current = speaking;
@@ -30,13 +44,10 @@ export function AvatarModelNew({ speaking = false, emotion = "idle" }: AvatarMod
     group.current.rotation.y = Math.sin(t * 0.5) * 0.03;
     group.current.rotation.z = Math.sin(t * 0.7) * 0.01;
 
-    // Speaking animation — more movement when talking
+    // Speaking animation
     if (speakingRef.current) {
-      // Nod slightly while speaking
       group.current.rotation.x = Math.sin(t * 2.5) * 0.02;
-      // Slight lean forward
       group.current.position.z = 0.02 + Math.sin(t * 3) * 0.005;
-      // Subtle scale pulse (like emphasis)
       const emphasis = 1 + Math.sin(t * 4) * 0.003;
       group.current.scale.y = 0.12 * breathe * emphasis;
     } else {
@@ -46,21 +57,18 @@ export function AvatarModelNew({ speaking = false, emotion = "idle" }: AvatarMod
 
     // Emotion reactions
     if (emotion === "happy") {
-      // Slight upward tilt + bigger
       group.current.rotation.x = -0.03;
       group.current.scale.setScalar(0.122);
     } else if (emotion === "surprised") {
-      // Quick scale pop
       const pop = 0.12 + Math.sin(t * 6) * 0.004;
       group.current.scale.setScalar(pop);
     } else if (emotion === "thinking") {
-      // Tilt head to side
       group.current.rotation.z = 0.05 + Math.sin(t * 0.8) * 0.02;
     }
   });
 
   return (
-    <group ref={group} position={[0, -1.0, 0]} scale={0.12} rotation={[0, 0, 0]}>
+    <group ref={group} position={[0, -1.0, 0]} scale={0.12}>
       <primitive object={scene} />
     </group>
   );
