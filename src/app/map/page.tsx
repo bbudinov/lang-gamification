@@ -107,13 +107,20 @@ export default function MapPage() {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [showMissions, setShowMissions] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [activeWorld, setActiveWorld] = useState<WorldId>("land");
+  const [activeWorld, setActiveWorld] = useState<WorldId>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("langworld-last-world") as WorldId | null;
+      if (saved) return saved;
+    }
+    return "land";
+  });
   const [worldSelectorOpen, setWorldSelectorOpen] = useState(false);
   const { targetLanguage, gameResults } = useProgressStore();
 
-  // Update URL when world changes (without navigation)
+  // Update URL + save to localStorage when world changes
   const handleWorldChange = useCallback((worldId: WorldId) => {
     setActiveWorld(worldId);
+    localStorage.setItem("langworld-last-world", worldId);
     const url = worldId === "land" ? "/map" : `/map?world=${worldId}`;
     window.history.replaceState(null, "", url);
   }, []);
