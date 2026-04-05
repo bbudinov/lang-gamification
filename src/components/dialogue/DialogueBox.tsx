@@ -663,12 +663,7 @@ export function DialogueBox({ topic }: DialogueBoxProps) {
                 speakingRef.current = false;
                 setNpcSpeaking(false);
                 stopMic();
-                // Use history back if available, otherwise go to map
-                if (window.history.length > 1) {
-                  router.back();
-                } else {
-                  router.push("/map");
-                }
+                router.push(`/map?topic=${topic.id}`);
               }}
               className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-black/50 transition-colors"
             >
