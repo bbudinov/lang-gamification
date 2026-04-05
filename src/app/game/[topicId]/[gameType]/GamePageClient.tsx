@@ -25,7 +25,7 @@ export function GamePageClient({ topicId, gameType }: GamePageClientProps) {
       <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-4">
         <p className="text-white text-lg">Topic not found</p>
         <button
-          onClick={() => router.push("/map")}
+          onClick={() => router.push(`/map?topic=${topicId}`)}
           className="text-blue-400 text-sm"
         >
           Back to Map
@@ -47,7 +47,7 @@ export function GamePageClient({ topicId, gameType }: GamePageClientProps) {
     <div className="min-h-screen bg-[#0a1628] flex flex-col items-center justify-center gap-4">
       <p className="text-white text-lg">Coming soon: {gameType}</p>
       <button
-        onClick={() => router.push("/map")}
+        onClick={() => router.push(`/map?topic=${topicId}`)}
         className="text-blue-400 text-sm"
       >
         Back to Map

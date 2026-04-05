@@ -351,7 +351,7 @@ export function SayIt({ topic }: SayItProps) {
         <p className="text-slate-400 text-sm text-center">
           Try using Chrome on Android for the best experience!
         </p>
-        <button onClick={() => router.back()} className="text-blue-400 text-sm mt-4">
+        <button onClick={() => router.push(`/map?topic=${topic.id}`))} className="text-blue-400 text-sm mt-4">
           ← Back to Map
         </button>
       </div>
@@ -439,7 +439,7 @@ export function SayIt({ topic }: SayItProps) {
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/map?topic=${topic.id}`))}
             className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
           >
             <span className="text-white text-sm">← Back</span>

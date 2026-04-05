@@ -1734,7 +1734,7 @@ export function WorldMap({ onSelectCity }: WorldMapProps) {
       <Canvas
         dpr={dpr}
         shadows={!IS_MOBILE}
-        camera={{ position: [0, 55, 40], fov: 45 }}
+        camera={{ position: IS_MOBILE ? [0, 65, 48] : [0, 55, 40], fov: IS_MOBILE ? 52 : 45 }}
         style={{ touchAction: "none" }}
         gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
       >

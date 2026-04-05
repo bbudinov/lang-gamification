@@ -6,9 +6,10 @@ import { useGameStore } from "@/stores/gameStore";
 interface GameHUDProps {
   topicEmoji: string;
   topicName: string;
+  topicId?: string;
 }
 
-export function GameHUD({ topicEmoji, topicName }: GameHUDProps) {
+export function GameHUD({ topicEmoji, topicName, topicId }: GameHUDProps) {
   const router = useRouter();
   const { score, moves, matchedPairs, totalPairs } = useGameStore();
 
@@ -16,7 +17,7 @@ export function GameHUD({ topicEmoji, topicName }: GameHUDProps) {
     <div className="absolute top-0 left-0 right-0 z-10 safe-area">
       <div className="flex items-center justify-between px-4 py-3">
         <button
-          onClick={() => router.push("/map")}
+          onClick={() => router.push(topicId ? `/map?topic=${topicId}` : "/map")}
           className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
         >
           <span className="text-white text-sm">← Back</span>
