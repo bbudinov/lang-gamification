@@ -237,7 +237,12 @@ export default function MapPage() {
           topicId={selectedTopic.id}
           topicName={selectedTopic.name[targetLanguage]}
           topicEmoji={selectedTopic.emoji}
-          onClose={() => setSelectedTopicId(null)}
+          onClose={() => {
+            setSelectedTopicId(null);
+            // Clear topic from URL so refresh doesn't reopen modal
+            const url = activeWorld === "land" ? "/map" : `/map?world=${activeWorld}`;
+            window.history.replaceState(null, "", url);
+          }}
         />
       )}
     </div>
