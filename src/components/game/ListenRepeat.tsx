@@ -166,7 +166,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
           Try using Chrome on Android for the best experience!
         </p>
         <button
-          onClick={() => router.push(`/map?topic=${topic.id}`))}
+          onClick={() => router.push(`/map?topic=${topic.id}`)}
           className="text-blue-400 text-sm mt-4"
         >
           ← Back to Map
@@ -181,7 +181,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
         <ProfessorGlobe size={80} emotion="thinking" />
         <p className="text-white text-lg text-center">No phrases available for this topic yet!</p>
         <button
-          onClick={() => router.push(`/map?topic=${topic.id}`))}
+          onClick={() => router.push(`/map?topic=${topic.id}`)}
           className="text-blue-400 text-sm mt-4"
         >
           ← Back to Map
@@ -264,7 +264,7 @@ export function ListenRepeat({ topic }: ListenRepeatProps) {
       <div className="safe-area">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={() => router.push(`/map?topic=${topic.id}`))}
+            onClick={() => router.push(`/map?topic=${topic.id}`)}
             className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 active:bg-white/20 transition-colors"
           >
             <span className="text-white text-sm">← Back</span>
