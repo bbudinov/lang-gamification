@@ -25,7 +25,7 @@ function SimpleAvatar({ speaking = false, emotion = "idle" }: Props) {
 
     // Base breathing
     const breathe = 1 + Math.sin(t * 1.5) * 0.004;
-    group.current.scale.set(0.09, 0.09 * breathe, 0.09);
+    group.current.scale.set(1.0, 1.0 * breathe, 1.0);
 
     // Idle sway
     group.current.rotation.y = Math.sin(t * 0.5) * 0.03;
@@ -36,7 +36,7 @@ function SimpleAvatar({ speaking = false, emotion = "idle" }: Props) {
       group.current.rotation.x = Math.sin(t * 2.5) * 0.015;
       group.current.position.z = Math.sin(t * 3) * 0.01;
       // Subtle emphasis pulse
-      const pulse = 0.09 * (1 + Math.sin(t * 4) * 0.003);
+      const pulse = 1.0 * (1 + Math.sin(t * 4) * 0.003);
       group.current.scale.y = pulse * breathe;
     } else {
       group.current.rotation.x = 0;
@@ -47,14 +47,14 @@ function SimpleAvatar({ speaking = false, emotion = "idle" }: Props) {
     if (emotion === "happy") {
       group.current.rotation.x = -0.02;
     } else if (emotion === "surprised") {
-      group.current.scale.setScalar(0.09 + Math.sin(t * 6) * 0.003);
+      group.current.scale.setScalar(1.0 + Math.sin(t * 6) * 0.003);
     } else if (emotion === "thinking") {
       group.current.rotation.z = 0.04 + Math.sin(t * 0.8) * 0.015;
     }
   });
 
   return (
-    <group ref={group} position={[0, -0.85, 0]} scale={0.09}>
+    <group ref={group} position={[0, -0.9, 0]} scale={1.0}>
       <primitive object={cloned} />
     </group>
   );
