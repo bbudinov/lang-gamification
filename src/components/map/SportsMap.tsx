@@ -781,7 +781,7 @@ export function SportsMap({ onSelectCity }: { onSelectCity: (city: City) => void
       <Canvas
         dpr={dpr}
         shadows={false}
-        camera={{ position: [0, 40, 50], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 58, 72] : [0, 40, 50], fov: IS_MOBILE ? 58 : 50 }}
         style={{ touchAction: "none" }}
         gl={
           IS_MOBILE

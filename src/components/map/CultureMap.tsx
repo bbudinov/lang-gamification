@@ -1167,7 +1167,7 @@ export function CultureMap({ onSelectCity }: { onSelectCity: (city: City) => voi
       <Canvas
         dpr={dpr}
         shadows={false}
-        camera={{ position: [0, 15, 35], fov: 45 }}
+        camera={{ position: IS_MOBILE ? [0, 22, 50] : [0, 15, 35], fov: IS_MOBILE ? 55 : 45 }}
         style={{ touchAction: "none" }}
         gl={
           IS_MOBILE

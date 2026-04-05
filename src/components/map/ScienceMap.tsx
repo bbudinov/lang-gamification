@@ -1161,7 +1161,7 @@ export function ScienceMap({
     >
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 35, 45], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 50, 65] : [0, 35, 45], fov: IS_MOBILE ? 58 : 50 }}
         gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
       >
         <PerformanceMonitor

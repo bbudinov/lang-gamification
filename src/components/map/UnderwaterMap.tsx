@@ -2665,7 +2665,7 @@ export function UnderwaterMap({ onSelectCity }: { onSelectCity: (city: City) => 
     <div className="w-full h-full">
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 20, 55], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 30, 78] : [0, 20, 55], fov: IS_MOBILE ? 58 : 50 }}
         style={{
           background: "linear-gradient(180deg, #1a6b8a 0%, #0d4a6b 40%, #030d18 100%)",
         }}

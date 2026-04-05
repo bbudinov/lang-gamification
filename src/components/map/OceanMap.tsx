@@ -1486,7 +1486,7 @@ export function OceanMap({ onSelectCity }: { onSelectCity: (city: City) => void 
       <Canvas
         dpr={dpr}
         shadows={false}
-        camera={{ position: [0, 55, 50], fov: 45 }}
+        camera={{ position: IS_MOBILE ? [0, 78, 72] : [0, 55, 50], fov: IS_MOBILE ? 55 : 45 }}
         style={{ touchAction: "none" }}
         gl={
           IS_MOBILE

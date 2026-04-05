@@ -1363,7 +1363,7 @@ export function SocialMap({ onSelectCity }: { onSelectCity: (city: City) => void
       <Canvas
         dpr={dpr}
         shadows={false}
-        camera={{ position: [0, 50, 50], fov: 45 }}
+        camera={{ position: IS_MOBILE ? [0, 72, 72] : [0, 50, 50], fov: IS_MOBILE ? 55 : 45 }}
         style={{ touchAction: "none" }}
         gl={
           IS_MOBILE

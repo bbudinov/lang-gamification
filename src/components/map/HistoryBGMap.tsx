@@ -1293,7 +1293,7 @@ export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => v
     <div className="w-full h-full absolute inset-0">
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 30, 48], fov: 45 }}
+        camera={{ position: IS_MOBILE ? [0, 44, 68] : [0, 30, 48], fov: IS_MOBILE ? 55 : 45 }}
         gl={{ antialias: !IS_MOBILE, powerPreference: "high-performance" }}
         style={{ background: "#06192e" }}
       >

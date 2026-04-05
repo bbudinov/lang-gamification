@@ -1040,7 +1040,7 @@ export function MetaMap({
     >
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 30, 50], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 44, 72] : [0, 30, 50], fov: IS_MOBILE ? 58 : 50 }}
         gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
       >
         <PerformanceMonitor

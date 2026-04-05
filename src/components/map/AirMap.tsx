@@ -1018,7 +1018,7 @@ export function AirMap({ onSelectCity }: { onSelectCity: (city: City) => void })
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 35, 60], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 50, 85] : [0, 35, 60], fov: IS_MOBILE ? 58 : 50 }}
         dpr={dpr}
         gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
         style={{

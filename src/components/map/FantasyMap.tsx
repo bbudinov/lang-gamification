@@ -1369,7 +1369,7 @@ export function FantasyMap({ onSelectCity }: { onSelectCity: (city: City) => voi
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 35, 55], fov: 50 }}
+        camera={{ position: IS_MOBILE ? [0, 50, 78] : [0, 35, 55], fov: IS_MOBILE ? 58 : 50 }}
         dpr={dpr}
         gl={IS_MOBILE ? { antialias: false, powerPreference: "high-performance" } : undefined}
         style={{
