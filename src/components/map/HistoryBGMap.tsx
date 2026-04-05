@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React, { useRef, useEffect, useMemo, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 import { TOUCH, MOUSE } from "three";
@@ -1283,6 +1283,26 @@ function SceneContent({ onSelectCity, lang }: { onSelectCity: (city: City) => vo
       ))}
     </>
   );
+}
+
+
+// Mobile camera adjuster — fixes zoom on phones (runs after mount)
+function MobileCameraAdjust({ pos, fov }: { pos: [number, number, number]; fov: number }) {
+  const { camera } = useThree();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    const isMob = window.innerWidth < 800 || "ontouchstart" in window;
+    if (isMob) {
+      camera.position.set(...pos);
+      if ("fov" in camera) {
+        (camera as THREE.PerspectiveCamera).fov = fov;
+        (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+      }
+      done.current = true;
+    }
+  }, [camera, fov, pos]);
+  return null;
 }
 
 export function HistoryBGMap({ onSelectCity }: { onSelectCity: (city: City) => void }) {

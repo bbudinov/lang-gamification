@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo, useState, useCallback } from "react";
+import React, { useRef, useEffect, useMemo, useState, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
 import { useProgressStore } from "@/stores/progressStore";
@@ -1629,6 +1629,26 @@ function EmotionsScene({
 }
 
 // ─── Export ──────────────────────────────────────────────────────
+
+// Mobile camera adjuster — fixes zoom on phones (runs after mount)
+function MobileCameraAdjust({ pos, fov }: { pos: [number, number, number]; fov: number }) {
+  const { camera } = useThree();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    const isMob = window.innerWidth < 800 || "ontouchstart" in window;
+    if (isMob) {
+      camera.position.set(...pos);
+      if ("fov" in camera) {
+        (camera as THREE.PerspectiveCamera).fov = fov;
+        (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+      }
+      done.current = true;
+    }
+  }, [camera, fov, pos]);
+  return null;
+}
+
 export function EmotionsMap({
   onSelectCity,
 }: {

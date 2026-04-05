@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useRef, useEffect, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 import { CITIES, type City } from "@/data/cities";
@@ -1127,6 +1127,26 @@ function SceneReady({ onReady }: { onReady: () => void }) {
 // ═════════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════
+
+// Mobile camera adjuster — fixes zoom on phones (runs after mount)
+function MobileCameraAdjust({ pos, fov }: { pos: [number, number, number]; fov: number }) {
+  const { camera } = useThree();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    const isMob = window.innerWidth < 800 || "ontouchstart" in window;
+    if (isMob) {
+      camera.position.set(...pos);
+      if ("fov" in camera) {
+        (camera as THREE.PerspectiveCamera).fov = fov;
+        (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+      }
+      done.current = true;
+    }
+  }, [camera, fov, pos]);
+  return null;
+}
+
 export function CultureMap({ onSelectCity }: { onSelectCity: (city: City) => void }) {
   const { totalPoints, getTopicCompletedLevels } = useProgressStore();
   const lang = useProgressStore((s) => s.targetLanguage) as Language;
